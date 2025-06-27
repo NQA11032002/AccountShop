@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Demo Orders Setup</title>
+    <script>
+        // Script to add sample orders for demo purposes
+        function addSampleOrders() {
+            const userId = '1750783190186'; // Current logged in user ID
+            const sampleOrders = [
+                {
+                    id: 'QAI24061701',
+                    date: new Date('2024-06-15').toISOString(),
+                    status: 'completed',
+                    items: [
+                        {
+                            id: 1,
+                            name: 'Netflix Premium',
+                            price: 89000,
+                            originalPrice: 260000,
+                            duration: '1 tháng',
+                            durationId: '1m',
+                            quantity: 1,
+                            image: '🎬',
+                            color: 'bg-red-600',
+                            description: 'Tài khoản Netflix Premium chất lượng cao',
+                            warranty: 'Bảo hành 30 ngày'
+                        }
+                    ],
+                    originalTotal: 89000,
+                    total: 80100,
+                    discount: 8900,
+                    paymentMethod: 'momo',
+                    paymentStatus: 'completed',
+                    customerInfo: {
+                        fullName: 'Eisenhower Asante',
+                        email: 'eisenhowerasante590@outlook.com',
+                        phone: '0123456789',
+                        address: ''
+                    },
+                    discountCode: 'WELCOME10',
+                    transactionId: 'TXN_1719331200000',
+                    deliveryInfo: {
+                        email: 'eisenhowerasante590@outlook.com',
+                        deliveredAt: new Date('2024-06-15T10:30:00').toISOString(),
+                        accountCredentials: [
+                            {
+                                itemId: 1,
+                                itemName: 'Netflix Premium',
+                                credentials: {
+                                    email: 'netflix.premium.1719331200000@qaistore.com',
+                                    password: 'NF8X9K2M7Q!',
+                                    profilePins: ['1234', '5678', '9012', '3456'],
+                                    note: 'Tài khoản Netflix Premium 4K - Sử dụng được trên 4 thiết bị cùng lúc'
+                                },
+                                deliveredAt: new Date('2024-06-15T10:30:00').toISOString()
+                            }
+                        ]
+                    }
+                },
+                {
+                    id: 'QAI24061202',
+                    date: new Date('2024-06-12').toISOString(),
+                    status: 'completed',
+                    items: [
+                        {
+                            id: 2,
+                            name: 'Spotify Premium',
+                            price: 39000,
+                            originalPrice: 59000,
+                            duration: '1 tháng',
+                            durationId: '1m',
+                            quantity: 1,
+                            image: '🎵',
+                            color: 'bg-green-500',
+                            description: 'Tài khoản Spotify Premium, nghe nhạc không giới hạn',
+                            warranty: 'Bảo hành 30 ngày'
+                        }
+                    ],
+                    originalTotal: 39000,
+                    total: 39000,
+                    discount: 0,
+                    paymentMethod: 'banking',
+                    paymentStatus: 'completed',
+                    customerInfo: {
+                        fullName: 'Eisenhower Asante',
+                        email: 'eisenhowerasante590@outlook.com',
+                        phone: '0123456789',
+                        address: ''
+                    },
+                    transactionId: 'TXN_1719072000000',
+                    deliveryInfo: {
+                        email: 'eisenhowerasante590@outlook.com',
+                        deliveredAt: new Date('2024-06-12T14:15:00').toISOString(),
+                        accountCredentials: [
+                            {
+                                itemId: 2,
+                                itemName: 'Spotify Premium',
+                                credentials: {
+                                    email: 'spotify.premium.1719072000000@qaistore.com',
+                                    password: 'SP7Y4N6K9M!',
+                                    note: 'Tài khoản Spotify Premium - Nghe nhạc chất lượng cao không giới hạn'
+                                },
+                                deliveredAt: new Date('2024-06-12T14:15:00').toISOString()
+                            }
+                        ]
+                    }
+                },
+                {
+                    id: 'QAI24061003',
+                    date: new Date('2024-06-10').toISOString(),
+                    status: 'processing',
+                    items: [
+                        {
+                            id: 3,
+                            name: 'ChatGPT Plus',
+                            price: 120000,
+                            originalPrice: 200000,
+                            duration: '1 tháng',
+                            durationId: '1m',
+                            quantity: 1,
+                            image: '🤖',
+                            color: 'bg-purple-600',
+                            description: 'GPT-4, ưu tiên truy cập, plugin mới nhất',
+                            warranty: 'Bảo hành 30 ngày'
+                        }
+                    ],
+                    originalTotal: 120000,
+                    total: 102000,
+                    discount: 18000,
+                    paymentMethod: 'card',
+                    paymentStatus: 'processing',
+                    customerInfo: {
+                        fullName: 'Eisenhower Asante',
+                        email: 'eisenhowerasante590@outlook.com',
+                        phone: '0123456789',
+                        address: ''
+                    },
+                    discountCode: 'PREMIUM15',
+                    transactionId: 'TXN_1718899200000'
+                }
+            ];
+
+            localStorage.setItem(`qai_orders_${userId}`, JSON.stringify(sampleOrders));
+            alert('Sample orders added! Refresh the orders page to see them.');
+            console.log('Sample orders created:', sampleOrders);
+        }
+
+        function clearOrders() {
+            const userId = '1750783190186';
+            localStorage.removeItem(`qai_orders_${userId}`);
+            alert('Orders cleared!');
+        }
+    </script>
+</head>
+<body style="font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5;">
+    <h1>QAI STORE Demo Orders Setup</h1>
+    <p>Use this page to add sample orders for testing the orders page.</p>
+    
+    <div style="margin: 20px 0;">
+        <button onclick="addSampleOrders()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+            Add Sample Orders
+        </button>
+        <button onclick="clearOrders()" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Clear Orders
+        </button>
+    </div>
+
+    <p><a href="/orders" style="color: #3b82f6;">→ Go to Orders Page</a></p>
+    <p><a href="/products" style="color: #3b82f6;">→ Go to Products Page</a></p>
+    <p><a href="/" style="color: #3b82f6;">→ Go to Homepage</a></p>
+</body>
+</html>

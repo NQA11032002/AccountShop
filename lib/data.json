@@ -1,0 +1,503 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Netflix Premium",
+      "category": "streaming",
+      "description": "4K Ultra HD, 4 thiết bị cùng lúc",
+      "price": 50000,
+      "originalPrice": 80000,
+      "image": "🎬",
+      "color": "bg-red-600",
+      "badge": "Bán chạy",
+      "badgeColor": "bg-red-500",
+      "inStock": true,
+      "rating": 4.8,
+      "reviews": 1240,
+      "warranty": "30 ngày",
+      "sales": 1250,
+      "stock": 50,
+      "status": "active",
+      "features": [
+        "4K Ultra HD",
+        "Xem trên 4 thiết bị",
+        "Không quảng cáo",
+        "Tải về xem offline"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 50000,
+          "originalPrice": 80000
+        },
+        {
+          "id": "3m",
+          "name": "3 tháng",
+          "price": 140000,
+          "originalPrice": 240000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 270000,
+          "originalPrice": 480000
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Spotify Premium",
+      "category": "music",
+      "description": "Spotify Premium - Premium quality service",
+      "price": 39000,
+      "originalPrice": 59000,
+      "image": "🎵",
+      "color": "bg-green-500",
+      "badge": "Còn hàng",
+      "badgeColor": "bg-green-500",
+      "inStock": true,
+      "rating": 4.9,
+      "reviews": 890,
+      "warranty": "30 ngày",
+      "sales": 890,
+      "stock": 100,
+      "status": "active",
+      "features": [
+        "Chất lượng cao",
+        "Không quảng cáo",
+        "Tải về offline",
+        "Skip không giới hạn"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 39000,
+          "originalPrice": 59000
+        },
+        {
+          "id": "3m",
+          "name": "3 tháng",
+          "price": 110000,
+          "originalPrice": 177000
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "ChatGPT Plus",
+      "category": "ai",
+      "description": "ChatGPT Plus - Premium quality service",
+      "price": 120000,
+      "originalPrice": 200000,
+      "image": "🤖",
+      "color": "bg-purple-600",
+      "badge": "Còn hàng",
+      "badgeColor": "bg-green-500",
+      "inStock": true,
+      "rating": 4.9,
+      "reviews": 634,
+      "warranty": "30 ngày",
+      "sales": 634,
+      "stock": 25,
+      "status": "active",
+      "features": [
+        "GPT-4 Access",
+        "Faster response",
+        "Priority access",
+        "Advanced features"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 120000,
+          "originalPrice": 200000
+        },
+        {
+          "id": "3m",
+          "name": "3 tháng",
+          "price": 340000,
+          "originalPrice": 600000
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "YouTube Premium",
+      "category": "streaming",
+      "description": "Ad-free YouTube + YouTube Music",
+      "price": 67000,
+      "originalPrice": 90000,
+      "image": "📺",
+      "color": "bg-red-600",
+      "badge": "Hot",
+      "badgeColor": "bg-orange-500",
+      "inStock": true,
+      "rating": 4.7,
+      "reviews": 520,
+      "warranty": "30 ngày",
+      "sales": 520,
+      "stock": 75,
+      "status": "active",
+      "features": [
+        "Không quảng cáo",
+        "Tải về video",
+        "YouTube Music",
+        "Phát nền"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 67000,
+          "originalPrice": 90000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 380000,
+          "originalPrice": 540000
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Adobe Creative Cloud",
+      "category": "design",
+      "description": "Full suite of creative applications",
+      "price": 145000,
+      "originalPrice": 200000,
+      "image": "🎨",
+      "color": "bg-orange-500",
+      "badge": "Professional",
+      "badgeColor": "bg-blue-500",
+      "inStock": true,
+      "rating": 4.8,
+      "reviews": 342,
+      "warranty": "30 ngày",
+      "sales": 342,
+      "stock": 20,
+      "status": "active",
+      "features": [
+        "Photoshop",
+        "Illustrator", 
+        "Premiere Pro",
+        "After Effects"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 145000,
+          "originalPrice": 200000
+        },
+        {
+          "id": "3m",
+          "name": "3 tháng",
+          "price": 420000,
+          "originalPrice": 600000
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Microsoft Office 365",
+      "category": "productivity",
+      "description": "Complete office suite with cloud storage",
+      "price": 85000,
+      "originalPrice": 120000,
+      "image": "💼",
+      "color": "bg-blue-600",
+      "badge": "Essential",
+      "badgeColor": "bg-indigo-500",
+      "inStock": true,
+      "rating": 4.6,
+      "reviews": 789,
+      "warranty": "30 ngày",
+      "sales": 789,
+      "stock": 100,
+      "status": "active",
+      "features": [
+        "Word, Excel, PowerPoint",
+        "1TB OneDrive",
+        "Teams access",
+        "Multiple devices"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 85000,
+          "originalPrice": 120000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 900000,
+          "originalPrice": 1440000
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "user_001",
+      "name": "Nguyễn Văn A",
+      "email": "nguyenvana@gmail.com",
+      "password": "123456",
+      "joinDate": "2024-01-15T00:00:00.000Z",
+      "status": "active",
+      "totalOrders": 5,
+      "totalSpent": 850000,
+      "avatar": "https://ui-avatars.com/api/?name=Nguyễn+Văn+A&background=6366f1&color=fff",
+      "phone": "0901234567",
+      "address": "123 Nguyễn Huệ, Q1, TP.HCM",
+      "points": 50000000,
+      "rank": "silver",
+      "preferences": {
+        "categories": ["streaming", "music"],
+        "notifications": true,
+        "currency": "VND"
+      }
+    },
+    {
+      "id": "user_002",
+      "name": "Trần Thị B",
+      "email": "tranthib@gmail.com",
+      "password": "123456",
+      "joinDate": "2024-02-01T00:00:00.000Z",
+      "status": "active",
+      "totalOrders": 3,
+      "totalSpent": 450000,
+      "avatar": "https://ui-avatars.com/api/?name=Trần+Thị+B&background=ec4899&color=fff",
+      "phone": "0987654321",
+      "address": "456 Lê Lợi, Q3, TP.HCM",
+      "points": 450,
+      "rank": "bronze",
+      "preferences": {
+        "categories": ["ai", "productivity"],
+        "notifications": true,
+        "currency": "VND"
+      }
+    },
+    {
+      "id": "demo",
+      "name": "Demo User",
+      "email": "demo@qaistore.com",
+      "password": "123456",
+      "joinDate": "2024-01-01T00:00:00.000Z",
+      "status": "active",
+      "totalOrders": 2,
+      "totalSpent": 189000,
+      "avatar": "https://ui-avatars.com/api/?name=Demo+User&background=6366f1&color=fff",
+      "phone": "0123456789",
+      "address": "Demo Address",
+      "points": 189,
+      "rank": "bronze",
+      "preferences": {
+        "categories": ["streaming", "ai"],
+        "notifications": true,
+        "currency": "VND"
+      }
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD_001",
+      "userId": "user_001",
+      "userEmail": "nguyenvana@gmail.com",
+      "customerName": "Nguyễn Văn A",
+      "products": [
+        {
+          "id": 1,
+          "name": "Netflix Premium",
+          "quantity": 1,
+          "price": 50000,
+          "duration": "1 tháng"
+        }
+      ],
+      "total": 50000,
+      "status": "completed",
+      "paymentMethod": "Ví điện tử",
+      "createdAt": "2024-03-15T10:30:00.000Z",
+      "date": "2024-03-15T10:30:00.000Z",
+      "shippingAddress": "123 Nguyễn Huệ, Q1, TP.HCM",
+      "notes": "Giao hàng nhanh"
+    },
+    {
+      "id": "ORD_002",
+      "userId": "demo",
+      "userEmail": "demo@qaistore.com",
+      "customerName": "Demo User",
+      "products": [
+        {
+          "id": 2,
+          "name": "Spotify Premium",
+          "quantity": 1,
+          "price": 39000,
+          "duration": "1 tháng"
+        },
+        {
+          "id": 3,
+          "name": "ChatGPT Plus",
+          "quantity": 1,
+          "price": 120000,
+          "duration": "1 tháng"
+        }
+      ],
+      "total": 159000,
+      "status": "completed",
+      "paymentMethod": "Thẻ ngân hàng",
+      "createdAt": "2024-03-16T14:20:00.000Z",
+      "date": "2024-03-16T14:20:00.000Z",
+      "shippingAddress": "Demo Address",
+      "notes": ""
+    }
+  ],
+  "customerAccounts": [
+    {
+      "id": "acc_001",
+      "accountEmail": "netflix_user@example.com",
+      "accountPassword": "SecurePass123!",
+      "customerName": "Nguyễn Văn A",
+      "customerEmail": "nguyenvana@gmail.com",
+      "customerPhone": "0901234567",
+      "productType": "Netflix Premium",
+      "productIcon": "🎬",
+      "productColor": "bg-red-500",
+      "purchaseDate": "2024-01-15T00:00:00.000Z",
+      "expiryDate": "2024-07-15T00:00:00.000Z",
+      "status": "active",
+      "link": "https://netflix.com",
+      "orderId": "ORD_001",
+      "duration": "6 tháng",
+      "purchasePrice": 270000,
+      "totalSpent": 850000,
+      "totalOrders": 5,
+      "currentRank": "silver"
+    }
+  ],
+  "userSessions": [
+    {
+      "userId": "demo",
+      "sessionId": "session_demo_001",
+      "loginTime": "2024-03-26T10:00:00.000Z",
+      "lastActivity": "2024-03-26T15:30:00.000Z",
+      "ipAddress": "192.168.1.1",
+      "userAgent": "Mozilla/5.0",
+      "isActive": true
+    }
+  ],
+  "userFavorites": [
+    {
+      "userId": "demo",
+      "productId": 1,
+      "addedAt": "2024-03-26T12:00:00.000Z"
+    },
+    {
+      "userId": "demo",
+      "productId": 3,
+      "addedAt": "2024-03-26T13:15:00.000Z"
+    },
+    {
+      "userId": "user_001",
+      "productId": 2,
+      "addedAt": "2024-03-25T09:30:00.000Z"
+    }
+  ],
+  "userCarts": [
+    {
+      "userId": "demo",
+      "productId": 4,
+      "quantity": 1,
+      "selectedDuration": "1m",
+      "addedAt": "2024-03-26T14:00:00.000Z"
+    }
+  ],
+  "userWallets": [
+    {
+      "userId": "demo",
+      "balance": 150000,
+      "currency": "VND",
+      "lastUpdated": "2024-03-26T10:00:00.000Z",
+      "transactions": [
+        {
+          "id": "txn_001",
+          "type": "deposit",
+          "amount": 200000,
+          "description": "Nạp tiền vào ví",
+          "timestamp": "2024-03-25T10:00:00.000Z",
+          "status": "completed"
+        },
+        {
+          "id": "txn_002",
+          "type": "purchase",
+          "amount": -50000,
+          "description": "Mua Netflix Premium",
+          "timestamp": "2024-03-26T11:00:00.000Z",
+          "status": "completed",
+          "orderId": "ORD_001"
+        }
+      ]
+    },
+    {
+      "userId": "user_001",
+      "balance": 500000,
+      "currency": "VND",
+      "lastUpdated": "2024-03-26T09:00:00.000Z",
+      "transactions": [
+        {
+          "id": "txn_003",
+          "type": "deposit",
+          "amount": 1000000,
+          "description": "Nạp tiền ban đầu",
+          "timestamp": "2024-03-20T10:00:00.000Z",
+          "status": "completed"
+        }
+      ]
+    }
+  ],
+  "userRankings": [
+    {
+      "userId": "demo",
+      "points": 189,
+      "rank": "bronze",
+      "nextRankPoints": 300,
+      "totalSpent": 189000,
+      "totalOrders": 2,
+      "joinDate": "2024-01-01T00:00:00.000Z",
+      "lastUpdated": "2024-03-26T15:30:00.000Z",
+      "rewards": [
+        {
+          "id": "reward_001",
+          "type": "discount",
+          "value": 10,
+          "description": "Giảm 10% cho đơn hàng tiếp theo",
+          "expiryDate": "2024-04-26T00:00:00.000Z",
+          "isUsed": false
+        }
+      ]
+    },
+    {
+      "userId": "user_001",
+      "points": 850,
+      "rank": "silver",
+      "nextRankPoints": 1000,
+      "totalSpent": 850000,
+      "totalOrders": 5,
+      "joinDate": "2024-01-15T00:00:00.000Z",
+      "lastUpdated": "2024-03-25T12:00:00.000Z",
+      "rewards": []
+    }
+  ],
+  "metadata": {
+    "lastUpdated": "2024-03-26T15:30:00.000Z",
+    "version": "2.0.0",
+    "totalUsers": 3,
+    "totalProducts": 6,
+    "totalOrders": 2,
+    "systemStatus": "active"
+  }
+}
