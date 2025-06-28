@@ -182,7 +182,7 @@
       "status": "active",
       "features": [
         "Photoshop",
-        "Illustrator", 
+        "Illustrator",
         "Premiere Pro",
         "After Effects"
       ],
@@ -239,6 +239,747 @@
           "originalPrice": 1440000
         }
       ]
+    },
+    {
+      "id": 7,
+      "name": "CapCut Pro",
+      "category": "design",
+      "description": "Professional video editing with AI features",
+      "price": 69000,
+      "originalPrice": 99000,
+      "image": "✂️",
+      "color": "bg-black",
+      "badge": "Trending",
+      "badgeColor": "bg-yellow-500",
+      "inStock": true,
+      "rating": 4.7,
+      "reviews": 456,
+      "warranty": "30 ngày",
+      "sales": 456,
+      "stock": 80,
+      "status": "active",
+      "features": [
+        "AI Auto Cut",
+        "Professional Effects",
+        "4K Export",
+        "No Watermark"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 69000,
+          "originalPrice": 99000
+        },
+        {
+          "id": "3m",
+          "name": "3 tháng",
+          "price": 199000,
+          "originalPrice": 297000
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Canva Pro",
+      "category": "design",
+      "description": "Professional design platform with premium features",
+      "price": 49000,
+      "originalPrice": 75000,
+      "image": "🎨",
+      "color": "bg-purple-500",
+      "badge": "Popular",
+      "badgeColor": "bg-purple-500",
+      "inStock": true,
+      "rating": 4.8,
+      "reviews": 892,
+      "warranty": "30 ngày",
+      "sales": 892,
+      "stock": 120,
+      "status": "active",
+      "features": [
+        "Premium Templates",
+        "Background Remover",
+        "Magic Resize",
+        "Brand Kit"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 49000,
+          "originalPrice": 75000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 249000,
+          "originalPrice": 450000
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Google Drive 1TB",
+      "category": "storage",
+      "description": "1TB cloud storage with Google Workspace",
+      "price": 45000,
+      "originalPrice": 65000,
+      "image": "☁️",
+      "color": "bg-blue-500",
+      "badge": "Storage",
+      "badgeColor": "bg-blue-500",
+      "inStock": true,
+      "rating": 4.6,
+      "reviews": 567,
+      "warranty": "30 ngày",
+      "sales": 567,
+      "stock": 200,
+      "status": "active",
+      "features": [
+        "1TB Storage",
+        "Google Docs Access",
+        "15GB Gmail",
+        "Priority Support"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 45000,
+          "originalPrice": 65000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 499000,
+          "originalPrice": 780000
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Disney+ Hotstar",
+      "category": "streaming",
+      "description": "Disney, Marvel, Star Wars content",
+      "price": 55000,
+      "originalPrice": 80000,
+      "image": "🏰",
+      "color": "bg-blue-700",
+      "badge": "Family",
+      "badgeColor": "bg-green-500",
+      "inStock": true,
+      "rating": 4.5,
+      "reviews": 234,
+      "warranty": "30 ngày",
+      "sales": 234,
+      "stock": 45,
+      "status": "active",
+      "features": [
+        "Disney Content",
+        "Marvel Movies",
+        "Star Wars Series",
+        "4K Streaming"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 55000,
+          "originalPrice": 80000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 299000,
+          "originalPrice": 480000
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Apple Music",
+      "category": "music",
+      "description": "High-quality music streaming service",
+      "price": 42000,
+      "originalPrice": 60000,
+      "image": "🍎",
+      "color": "bg-gray-800",
+      "badge": "HiFi",
+      "badgeColor": "bg-purple-500",
+      "inStock": true,
+      "rating": 4.7,
+      "reviews": 678,
+      "warranty": "30 ngày",
+      "sales": 678,
+      "stock": 150,
+      "status": "active",
+      "features": [
+        "Lossless Audio",
+        "Spatial Audio",
+        "Apple Exclusive",
+        "Offline Download"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 42000,
+          "originalPrice": 60000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 229000,
+          "originalPrice": 360000
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Zoom Pro",
+      "category": "productivity",
+      "description": "Professional video conferencing solution",
+      "price": 89000,
+      "originalPrice": 125000,
+      "image": "📹",
+      "color": "bg-blue-500",
+      "badge": "Business",
+      "badgeColor": "bg-blue-500",
+      "inStock": true,
+      "rating": 4.6,
+      "reviews": 345,
+      "warranty": "30 ngày",
+      "sales": 345,
+      "stock": 60,
+      "status": "active",
+      "features": [
+        "HD Video Quality",
+        "100 Participants",
+        "Cloud Recording",
+        "Admin Dashboard"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 89000,
+          "originalPrice": 125000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 999000,
+          "originalPrice": 1500000
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Udemy Business",
+      "category": "education",
+      "description": "Access to 25,000+ courses for teams",
+      "price": 199000,
+      "originalPrice": 299000,
+      "image": "🎓",
+      "color": "bg-purple-600",
+      "badge": "Learning",
+      "badgeColor": "bg-purple-500",
+      "inStock": true,
+      "rating": 4.8,
+      "reviews": 123,
+      "warranty": "30 ngày",
+      "sales": 123,
+      "stock": 25,
+      "status": "active",
+      "features": [
+        "25K+ Courses",
+        "Business Analytics",
+        "Team Management",
+        "Certificates"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 199000,
+          "originalPrice": 299000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 1099000,
+          "originalPrice": 1794000
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Coursera Plus",
+      "category": "education",
+      "description": "Unlimited access to 7,000+ courses",
+      "price": 179000,
+      "originalPrice": 249000,
+      "image": "📚",
+      "color": "bg-blue-600",
+      "badge": "Certificate",
+      "badgeColor": "bg-blue-500",
+      "inStock": true,
+      "rating": 4.7,
+      "reviews": 89,
+      "warranty": "30 ngày",
+      "sales": 89,
+      "stock": 30,
+      "status": "active",
+      "features": [
+        "University Courses",
+        "Professional Certificates",
+        "Guided Projects",
+        "Career Support"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 179000,
+          "originalPrice": 249000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 1999000,
+          "originalPrice": 2988000
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Otter.ai Pro",
+      "category": "ai",
+      "description": "AI-powered meeting transcription",
+      "price": 79000,
+      "originalPrice": 120000,
+      "image": "🦦",
+      "color": "bg-indigo-500",
+      "badge": "AI",
+      "badgeColor": "bg-indigo-500",
+      "inStock": true,
+      "rating": 4.5,
+      "reviews": 234,
+      "warranty": "30 ngày",
+      "sales": 234,
+      "stock": 40,
+      "status": "active",
+      "features": [
+        "Real-time Transcription",
+        "Meeting Summary",
+        "Speaker Identification",
+        "Search & Export"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 79000,
+          "originalPrice": 120000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 429000,
+          "originalPrice": 720000
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Beautiful.AI Pro",
+      "category": "ai",
+      "description": "AI-powered presentation maker",
+      "price": 89000,
+      "originalPrice": 130000,
+      "image": "🎭",
+      "color": "bg-pink-500",
+      "badge": "Design",
+      "badgeColor": "bg-pink-500",
+      "inStock": true,
+      "rating": 4.6,
+      "reviews": 156,
+      "warranty": "30 ngày",
+      "sales": 156,
+      "stock": 35,
+      "status": "active",
+      "features": [
+        "AI Design Assistant",
+        "Smart Templates",
+        "Team Collaboration",
+        "Brand Consistency"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 89000,
+          "originalPrice": 130000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 979000,
+          "originalPrice": 1560000
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Duolingo Super",
+      "category": "education",
+      "description": "Premium language learning with AI",
+      "price": 59000,
+      "originalPrice": 89000,
+      "image": "🦜",
+      "color": "bg-green-500",
+      "badge": "Language",
+      "badgeColor": "bg-green-500",
+      "inStock": true,
+      "rating": 4.7,
+      "reviews": 445,
+      "warranty": "30 ngày",
+      "sales": 445,
+      "stock": 100,
+      "status": "active",
+      "features": [
+        "Unlimited Hearts",
+        "No Ads",
+        "Offline Lessons",
+        "Progress Quizzes"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 59000,
+          "originalPrice": 89000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 649000,
+          "originalPrice": 1068000
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Grammarly Premium",
+      "category": "productivity",
+      "description": "Advanced writing assistant with AI",
+      "price": 79000,
+      "originalPrice": 119000,
+      "image": "✍️",
+      "color": "bg-emerald-600",
+      "badge": "Writing",
+      "badgeColor": "bg-emerald-500",
+      "inStock": true,
+      "rating": 4.8,
+      "reviews": 567,
+      "warranty": "30 ngày",
+      "sales": 567,
+      "stock": 85,
+      "status": "active",
+      "features": [
+        "Advanced Grammar",
+        "Plagiarism Checker",
+        "Writing Style",
+        "Vocabulary Enhancement"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 79000,
+          "originalPrice": 119000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 869000,
+          "originalPrice": 1428000
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Galaxy Vip",
+      "category": "streaming",
+      "description": "Premium Vietnamese streaming service",
+      "price": 35000,
+      "originalPrice": 55000,
+      "image": "🌟",
+      "color": "bg-yellow-500",
+      "badge": "Local",
+      "badgeColor": "bg-yellow-500",
+      "inStock": true,
+      "rating": 4.4,
+      "reviews": 189,
+      "warranty": "30 ngày",
+      "sales": 189,
+      "stock": 65,
+      "status": "active",
+      "features": [
+        "Vietnamese Content",
+        "HD Streaming",
+        "Multi-device",
+        "Exclusive Shows"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 35000,
+          "originalPrice": 55000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 189000,
+          "originalPrice": 330000
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Vieon VIP",
+      "category": "streaming",
+      "description": "Vietnamese premium streaming platform",
+      "price": 29000,
+      "originalPrice": 45000,
+      "image": "📱",
+      "color": "bg-orange-500",
+      "badge": "Vietnam",
+      "badgeColor": "bg-orange-500",
+      "inStock": true,
+      "rating": 4.3,
+      "reviews": 234,
+      "warranty": "30 ngày",
+      "sales": 234,
+      "stock": 90,
+      "status": "active",
+      "features": [
+        "Local Content",
+        "Live TV",
+        "Sports Streaming",
+        "Mobile Optimized"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 29000,
+          "originalPrice": 45000
+        },
+        {
+          "id": "3m",
+          "name": "3 tháng",
+          "price": 79000,
+          "originalPrice": 135000
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Leonardo AI",
+      "category": "ai",
+      "description": "Advanced AI image generation platform",
+      "price": 99000,
+      "originalPrice": 149000,
+      "image": "🎨",
+      "color": "bg-violet-600",
+      "badge": "AI Art",
+      "badgeColor": "bg-violet-500",
+      "inStock": true,
+      "rating": 4.7,
+      "reviews": 112,
+      "warranty": "30 ngày",
+      "sales": 112,
+      "stock": 30,
+      "status": "active",
+      "features": [
+        "AI Image Generation",
+        "Style Transfer",
+        "High Resolution",
+        "Commercial License"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 99000,
+          "originalPrice": 149000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 549000,
+          "originalPrice": 894000
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Gamma Pro",
+      "category": "ai",
+      "description": "AI-powered presentation and website builder",
+      "price": 109000,
+      "originalPrice": 159000,
+      "image": "🔮",
+      "color": "bg-indigo-600",
+      "badge": "AI Builder",
+      "badgeColor": "bg-indigo-500",
+      "inStock": true,
+      "rating": 4.6,
+      "reviews": 89,
+      "warranty": "30 ngày",
+      "sales": 89,
+      "stock": 25,
+      "status": "active",
+      "features": [
+        "AI Content Generation",
+        "Smart Design",
+        "Interactive Elements",
+        "Real-time Collaboration"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 109000,
+          "originalPrice": 159000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 1199000,
+          "originalPrice": 1908000
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "name": "QuillBot Premium",
+      "category": "education",
+      "description": "AI writing and paraphrasing tool",
+      "price": 69000,
+      "originalPrice": 99000,
+      "image": "🪶",
+      "color": "bg-blue-500",
+      "badge": "Writing",
+      "badgeColor": "bg-blue-500",
+      "inStock": true,
+      "rating": 4.5,
+      "reviews": 345,
+      "warranty": "30 ngày",
+      "sales": 345,
+      "stock": 70,
+      "status": "active",
+      "features": [
+        "Advanced Paraphrasing",
+        "Grammar Checker",
+        "Plagiarism Checker",
+        "Citation Generator"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 69000,
+          "originalPrice": 99000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 759000,
+          "originalPrice": 1188000
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Tidal HiFi",
+      "category": "music",
+      "description": "High-fidelity music streaming",
+      "price": 52000,
+      "originalPrice": 79000,
+      "image": "🌊",
+      "color": "bg-cyan-600",
+      "badge": "HiFi",
+      "badgeColor": "bg-cyan-500",
+      "inStock": true,
+      "rating": 4.6,
+      "reviews": 156,
+      "warranty": "30 ngày",
+      "sales": 156,
+      "stock": 45,
+      "status": "active",
+      "features": [
+        "Master Quality Audio",
+        "Exclusive Content",
+        "Music Videos",
+        "Artist Interviews"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 52000,
+          "originalPrice": 79000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 289000,
+          "originalPrice": 474000
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Figma Pro",
+      "category": "design",
+      "description": "Professional design and prototyping tool",
+      "price": 119000,
+      "originalPrice": 169000,
+      "image": "🎯",
+      "color": "bg-purple-500",
+      "badge": "Design",
+      "badgeColor": "bg-purple-500",
+      "inStock": true,
+      "rating": 4.8,
+      "reviews": 234,
+      "warranty": "30 ngày",
+      "sales": 234,
+      "stock": 40,
+      "status": "active",
+      "features": [
+        "Advanced Prototyping",
+        "Team Collaboration",
+        "Version History",
+        "Design Systems"
+      ],
+      "durations": [
+        {
+          "id": "1m",
+          "name": "1 tháng",
+          "price": 119000,
+          "originalPrice": 169000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 1309000,
+          "originalPrice": 2028000
+        }
+      ]
     }
   ],
   "users": [
@@ -257,7 +998,10 @@
       "points": 50000000,
       "rank": "silver",
       "preferences": {
-        "categories": ["streaming", "music"],
+        "categories": [
+          "streaming",
+          "music"
+        ],
         "notifications": true,
         "currency": "VND"
       }
@@ -277,7 +1021,10 @@
       "points": 450,
       "rank": "bronze",
       "preferences": {
-        "categories": ["ai", "productivity"],
+        "categories": [
+          "ai",
+          "productivity"
+        ],
         "notifications": true,
         "currency": "VND"
       }
@@ -297,7 +1044,10 @@
       "points": 189,
       "rank": "bronze",
       "preferences": {
-        "categories": ["streaming", "ai"],
+        "categories": [
+          "streaming",
+          "ai"
+        ],
         "notifications": true,
         "currency": "VND"
       }
@@ -411,8 +1161,16 @@
     {
       "userId": "demo",
       "productId": 4,
+      "productName": "YouTube Premium",
+      "price": 67000,
+      "originalPrice": 90000,
       "quantity": 1,
       "selectedDuration": "1m",
+      "duration": "1 tháng",
+      "image": "📺",
+      "color": "bg-red-600",
+      "description": "Ad-free YouTube + YouTube Music",
+      "warranty": "30 ngày",
       "addedAt": "2024-03-26T14:00:00.000Z"
     }
   ],
@@ -493,11 +1251,103 @@
     }
   ],
   "metadata": {
-    "lastUpdated": "2024-03-26T15:30:00.000Z",
-    "version": "2.0.0",
+    "lastUpdated": "2025-06-28T14:50:04.266Z",
+    "version": "3.0.0",
     "totalUsers": 3,
-    "totalProducts": 6,
+    "totalProducts": 25,
     "totalOrders": 2,
     "systemStatus": "active"
-  }
+  },
+  "accounts": [
+    {
+      "id": "acc_001",
+      "accountEmail": "netflix_user@example.com",
+      "accountPassword": "SecurePass123!",
+      "customerName": "Nguyễn Văn A",
+      "customerEmail": "nguyenvana@gmail.com",
+      "customerPhone": "0901234567",
+      "productType": "Netflix Premium",
+      "productIcon": "🎬",
+      "productColor": "bg-red-500",
+      "purchaseDate": "2024-01-15T00:00:00.000Z",
+      "expiryDate": "2024-07-15T00:00:00.000Z",
+      "status": "active",
+      "link": "https://netflix.com",
+      "orderId": "ORD_001",
+      "duration": "6 tháng",
+      "purchasePrice": 89000
+    },
+    {
+      "id": "acc_002",
+      "accountEmail": "spotify_user@example.com",
+      "accountPassword": "MusicLover2024",
+      "customerName": "Trần Thị B",
+      "customerEmail": "tranthib@gmail.com",
+      "customerPhone": "0907654321",
+      "productType": "Spotify Premium",
+      "productIcon": "🎵",
+      "productColor": "bg-green-500",
+      "purchaseDate": "2024-02-01T00:00:00.000Z",
+      "expiryDate": "2024-05-01T00:00:00.000Z",
+      "status": "expired",
+      "link": "https://spotify.com",
+      "orderId": "ORD_002",
+      "duration": "3 tháng",
+      "purchasePrice": 39000
+    },
+    {
+      "id": "acc_003",
+      "accountEmail": "chatgpt_user@example.com",
+      "accountPassword": "AI_Power2024",
+      "customerName": "Lê Văn C",
+      "customerEmail": "levanc@gmail.com",
+      "customerPhone": "0912345678",
+      "productType": "ChatGPT Plus",
+      "productIcon": "🤖",
+      "productColor": "bg-purple-500",
+      "purchaseDate": "2024-03-10T00:00:00.000Z",
+      "expiryDate": "2024-04-10T00:00:00.000Z",
+      "status": "expired",
+      "link": "https://chat.openai.com",
+      "orderId": "ORD_003",
+      "duration": "1 tháng",
+      "purchasePrice": 120000
+    },
+    {
+      "id": "acc_004",
+      "accountEmail": "youtube_user@example.com",
+      "accountPassword": "VideoTime123",
+      "customerName": "Phạm Thị D",
+      "customerEmail": "phamthid@gmail.com",
+      "customerPhone": "0934567890",
+      "productType": "YouTube Premium",
+      "productIcon": "📺",
+      "productColor": "bg-red-600",
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "expiryDate": "2024-10-01T00:00:00.000Z",
+      "status": "active",
+      "link": "https://youtube.com",
+      "orderId": "ORD_004",
+      "duration": "6 tháng",
+      "purchasePrice": 67000
+    },
+    {
+      "id": "acc_005",
+      "accountEmail": "adobe_user@example.com",
+      "accountPassword": "Creative2024!",
+      "customerName": "Hoàng Văn E",
+      "customerEmail": "hoangvane@gmail.com",
+      "customerPhone": "0923456789",
+      "productType": "Adobe Creative Cloud",
+      "productIcon": "🎨",
+      "productColor": "bg-orange-500",
+      "purchaseDate": "2024-01-20T00:00:00.000Z",
+      "expiryDate": "2024-07-20T00:00:00.000Z",
+      "status": "active",
+      "link": "https://adobe.com",
+      "orderId": "ORD_005",
+      "duration": "6 tháng",
+      "purchasePrice": 145000
+    }
+  ]
 }

@@ -11,13 +11,12 @@ import { type ProductBase } from '@/lib/utils';
 
 const PRODUCT_CATEGORIES = [
   { id: 'streaming', name: 'Streaming', icon: '📺' },
-  { id: 'music', name: 'Music', icon: '🎵' },
-  { id: 'ai-tools', name: 'AI Tools', icon: '🤖' },
-  { id: 'design', name: 'Design', icon: '🎨' },
-  { id: 'productivity', name: 'Productivity', icon: '💼' },
-  { id: 'gaming', name: 'Gaming', icon: '🎮' },
-  { id: 'cloud', name: 'Cloud Storage', icon: '☁️' },
-  { id: 'education', name: 'Education', icon: '📚' }
+  { id: 'music', name: 'Âm nhạc', icon: '🎵' },
+  { id: 'ai', name: 'AI Tools', icon: '🤖' },
+  { id: 'design', name: 'Thiết kế', icon: '🎨' },
+  { id: 'productivity', name: 'Văn phòng', icon: '💼' },
+  { id: 'storage', name: 'Lưu trữ', icon: '☁️' },
+  { id: 'education', name: 'Học tập', icon: '📚' }
 ];
 
 export default function TopProducts() {

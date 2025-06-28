@@ -22,6 +22,7 @@ import {
   AlertCircle,
   XCircle
 } from 'lucide-react';
+import OrderDetailModal from './OrderDetailModal';
 
 interface Order {
   id: string;
@@ -68,6 +69,8 @@ export default function AccountOrdersDisplay() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   console.log("🖥️ AccountOrdersDisplay rendered", { user: user?.email });
 
@@ -327,8 +330,21 @@ export default function AccountOrdersDisplay() {
     );
   }
 
+  const handleCloseDetailModal = () => {
+    console.log("❌ Closing order detail modal");
+    setIsDetailModalOpen(false);
+    setSelectedOrder(null);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Order Detail Modal */}
+      <OrderDetailModal 
+        order={selectedOrder}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+      />
+
       {/* Statistics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -495,6 +511,27 @@ export default function AccountOrdersDisplay() {
                       <span>{order.analytics.daysSinceOrder} ngày trước</span>
                     </div>
                   )}
+
+                  {/* Action Buttons */}
+                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <Package className="w-4 h-4" />
+                      <span>Đơn hàng #{order.id}</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center space-x-2 hover:bg-brand-blue hover:text-white transition-all"
+                      onClick={() => {
+                        console.log("👁️ Opening order detail modal for:", order.id);
+                        setSelectedOrder(order);
+                        setIsDetailModalOpen(true);
+                      }}
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Xem chi tiết</span>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}

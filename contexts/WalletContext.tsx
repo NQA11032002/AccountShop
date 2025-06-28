@@ -38,7 +38,7 @@ interface WalletContextType {
   createDepositOrder: (amount: number, method: string) => Promise<{ orderId: string; success: boolean }>;
   confirmUserPayment: (orderId: string) => Promise<boolean>;
   confirmDeposit: (orderId: string) => Promise<boolean>;
-  deductCoins: (amount: number, description: string, orderId?: string) => boolean;
+  deductCoins: (amount: number, description: string, orderId?: string) => Promise<boolean>;
   refundCoins: (amount: number, description: string, orderId?: string) => void;
   
   // Transaction management
@@ -622,10 +622,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const deductCoins = (amount: number, description: string, orderId?: string): boolean => {
+  const deductCoins = async (amount: number, description: string, orderId?: string): Promise<boolean> => {
     console.log("Deducting coins", { amount, description, orderId, currentBalance: balance });
     
     if (!canAfford(amount)) {
+      console.log("Insufficient coins", { required: amount, available: balance });
       toast({
         title: "Số dư không đủ",
         description: `Bạn cần thêm ${formatCoins(amount - balance)} để thực hiện giao dịch này.`,
@@ -644,10 +645,31 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       status: 'completed'
     };
 
-    setBalance(prevBalance => prevBalance - amount);
+    // Update state with new balance and transaction
+    const newBalance = balance - amount;
+    setBalance(newBalance);
     setTransactions(prevTransactions => [transaction, ...prevTransactions]);
 
-    console.log("Coins deducted successfully", { amount, newBalance: balance - amount });
+    console.log("Coins deducted successfully", { 
+      amount, 
+      previousBalance: balance,
+      newBalance: newBalance,
+      transactionId: transaction.id 
+    });
+
+    // Trigger wallet sync if user exists
+    if (user) {
+      DataSyncHelper.syncWalletData(user.id, { 
+        balance: newBalance, 
+        transactions: [transaction, ...transactions] 
+      });
+    }
+
+    toast({
+      title: "Thanh toán thành công! 🎉",
+      description: `Đã trừ ${formatCoins(amount)} từ ví của bạn`,
+    });
+
     return true;
   };
 

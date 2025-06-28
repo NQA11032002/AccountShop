@@ -276,7 +276,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
           createdAt: order.date.toISOString(),
           date: order.date.toISOString(),
           completedAt: order.status === 'completed' ? new Date().toISOString() : null,
-          shippingAddress: order.customerInfo.address || '',
+          shippingAddress: order.customerInfo.socialContact || '',
           notes: order.status === 'completed' ? 'Order completed with digital delivery' : '',
           discountCode: order.discountCode,
           transactionId: order.transactionId,
@@ -585,7 +585,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
               name: apiOrder.customerName,
               email: apiOrder.userEmail,
               phone: apiOrder.customerPhone || '',
-              address: apiOrder.shippingAddress || ''
+              socialContact: apiOrder.shippingAddress || ''
             },
             discountCode: apiOrder.discountCode,
             transactionId: apiOrder.transactionId
@@ -752,7 +752,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
             name: apiOrder.customerName,
             email: apiOrder.userEmail,
             phone: apiOrder.customerPhone || '',
-            address: apiOrder.shippingAddress || ''
+            socialContact: apiOrder.shippingAddress || ''
           },
           discountCode: apiOrder.discountCode,
           transactionId: apiOrder.transactionId
@@ -869,13 +869,73 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       // Update order status to processing  
       await updateOrderStatus(orderId, 'processing');
 
-      // Simulate payment processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+      let paymentSuccess = false;
+      let result: any = null;
 
-      // Simulate payment success/failure (95% success rate)
-      const paymentSuccess = Math.random() > 0.05;
+      // Handle different payment methods
+      if (paymentData.method === 'wallet') {
+        // Handle coin/wallet payments via payment API
+        console.log("💰 Processing wallet payment via API", { orderId, amount: paymentData.amount });
+        
+        try {
+          const response = await fetch('/api/payments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              method: 'wallet',
+              paymentData: paymentData,
+              orderId: orderId
+            })
+          });
 
-      if (paymentSuccess) {
+          const apiResult = await response.json();
+          console.log("💰 Wallet payment API response", apiResult);
+
+          if (apiResult.success) {
+            paymentSuccess = true;
+            result = apiResult.data;
+          } else {
+            throw new Error(apiResult.error || "Wallet payment API returned failure");
+          }
+        } catch (apiError: any) {
+          console.error("💰 Wallet payment API error:", apiError);
+          throw new Error(apiError.message || "Failed to process wallet payment via API");
+        }
+      } else {
+        // Handle external payments via payment API
+        console.log("Processing external payment via API", { orderId, method: paymentData.method });
+        
+        try {
+          const response = await fetch('/api/payments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              method: paymentData.method,
+              paymentData: paymentData,
+              orderId: orderId
+            })
+          });
+
+          const apiResult = await response.json();
+          console.log("Payment API response", apiResult);
+
+          if (apiResult.success) {
+            paymentSuccess = true;
+            result = apiResult.data;
+          } else {
+            throw new Error(apiResult.error || "Payment API returned failure");
+          }
+        } catch (apiError: any) {
+          console.error("Payment API error:", apiError);
+          throw new Error(apiError.message || "Failed to process payment via API");
+        }
+      }
+
+      if (paymentSuccess && result) {
         // Find and update payment status
         let targetOrder = orders.find(order => order.id === orderId);
         
@@ -910,7 +970,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
                   name: apiOrder.customerName,
                   email: apiOrder.userEmail,
                   phone: apiOrder.customerPhone || '',
-                  address: apiOrder.shippingAddress || ''
+                  socialContact: apiOrder.shippingAddress || ''
                 },
                 discountCode: apiOrder.discountCode,
                 transactionId: apiOrder.transactionId
@@ -924,30 +984,63 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // Update payment status
+        // Update payment status and transaction info
         const updatedOrders = orders.map(order => 
           order.id === orderId 
-            ? { ...order, paymentStatus: 'completed' as const }
+            ? { 
+                ...order, 
+                paymentStatus: 'completed' as const,
+                paymentMethod: result.method,
+                transactionId: result.transactionId
+              }
             : order
         );
         setOrders(updatedOrders);
         await saveOrders(updatedOrders);
 
-        // Deliver digital products
-        await deliverDigitalProducts(orderId);
+        // For wallet payments, coins should already be deducted by the checkout component
+        // before calling processPayment, so we just log the successful payment completion
+        if (result.method === 'wallet' && user) {
+          console.log("✅ Wallet payment completed - coins were deducted by checkout component", {
+            orderId,
+            amount: paymentData.amount,
+            transactionId: result.transactionId
+          });
+        }
+
+        // Deliver digital products for completed payments
+        if (result.status === 'completed') {
+          await deliverDigitalProducts(orderId);
+        }
 
         // Clear applied discount after successful payment
         if (appliedDiscount) {
           setAppliedDiscount(null);
         }
 
-        toast({
-          title: "Thanh toán thành công!",
-          description: "Tài khoản đã được gửi về email của bạn.",
-        });
+        // Show appropriate success message based on payment method
+        if (result.status === 'completed') {
+          toast({
+            title: "Thanh toán thành công! 🎉",
+            description: result.method === 'wallet' 
+              ? "Tài khoản đã được gửi về email của bạn."
+              : `Giao dịch ${result.transactionId} đã được xử lý thành công.`,
+          });
+        } else if (result.status === 'pending') {
+          toast({
+            title: "Đã tạo thanh toán! ⏳",
+            description: result.method === 'banking' 
+              ? "Vui lòng thực hiện chuyển khoản theo hướng dẫn."
+              : "Đang chờ xác nhận từ blockchain.",
+          });
+        }
 
-        // Note: Navigation will be handled by the calling component
-        console.log("✅ Payment completed - component should handle navigation");
+        console.log("✅ Payment completed successfully", { 
+          orderId, 
+          method: result.method, 
+          status: result.status,
+          transactionId: result.transactionId
+        });
 
         return true;
       } else {
