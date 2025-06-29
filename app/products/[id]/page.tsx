@@ -36,7 +36,7 @@ export default function ProductDetailPage() {
   const { user } = useAuth();
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const { toast } = useToast();
-  
+
   const [selectedDuration, setSelectedDuration] = useState('1m');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
@@ -48,6 +48,7 @@ export default function ProductDetailPage() {
 
   // Get product from centralized data
   const product = getProductById(productId);
+
   const selectedPrice = product?.durations.find(d => d.id === selectedDuration);
 
   useEffect(() => {
@@ -85,7 +86,7 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     console.log("Adding product to cart", { productId, selectedDuration });
-    
+
     if (!user) {
       toast({
         title: "Cần đăng nhập",
@@ -109,7 +110,7 @@ export default function ProductDetailPage() {
 
   const handleBuyNow = () => {
     console.log("Buy now clicked - direct checkout", { productId, selectedDuration });
-    
+
     if (!user) {
       toast({
         title: "Cần đăng nhập",
@@ -124,7 +125,7 @@ export default function ProductDetailPage() {
 
     // Create buy now item data
     const buyNowItem = createCartItem(product, selectedPrice);
-    
+
     // Encode product data and redirect to checkout with buy now mode
     const buyNowData = {
       id: buyNowItem.id,
@@ -139,11 +140,11 @@ export default function ProductDetailPage() {
       warranty: buyNowItem.warranty,
       quantity: 1
     };
-    
+
     // Store buy now data in sessionStorage for security and redirect
     sessionStorage.setItem('qai-store-buy-now-item', JSON.stringify(buyNowData));
     router.push('/checkout?mode=buynow');
-    
+
     toast({
       title: "Chuyển đến thanh toán",
       description: `Đang xử lý ${product.name} - ${selectedPrice.name}`,
@@ -273,19 +274,19 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-blue/5 via-brand-purple/5 to-brand-emerald/5">
       <Header />
-      
+
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-200 pt-20">
         <div className="container-max section-padding py-3">
           <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <button 
+            <button
               onClick={() => router.push('/')}
               className="hover:text-brand-blue transition-colors"
             >
               Trang chủ
             </button>
             <span>›</span>
-            <button 
+            <button
               onClick={() => router.push(`/products?category=${encodeURIComponent(product.category)}`)}
               className="hover:text-brand-blue transition-colors"
             >
@@ -309,7 +310,7 @@ export default function ProductDetailPage() {
           {/* Product Images */}
           <div className="space-y-4">
             <Card className="overflow-hidden">
-              <div 
+              <div
                 className="h-96 flex items-center justify-center relative"
                 style={{ backgroundColor: product.color }}
               >
@@ -336,7 +337,7 @@ export default function ProductDetailPage() {
                 </Badge>
               </div>
               <p className="text-gray-600 text-lg leading-relaxed mb-4">{product.description}</p>
-              
+
               {/* Key Benefits */}
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-100">
                 <h3 className="font-semibold text-brand-charcoal mb-2">✨ Điểm nổi bật:</h3>
@@ -369,11 +370,10 @@ export default function ProductDetailPage() {
                   <button
                     key={duration.id}
                     onClick={() => setSelectedDuration(duration.id)}
-                    className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                      selectedDuration === duration.id
-                        ? 'border-brand-blue bg-brand-blue/5 text-brand-blue'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedDuration === duration.id
+                      ? 'border-brand-blue bg-brand-blue/5 text-brand-blue'
+                      : 'border-gray-200 hover:border-gray-300'
+                      }`}
                   >
                     <div className="font-medium">{duration.name}</div>
                     <div className="text-lg font-bold text-brand-emerald">
@@ -403,18 +403,18 @@ export default function ProductDetailPage() {
                   </Badge>
                 )}
               </div>
-              
+
               <div className="space-y-3">
-                <Button 
+                <Button
                   onClick={handleBuyNow}
                   className="w-full bg-gradient-to-r from-brand-emerald to-brand-blue hover:from-brand-emerald/90 hover:to-brand-blue/90 text-white h-12 text-lg font-semibold"
                 >
                   <CreditCard className="w-5 h-5 mr-2" />
                   Mua ngay - {formatPrice(selectedPrice?.price || 0)}
                 </Button>
-                
+
                 <div className="flex space-x-3">
-                  <Button 
+                  <Button
                     onClick={handleAddToCart}
                     variant="outline"
                     className="flex-1 h-12 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
@@ -425,11 +425,10 @@ export default function ProductDetailPage() {
                   <Button
                     variant="outline"
                     onClick={handleToggleFavorite}
-                    className={`h-12 px-4 ${
-                      isFavorite(product.id)
-                        ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'
-                        : 'hover:bg-gray-50'
-                    }`}
+                    className={`h-12 px-4 ${isFavorite(product.id)
+                      ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'
+                      : 'hover:bg-gray-50'
+                      }`}
                   >
                     <Heart className={`w-5 h-5 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
                   </Button>
@@ -458,7 +457,7 @@ export default function ProductDetailPage() {
             <TabsTrigger value="reviews">Đánh giá ({reviews.length})</TabsTrigger>
             <TabsTrigger value="warranty">Chính sách</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="features" className="mt-6">
             <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30">
               <CardHeader className="bg-gradient-to-r from-brand-purple/10 to-brand-blue/10 border-b">
@@ -616,7 +615,7 @@ export default function ProductDetailPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="reviews" className="mt-6">
             <div className="space-y-6">
               {/* Add Review */}
@@ -636,11 +635,10 @@ export default function ProductDetailPage() {
                             className="p-1"
                           >
                             <Star
-                              className={`w-6 h-6 ${
-                                star <= newReview.rating
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
-                              }`}
+                              className={`w-6 h-6 ${star <= newReview.rating
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-300'
+                                }`}
                             />
                           </button>
                         ))}
@@ -658,7 +656,7 @@ export default function ProductDetailPage() {
                     <Button
                       onClick={handleSubmitReview}
                       disabled={isSubmittingReview}
-                      className="bg-gradient-to-r from-brand-purple to-brand-blue hover:from-brand-purple/90 hover:to-brand-blue/90"
+                      className="bg-gradient-to-r from-brand-charcoal to-brand-blue hover:from-brand-purple/90 hover:to-brand-blue/90"
                     >
                       {isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
                     </Button>
@@ -685,11 +683,10 @@ export default function ProductDetailPage() {
                                   {[1, 2, 3, 4, 5].map((star) => (
                                     <Star
                                       key={star}
-                                      className={`w-4 h-4 ${
-                                        star <= review.rating
-                                          ? 'fill-yellow-400 text-yellow-400'
-                                          : 'text-gray-300'
-                                      }`}
+                                      className={`w-4 h-4 ${star <= review.rating
+                                        ? 'fill-yellow-400 text-yellow-400'
+                                        : 'text-gray-300'
+                                        }`}
                                     />
                                   ))}
                                 </div>
@@ -712,7 +709,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="warranty" className="mt-6">
             <Card>
               <CardContent className="p-6">
@@ -724,7 +721,7 @@ export default function ProductDetailPage() {
                     <li>• Đổi tài khoản mới nếu có vấn đề trong thời gian bảo hành</li>
                     <li>• Không bảo hành nếu khách hàng thay đổi thông tin tài khoản</li>
                   </ul>
-                  
+
                   <h3 className="text-lg font-semibold mt-6 mb-4">Hướng dẫn sử dụng</h3>
                   <ul className="space-y-2 text-gray-700">
                     <li>• Không thay đổi mật khẩu hoặc thông tin tài khoản</li>
@@ -737,7 +734,7 @@ export default function ProductDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
-      
+
       <Footer />
     </div>
   );

@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  BarChart3, 
-  Settings, 
+import {
+  Users,
+  Package,
+  ShoppingCart,
+  BarChart3,
+  Settings,
   LogOut,
   Eye,
   Edit,
@@ -53,34 +53,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { 
-  ChartContainer, 
-  ChartTooltip, 
+import {
+  ChartContainer,
+  ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent
@@ -96,27 +96,27 @@ import AdminOrderDetailModal from '@/components/admin/AdminOrderDetailModal';
 import DepositApprovals from '@/components/admin/DepositApprovals';
 import { exportUsersToExcel, exportProductsToExcel, exportOrdersToExcel, exportDetailedOrdersToExcel } from '@/lib/excelExport';
 import DataSyncHelper from '@/lib/syncHelper';
-import { 
-  AreaChart, 
-  Area, 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
+import {
+  AreaChart,
+  Area,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell
 } from 'recharts';
-import { 
-  calculateCustomerRank, 
-  calculateNextRankProgress, 
+import {
+  calculateCustomerRank,
+  calculateNextRankProgress,
   CustomerRankDisplay,
   customerRanks,
-  type CustomerRank 
+  type CustomerRank
 } from '@/components/CustomerRankingSystem';
 
 interface User {
@@ -189,31 +189,31 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customerAccounts, setCustomerAccounts] = useState<CustomerAccount[]>([]);
   const [userWallets, setUserWallets] = useState<any[]>([]);
-  
+
   // Dialog states
   const [editUserDialog, setEditUserDialog] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
   const [editProductDialog, setEditProductDialog] = useState<{ open: boolean; product: Product | null }>({ open: false, product: null });
   const [editOrderDialog, setEditOrderDialog] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
   const [editAccountDialog, setEditAccountDialog] = useState<{ open: boolean; account: CustomerAccount | null }>({ open: false, account: null });
   const [adminOrderDetailModal, setAdminOrderDetailModal] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
-  const [deleteDialog, setDeleteDialog] = useState<{ 
-    open: boolean; 
-    type: 'user' | 'product' | 'order' | 'account'; 
-    item: any; 
-    onConfirm: () => void 
-  }>({ open: false, type: 'user', item: null, onConfirm: () => {} });
-  
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    type: 'user' | 'product' | 'order' | 'account';
+    item: any;
+    onConfirm: () => void
+  }>({ open: false, type: 'user', item: null, onConfirm: () => { } });
+
   // Customer Accounts State
   const [accountSearchTerm, setAccountSearchTerm] = useState('');
   const [accountFilterType, setAccountFilterType] = useState<string>('all');
   const [accountSortBy, setAccountSortBy] = useState<'purchaseDate' | 'expiryDate' | 'customerName' | 'productType'>('purchaseDate');
   const [accountSortOrder, setAccountSortOrder] = useState<'asc' | 'desc'>('desc');
-  
+
   // Orders State
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [orderFilterStatus, setOrderFilterStatus] = useState<string>('all');
   const [orderSortBy, setOrderSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
-  
+
   // Send Accounts State
   const [sendAccountModal, setSendAccountModal] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
@@ -247,11 +247,11 @@ QAI Store - Tài khoản premium uy tín #1
 📧 Email: support@qaistore.com`);
   const [sendingEmails, setSendingEmails] = useState(false);
   const [sendingNotifications, setSendingNotifications] = useState(false);
-  
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   const { adminUser, logout, hasPermission } = useAdmin();
   const { toast } = useToast();
   const router = useRouter();
@@ -266,12 +266,12 @@ QAI Store - Tài khoản premium uy tín #1
     const generateAnalyticsData = () => {
       const currentDate = new Date();
       const months: any[] = [];
-      
+
       // Generate last 6 months of data
       for (let i = 5; i >= 0; i--) {
         const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
         const monthName = date.toLocaleDateString('vi-VN', { month: 'short' });
-        
+
         months.push({
           name: monthName,
           revenue: Math.floor(Math.random() * 50000000) + 20000000,
@@ -280,19 +280,19 @@ QAI Store - Tài khoản premium uy tín #1
           traffic: Math.floor(Math.random() * 10000) + 2000
         });
       }
-      
+
       return months;
     };
 
     const generateDailyTrafficData = () => {
       const days: any[] = [];
-      
+
       // Generate last 7 days of traffic data
       for (let i = 6; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dayName = date.toLocaleDateString('vi-VN', { weekday: 'short' });
-        
+
         days.push({
           name: dayName,
           visitors: Math.floor(Math.random() * 800) + 200,
@@ -300,7 +300,7 @@ QAI Store - Tài khoản premium uy tín #1
           bounceRate: Math.floor(Math.random() * 30) + 20
         });
       }
-      
+
       return days;
     };
 
@@ -308,7 +308,7 @@ QAI Store - Tài khoản premium uy tín #1
       const currentMonth = orders.reduce((sum, order) => sum + order.total, 0);
       const previousMonth = Math.floor(currentMonth * (0.8 + Math.random() * 0.4));
       const nextMonthProjection = Math.floor(currentMonth * (1.1 + Math.random() * 0.2));
-      
+
       return [
         { name: 'Tháng trước', value: previousMonth, color: '#8884d8' },
         { name: 'Tháng này', value: currentMonth, color: '#00C49F' },
@@ -350,7 +350,7 @@ QAI Store - Tài khoản premium uy tín #1
   useEffect(() => {
     const unsubscribe = DataSyncHelper.subscribeToAdminChanges((type, data) => {
       console.log(`🔄 Admin data sync received for ${type}`, { count: data.length });
-      
+
       switch (type) {
         case 'users':
           setUsers(data);
@@ -370,12 +370,12 @@ QAI Store - Tài khoản premium uy tín #1
     // Subscribe to order completion events for real-time updates
     const unsubscribeOrderCompletion = DataSyncHelper.subscribeToOrderCompletion(async (orderData) => {
       console.log(`🛒 Real-time order completion received:`, orderData);
-      
+
       // Force reload orders from enhanced Orders API to get the latest data immediately
       try {
         const ordersResponse = await fetch('/api/orders?includeProducts=true');
         const ordersResult = await ordersResponse.json();
-        
+
         if (ordersResult.success && ordersResult.data.length > 0) {
           setOrders(ordersResult.data);
           console.log("📊 Orders refreshed from enhanced API after completion", { count: ordersResult.data.length });
@@ -390,7 +390,7 @@ QAI Store - Tài khoản premium uy tín #1
       } catch (error) {
         console.warn("⚠️ Error refreshing orders after completion:", error);
       }
-      
+
       // Also reload customer accounts to reflect ranking updates
       const syncedAccounts = await DataSyncHelper.loadAdminData('accounts', true);
       if (syncedAccounts.length > 0) {
@@ -408,37 +408,37 @@ QAI Store - Tài khoản premium uy tín #1
     const handleAdminOrderCompleted = async (event: Event) => {
       const customEvent = event as CustomEvent;
       console.log("🚨 Admin order completion event received:", customEvent.detail);
-      
+
       const { orderId, orderData } = customEvent.detail;
-      
+
       // Update orders immediately if we have the full order data
       if (orderData) {
         setOrders(prevOrders => {
-          const updatedOrders = prevOrders.map(order => 
+          const updatedOrders = prevOrders.map(order =>
             order.id === orderId ? { ...order, ...orderData, status: 'completed' } : order
           );
-          
+
           // If order not found, add it
           if (!updatedOrders.find(o => o.id === orderId)) {
             updatedOrders.unshift(orderData);
           }
-          
+
           return updatedOrders;
         });
       }
-      
+
       // Trigger full data reload after short delay to ensure API sync
       setTimeout(() => {
         loadDashboardData(true);
       }, 2000);
     };
-    
+
     window.addEventListener('admin-order-completed', handleAdminOrderCompleted);
 
     // Subscribe to global order sync events
     const unsubscribeGlobalSync = DataSyncHelper.subscribeToGlobalOrderSync((eventData) => {
       console.log(`🌐 Global order sync event received:`, eventData);
-      
+
       if (eventData.type === 'completion') {
         // Force refresh all order-related data
         setTimeout(() => {
@@ -457,7 +457,7 @@ QAI Store - Tài khoản premium uy tín #1
 
   const loadDashboardData = async (forceAPI = false) => {
     console.log("Loading dashboard data with JSON API sync", { forceAPI });
-    
+
     try {
       // Load user wallets first using direct API call
       const syncedWallets = await DataSyncHelper.fetchFromAPI('userWallets') || [];
@@ -469,7 +469,7 @@ QAI Store - Tài khoản premium uy tín #1
         const usersWithStats = syncedUsers.map((user: any) => {
           // Find user's wallet data
           const userWallet = syncedWallets.find((wallet: any) => wallet.userId === user.id);
-          
+
           return {
             ...user,
             status: user.status || 'active',
@@ -487,7 +487,7 @@ QAI Store - Tài khoản premium uy tín #1
           const usersWithStats = parsedUsers.map((user: any) => {
             // Find user's wallet data
             const userWallet = syncedWallets.find((wallet: any) => wallet.userId === user.id);
-            
+
             return {
               ...user,
               status: 'active',
@@ -507,7 +507,7 @@ QAI Store - Tài khoản premium uy tín #1
         console.log("📊 Loading orders from enhanced Orders API");
         const ordersResponse = await fetch('/api/orders?includeProducts=true');
         const ordersResult = await ordersResponse.json();
-        
+
         if (ordersResult.success && ordersResult.data.length > 0) {
           setOrders(ordersResult.data);
           console.log("✅ Orders loaded from enhanced API", { count: ordersResult.data.length });
@@ -589,7 +589,7 @@ QAI Store - Tài khoản premium uy tín #1
 
       // Load customer accounts with JSON API support
       await loadCustomerAccounts(forceAPI);
-      
+
       console.log('✅ Dashboard data loaded successfully');
     } catch (error) {
       console.error('❌ Error loading dashboard data:', error);
@@ -598,7 +598,7 @@ QAI Store - Tài khoản premium uy tín #1
 
   const loadCustomerAccounts = async (forceAPI = false) => {
     console.log("Loading customer accounts with JSON API sync", { forceAPI });
-    
+
     try {
       // Load from JSON API first
       const syncedAccounts = await DataSyncHelper.loadAdminData('accounts', forceAPI);
@@ -614,7 +614,7 @@ QAI Store - Tài khoản premium uy tín #1
     } catch (error) {
       console.error('❌ Error loading customer accounts from API:', error);
     }
-    
+
     // Generate sample customer accounts data
     const sampleAccounts: CustomerAccount[] = [
       {
@@ -708,7 +708,7 @@ QAI Store - Tài khoản premium uy tín #1
         purchasePrice: 145000
       }
     ];
-    
+
     setCustomerAccounts(sampleAccounts);
     // Sync to new system
     await DataSyncHelper.syncAdminData('accounts', sampleAccounts);
@@ -734,7 +734,7 @@ QAI Store - Tài khoản premium uy tín #1
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800'
     };
-    
+
     return (
       <Badge className={variants[status] || 'bg-gray-100 text-gray-800'}>
         {status}
@@ -761,24 +761,24 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const handleSaveUser = (userData: User) => {
-    console.log("Saving user with sync", userData);
+    // console.log("Saving user with sync", userData);
     let updatedUsers: User[];
-    
+
     if (editUserDialog.user) {
       // Update existing user
       updatedUsers = users.map(u => u.id === userData.id ? userData : u);
       setUsers(updatedUsers);
-      
+
       // Also update localStorage for existing users
       const storedUsers = localStorage.getItem('qai_users');
       if (storedUsers) {
         const legacyUsers = JSON.parse(storedUsers);
-        const updatedLegacyUsers = legacyUsers.map((u: any) => 
+        const updatedLegacyUsers = legacyUsers.map((u: any) =>
           u.id === userData.id ? { ...u, ...userData } : u
         );
         localStorage.setItem('qai_users', JSON.stringify(updatedLegacyUsers));
       }
-      
+
       toast({
         title: "Cập nhật thành công",
         description: `Thông tin người dùng ${userData.name} đã được cập nhật.`,
@@ -788,12 +788,12 @@ QAI Store - Tài khoản premium uy tín #1
       const newUser = { ...userData, id: Date.now().toString() };
       updatedUsers = [...users, newUser];
       setUsers(updatedUsers);
-      
+
       toast({
         title: "Tạo mới thành công",
         description: `Người dùng ${userData.name} đã được tạo.`,
       });
-      
+
       // Save to localStorage
       const storedUsers = localStorage.getItem('qai_users');
       const legacyUsers = storedUsers ? JSON.parse(storedUsers) : [];
@@ -804,7 +804,7 @@ QAI Store - Tài khoản premium uy tín #1
       });
       localStorage.setItem('qai_users', JSON.stringify(legacyUsers));
     }
-    
+
     // Sync changes across all admin tabs
     DataSyncHelper.syncAdminData('users', updatedUsers);
   };
@@ -818,7 +818,7 @@ QAI Store - Tài khoản premium uy tín #1
       onConfirm: () => {
         const updatedUsers = users.filter(u => u.id !== user.id);
         setUsers(updatedUsers);
-        
+
         // Remove from localStorage
         const storedUsers = localStorage.getItem('qai_users');
         if (storedUsers) {
@@ -826,13 +826,13 @@ QAI Store - Tài khoản premium uy tín #1
           const updatedLegacyUsers = legacyUsers.filter((u: any) => u.id !== user.id);
           localStorage.setItem('qai_users', JSON.stringify(updatedLegacyUsers));
         }
-        
+
         toast({
           title: "Xóa thành công",
           description: `Người dùng ${user.name} đã được xóa.`,
           variant: "destructive",
         });
-        
+
         // Sync changes across all admin tabs
         DataSyncHelper.syncAdminData('users', updatedUsers);
       }
@@ -847,7 +847,7 @@ QAI Store - Tài khoản premium uy tín #1
   const handleSaveProduct = (productData: Product) => {
     console.log("Saving product with sync", productData);
     let updatedProducts: Product[];
-    
+
     if (editProductDialog.product) {
       // Update existing product
       updatedProducts = products.map(p => p.id === productData.id ? productData : p);
@@ -866,7 +866,7 @@ QAI Store - Tài khoản premium uy tín #1
         description: `Sản phẩm ${productData.name} đã được tạo.`,
       });
     }
-    
+
     // Sync changes across all admin tabs
     DataSyncHelper.syncAdminData('products', updatedProducts);
   };
@@ -885,7 +885,7 @@ QAI Store - Tài khoản premium uy tín #1
           description: `Sản phẩm ${product.name} đã được xóa.`,
           variant: "destructive",
         });
-        
+
         // Sync changes across all admin tabs
         DataSyncHelper.syncAdminData('products', updatedProducts);
       }
@@ -910,14 +910,14 @@ QAI Store - Tài khoản premium uy tín #1
 
   const handleOrderStatusChange = (orderId: string, newStatus: 'pending' | 'processing' | 'completed' | 'cancelled') => {
     console.log("🔄 Order status change:", { orderId, newStatus });
-    const updatedOrders = orders.map(o => 
+    const updatedOrders = orders.map(o =>
       o.id === orderId ? { ...o, status: newStatus } : o
     );
     setOrders(updatedOrders);
-    
+
     // Sync changes
     DataSyncHelper.syncAdminData('orders', updatedOrders);
-    
+
     toast({
       title: "Trạng thái đã cập nhật",
       description: `Đơn hàng #${orderId} đã chuyển sang trạng thái: ${newStatus}`
@@ -927,12 +927,12 @@ QAI Store - Tài khoản premium uy tín #1
   const handleSaveOrder = (orderData: Order) => {
     console.log("Saving order with sync", orderData);
     let updatedOrders: Order[];
-    
+
     if (editOrderDialog.order) {
       // Update existing order
       updatedOrders = orders.map(o => o.id === orderData.id ? orderData : o);
       setOrders(updatedOrders);
-      
+
       // Also update localStorage
       const storedOrders = localStorage.getItem('qai_orders');
       if (storedOrders) {
@@ -940,7 +940,7 @@ QAI Store - Tài khoản premium uy tín #1
         const updatedLegacyOrders = legacyOrders.map((o: any) => o.id === orderData.id ? orderData : o);
         localStorage.setItem('qai_orders', JSON.stringify(updatedLegacyOrders));
       }
-      
+
       toast({
         title: "Cập nhật thành công",
         description: `Đơn hàng #${orderData.id} đã được cập nhật.`,
@@ -949,19 +949,19 @@ QAI Store - Tài khoản premium uy tín #1
       // Add new order
       updatedOrders = [...orders, orderData];
       setOrders(updatedOrders);
-      
+
       // Save to localStorage
       const storedOrders = localStorage.getItem('qai_orders');
       const legacyOrders = storedOrders ? JSON.parse(storedOrders) : [];
       legacyOrders.push(orderData);
       localStorage.setItem('qai_orders', JSON.stringify(legacyOrders));
-      
+
       toast({
         title: "Tạo mới thành công",
         description: `Đơn hàng #${orderData.id} đã được tạo.`,
       });
     }
-    
+
     // Sync changes across all admin tabs
     DataSyncHelper.syncAdminData('orders', updatedOrders);
   };
@@ -975,7 +975,7 @@ QAI Store - Tài khoản premium uy tín #1
       onConfirm: () => {
         const updatedOrders = orders.filter(o => o.id !== order.id);
         setOrders(updatedOrders);
-        
+
         // Remove from localStorage
         const storedOrders = localStorage.getItem('qai_orders');
         if (storedOrders) {
@@ -983,13 +983,13 @@ QAI Store - Tài khoản premium uy tín #1
           const updatedLegacyOrders = legacyOrders.filter((o: any) => o.id !== order.id);
           localStorage.setItem('qai_orders', JSON.stringify(updatedLegacyOrders));
         }
-        
+
         toast({
           title: "Xóa thành công",
           description: `Đơn hàng #${order.id} đã được xóa.`,
           variant: "destructive",
         });
-        
+
         // Sync changes across all admin tabs
         DataSyncHelper.syncAdminData('orders', updatedOrders);
       }
@@ -1119,7 +1119,7 @@ QAI Store - Tài khoản premium uy tín #1
     // Reset time parts to avoid issues with time zones and partial days
     const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const expiryDateOnly = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
-    
+
     const timeDiff = expiryDateOnly.getTime() - nowDate.getTime();
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return daysDiff;
@@ -1134,7 +1134,7 @@ QAI Store - Tài khoản premium uy tín #1
   const handleSaveAccount = (accountData: CustomerAccount) => {
     console.log("Saving account with sync", accountData);
     let updatedAccounts: CustomerAccount[];
-    
+
     if (editAccountDialog.account) {
       // Update existing account
       updatedAccounts = customerAccounts.map(a => a.id === accountData.id ? accountData : a);
@@ -1153,7 +1153,7 @@ QAI Store - Tài khoản premium uy tín #1
         description: `Tài khoản ${accountData.accountEmail} đã được tạo.`,
       });
     }
-    
+
     // Sync changes across all admin tabs
     DataSyncHelper.syncAdminData('accounts', updatedAccounts);
   };
@@ -1172,7 +1172,7 @@ QAI Store - Tài khoản premium uy tín #1
           description: `Tài khoản ${account.accountEmail} đã được xóa.`,
           variant: "destructive",
         });
-        
+
         // Sync changes across all admin tabs
         DataSyncHelper.syncAdminData('accounts', updatedAccounts);
       }
@@ -1191,12 +1191,12 @@ QAI Store - Tài khoản premium uy tín #1
       return;
     }
 
-    const updatedOrders = orders.map(o => 
+    const updatedOrders = orders.map(o =>
       o.status === 'pending' ? { ...o, status: 'completed' as const, completedAt: new Date().toISOString() } : o
     );
     setOrders(updatedOrders);
     DataSyncHelper.syncAdminData('orders', updatedOrders);
-    
+
     toast({
       title: "Cập nhật thành công",
       description: `Đã hoàn thành ${pendingOrders.length} đơn hàng.`,
@@ -1206,11 +1206,11 @@ QAI Store - Tài khoản premium uy tín #1
   const handleSendNotificationEmail = async () => {
     console.log("📢 Sending notification email to all customers");
     setSendingNotifications(true);
-    
+
     try {
       // Get all unique customer emails from orders
       const customerEmails = Array.from(new Set(orders.map(order => order.userEmail)));
-      
+
       if (customerEmails.length === 0) {
         toast({
           title: "Không có khách hàng",
@@ -1263,7 +1263,7 @@ QAI Store - Tài khoản premium uy tín #1
       const batchSize = 5;
       for (let i = 0; i < customerEmails.length; i += batchSize) {
         const batch = customerEmails.slice(i, i + batchSize);
-        
+
         await Promise.all(batch.map(async (email) => {
           try {
             const response = await fetch('/api/send-email', {
@@ -1283,7 +1283,7 @@ QAI Store - Tài khoản premium uy tín #1
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
               sentCount++;
               console.log(`✅ Notification sent to ${email}`);
@@ -1291,7 +1291,7 @@ QAI Store - Tài khoản premium uy tín #1
               failedCount++;
               console.error(`❌ Failed to send notification to ${email}:`, result.error);
             }
-            
+
           } catch (error) {
             failedCount++;
             console.error(`❌ Error sending notification to ${email}:`, error);
@@ -1344,7 +1344,7 @@ QAI Store - Tài khoản premium uy tín #1
       const orderDate = new Date(order.createdAt);
       return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
     });
-    
+
     const success = exportDetailedOrdersToExcel(monthlyOrders);
     if (success) {
       toast({
@@ -1394,7 +1394,7 @@ QAI Store - Tài khoản premium uy tín #1
     // Generate sample account credentials for demonstration
     const productName = order.products[0]?.name || 'Premium Account';
     const baseEmail = productName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
-    
+
     return {
       accountEmail: `${baseEmail}@example.com`,
       accountPassword: `Pass${Math.floor(Math.random() * 10000)}!`,
@@ -1426,10 +1426,10 @@ QAI Store - Tài khoản premium uy tín #1
   const handleSendEmails = async () => {
     console.log("🚀 Starting real email sending process");
     setSendingEmails(true);
-    
+
     try {
-      const ordersToSend = sendAccountModal.order 
-        ? [sendAccountModal.order] 
+      const ordersToSend = sendAccountModal.order
+        ? [sendAccountModal.order]
         : orders.filter(o => selectedOrders.includes(o.id));
 
       let sentCount = 0;
@@ -1440,9 +1440,9 @@ QAI Store - Tài khoản premium uy tín #1
         try {
           const credentials = generateAccountCredentials(order);
           const emailContent = formatEmailContent(order, credentials);
-          
+
           console.log(`📧 Sending email ${sentCount + 1}/${ordersToSend.length} to:`, order.userEmail);
-          
+
           // Call the actual email API
           const response = await fetch('/api/send-email', {
             method: 'POST',
@@ -1463,7 +1463,7 @@ QAI Store - Tài khoản premium uy tín #1
           });
 
           const result = await response.json();
-          
+
           if (result.success) {
             sentCount++;
             console.log(`✅ Email sent successfully to ${order.userEmail}:`, result);
@@ -1472,7 +1472,7 @@ QAI Store - Tài khoản premium uy tín #1
             failedEmails.push(order.userEmail);
             console.error(`❌ Failed to send email to ${order.userEmail}:`, result.error);
           }
-          
+
         } catch (emailError) {
           failedCount++;
           failedEmails.push(order.userEmail);
@@ -1513,7 +1513,7 @@ QAI Store - Tài khoản premium uy tín #1
         setSendAccountModal({ open: false, order: null });
         setSelectedOrders([]);
       }
-      
+
     } catch (error) {
       console.error("💥 Critical error in email sending process:", error);
       toast({
@@ -1559,7 +1559,7 @@ QAI Store - Tài khoản premium uy tín #1
 
   const handleTestEmail = async () => {
     console.log("🧪 Testing email configuration");
-    
+
     if (!adminUser?.email) {
       toast({
         title: "❌ Lỗi test email",
@@ -1606,7 +1606,7 @@ QAI Store - Tài khoản premium uy tín #1
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast({
           title: "✅ Test email thành công!",
@@ -1644,21 +1644,21 @@ QAI Store - Tài khoản premium uy tín #1
   // Filtering, Sorting and Pagination Functions
   const getFilteredAndSortedAccounts = () => {
     let filtered = customerAccounts.filter(account => {
-      const matchesSearch = 
+      const matchesSearch =
         account.customerName.toLowerCase().includes(accountSearchTerm.toLowerCase()) ||
         account.customerEmail.toLowerCase().includes(accountSearchTerm.toLowerCase()) ||
         account.productType.toLowerCase().includes(accountSearchTerm.toLowerCase()) ||
         account.accountEmail.toLowerCase().includes(accountSearchTerm.toLowerCase());
-      
+
       const matchesFilter = accountFilterType === 'all' || account.productType === accountFilterType;
-      
+
       return matchesSearch && matchesFilter;
     });
 
     // Sort the filtered results
     filtered.sort((a, b) => {
       let aValue: any, bValue: any;
-      
+
       switch (accountSortBy) {
         case 'purchaseDate':
           aValue = new Date(a.purchaseDate).getTime();
@@ -1679,7 +1679,7 @@ QAI Store - Tài khoản premium uy tín #1
         default:
           return 0;
       }
-      
+
       if (accountSortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -1717,14 +1717,14 @@ QAI Store - Tài khoản premium uy tín #1
   // Orders filtering and sorting functions
   const getFilteredAndSortedOrders = () => {
     let filtered = orders.filter(order => {
-      const matchesSearch = 
+      const matchesSearch =
         order.id.toLowerCase().includes(orderSearchTerm.toLowerCase()) ||
         order.userEmail.toLowerCase().includes(orderSearchTerm.toLowerCase()) ||
         (order.customerName && order.customerName.toLowerCase().includes(orderSearchTerm.toLowerCase())) ||
         order.products.some(product => product.name?.toLowerCase().includes(orderSearchTerm.toLowerCase()));
-      
+
       const matchesStatus = orderFilterStatus === 'all' || order.status === orderFilterStatus;
-      
+
       return matchesSearch && matchesStatus;
     });
 
@@ -1763,7 +1763,7 @@ QAI Store - Tài khoản premium uy tín #1
           <div className="absolute top-8 right-20 w-16 h-16 bg-yellow-300/20 rounded-full animate-bounce delay-1000"></div>
           <div className="absolute -bottom-2 left-10 w-20 h-20 bg-blue-300/15 rounded-full animate-pulse delay-500"></div>
         </div>
-        
+
         <div className="relative px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
@@ -1774,7 +1774,7 @@ QAI Store - Tài khoản premium uy tín #1
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/30 to-pink-400/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              
+
               {/* Enhanced Title */}
               <div className="space-y-1">
                 <h1 className="text-4xl font-black text-white drop-shadow-2xl">
@@ -1791,7 +1791,7 @@ QAI Store - Tài khoản premium uy tín #1
                 </div>
               </div>
             </div>
-            
+
             {/* Enhanced User Section */}
             <div className="flex items-center space-x-6">
               <div className="text-right">
@@ -1803,7 +1803,7 @@ QAI Store - Tài khoản premium uy tín #1
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 </div>
               </div>
-              
+
               <div className="relative group">
                 <Avatar className="w-12 h-12 ring-4 ring-white/30 shadow-2xl group-hover:ring-white/50 transition-all duration-300">
                   <AvatarFallback className="bg-gradient-to-br from-white/90 to-white/70 text-purple-600 font-black text-lg">
@@ -1812,10 +1812,10 @@ QAI Store - Tài khoản premium uy tín #1
                 </Avatar>
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              
-              <Button 
-                variant="outline" 
-                onClick={handleLogout} 
+
+              <Button
+                variant="outline"
+                onClick={handleLogout}
                 className="bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-red-500/80 hover:border-red-400 hover:text-white transition-all duration-300 font-semibold shadow-lg hover:shadow-2xl hover:scale-105"
               >
                 <LogOut className="w-5 h-5 mr-2" />
@@ -1832,8 +1832,8 @@ QAI Store - Tài khoản premium uy tín #1
           {/* Modern Floating Navigation */}
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 p-2">
             <TabsList className="grid w-full grid-cols-5 bg-transparent gap-2 h-auto p-0">
-              <TabsTrigger 
-                value="overview" 
+              <TabsTrigger
+                value="overview"
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0"
               >
                 <div className="relative">
@@ -1842,9 +1842,9 @@ QAI Store - Tài khoản premium uy tín #1
                 </div>
                 <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Tổng quan</span>
               </TabsTrigger>
-              
-              <TabsTrigger 
-                value="users" 
+
+              <TabsTrigger
+                value="users"
                 disabled={!hasPermission('users_manage') && !hasPermission('users_view')}
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
@@ -1854,9 +1854,9 @@ QAI Store - Tài khoản premium uy tín #1
                 </div>
                 <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Người dùng</span>
               </TabsTrigger>
-              
-              <TabsTrigger 
-                value="inventory-accounts" 
+
+              <TabsTrigger
+                value="inventory-accounts"
                 disabled={!hasPermission('products_manage')}
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
@@ -1866,9 +1866,9 @@ QAI Store - Tài khoản premium uy tín #1
                 </div>
                 <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Kho & Tài khoản</span>
               </TabsTrigger>
-              
-              <TabsTrigger 
-                value="orders" 
+
+              <TabsTrigger
+                value="orders"
                 disabled={!hasPermission('orders_manage')}
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-pink-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
@@ -1878,8 +1878,8 @@ QAI Store - Tài khoản premium uy tín #1
                 </div>
                 <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Đơn hàng & Gửi TK</span>
               </TabsTrigger>
-              
-              <TabsTrigger 
+
+              <TabsTrigger
                 value="deposits"
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0"
               >
@@ -1990,27 +1990,27 @@ QAI Store - Tài khoản premium uy tín #1
                       <AreaChart data={analyticsData}>
                         <defs>
                           <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1}/>
+                            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                        <YAxis 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tickFormatter={(value) => `${Math.floor(value/1000000)}M`}
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tickFormatter={(value) => `${Math.floor(value / 1000000)}M`}
                         />
-                        <ChartTooltip 
-                          content={<ChartTooltipContent 
+                        <ChartTooltip
+                          content={<ChartTooltipContent
                             formatter={(value) => [`${Number(value).toLocaleString('vi-VN')}đ`, 'Doanh thu']}
-                          />} 
+                          />}
                         />
-                        <Area 
-                          type="monotone" 
-                          dataKey="revenue" 
-                          stroke="#3B82F6" 
-                          fillOpacity={1} 
+                        <Area
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="#3B82F6"
+                          fillOpacity={1}
                           fill="url(#colorRevenue)"
                           strokeWidth={3}
                         />
@@ -2040,15 +2040,15 @@ QAI Store - Tài khoản premium uy tín #1
                       <BarChart data={revenueComparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                        <YAxis 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tickFormatter={(value) => `${Math.floor(value/1000000)}M`}
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tickFormatter={(value) => `${Math.floor(value / 1000000)}M`}
                         />
-                        <ChartTooltip 
-                          content={<ChartTooltipContent 
+                        <ChartTooltip
+                          content={<ChartTooltipContent
                             formatter={(value) => [`${Number(value).toLocaleString('vi-VN')}đ`, 'Doanh thu']}
-                          />} 
+                          />}
                         />
                         <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                           {revenueComparisonData.map((entry, index) => (
@@ -2057,7 +2057,7 @@ QAI Store - Tài khoản premium uy tín #1
                         </Bar>
                       </BarChart>
                     </ChartContainer>
-                    
+
                     {/* Comparison metrics */}
                     <div className="grid grid-cols-3 gap-4 mt-6">
                       {revenueComparisonData.map((item, index) => (
@@ -2108,18 +2108,18 @@ QAI Store - Tài khoản premium uy tín #1
                         <YAxis axisLine={false} tickLine={false} />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <ChartLegend content={<ChartLegendContent />} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="visitors" 
-                          stroke="#8B5CF6" 
+                        <Line
+                          type="monotone"
+                          dataKey="visitors"
+                          stroke="#8B5CF6"
                           strokeWidth={3}
                           dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
                           activeDot={{ r: 6, stroke: '#8B5CF6', strokeWidth: 2 }}
                         />
-                        <Line 
-                          type="monotone" 
-                          dataKey="pageViews" 
-                          stroke="#06B6D4" 
+                        <Line
+                          type="monotone"
+                          dataKey="pageViews"
+                          stroke="#06B6D4"
                           strokeWidth={3}
                           dot={{ fill: '#06B6D4', strokeWidth: 2, r: 4 }}
                           activeDot={{ r: 6, stroke: '#06B6D4', strokeWidth: 2 }}
@@ -2148,7 +2148,7 @@ QAI Store - Tài khoản premium uy tín #1
                         </div>
                         <Activity className="w-8 h-8 text-blue-500" />
                       </div>
-                      
+
                       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border border-purple-200">
                         <div>
                           <p className="text-sm text-purple-600 font-medium">Lượt xem trang hôm nay</p>
@@ -2158,7 +2158,7 @@ QAI Store - Tài khoản premium uy tín #1
                         </div>
                         <Eye className="w-8 h-8 text-purple-500" />
                       </div>
-                      
+
                       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200">
                         <div>
                           <p className="text-sm text-orange-600 font-medium">Tỷ lệ thoát trung bình</p>
@@ -2283,7 +2283,7 @@ QAI Store - Tài khoản premium uy tín #1
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.filter(user => 
+                    {users.filter(user =>
                       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       user.email.toLowerCase().includes(searchTerm.toLowerCase())
                     ).map((user) => (
@@ -2316,9 +2316,9 @@ QAI Store - Tài khoản premium uy tín #1
                               <Edit className="w-4 h-4" />
                             </Button>
                             {hasPermission('users_manage') && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 onClick={() => handleDeleteUser(user)}
                                 title="Xóa người dùng"
@@ -2352,7 +2352,7 @@ QAI Store - Tài khoản premium uy tín #1
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
@@ -2364,7 +2364,7 @@ QAI Store - Tài khoản premium uy tín #1
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
@@ -2376,7 +2376,7 @@ QAI Store - Tài khoản premium uy tín #1
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
@@ -2453,9 +2453,9 @@ QAI Store - Tài khoản premium uy tín #1
                                   <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)} title="Chỉnh sửa">
                                     <Edit className="w-4 h-4" />
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
                                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                     onClick={() => handleDeleteProduct(product)}
                                     title="Xóa sản phẩm"
@@ -2488,7 +2488,7 @@ QAI Store - Tài khoản premium uy tín #1
                             <p className="text-gray-600 mt-1">Theo dõi và quản lý tất cả tài khoản đã bán</p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-4 text-sm">
                           <div className="text-center">
                             <div className="text-brand-blue font-bold text-lg">{stats.totalCustomerAccounts}</div>
@@ -2505,7 +2505,7 @@ QAI Store - Tài khoản premium uy tín #1
                         </div>
                       </div>
                     </CardHeader>
-                    
+
                     <CardContent className="p-6">
                       {/* Enhanced Search and Filter */}
                       <div className="flex flex-col lg:flex-row gap-4 items-center mb-6">
@@ -2521,7 +2521,7 @@ QAI Store - Tài khoản premium uy tín #1
                             className="pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all duration-300"
                           />
                         </div>
-                        
+
                         <div className="flex flex-wrap items-center gap-3">
                           <Select value={accountFilterType} onValueChange={setAccountFilterType}>
                             <SelectTrigger className="w-44 border-2 border-gray-200 hover:border-brand-purple transition-colors duration-300 rounded-lg">
@@ -2559,9 +2559,9 @@ QAI Store - Tài khoản premium uy tín #1
                             <Download className="w-4 h-4 mr-2" />
                             Xuất Excel
                           </Button>
-                          
-                          <Button 
-                            onClick={() => handleEditAccount(null)} 
+
+                          <Button
+                            onClick={() => handleEditAccount(null)}
                             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg rounded-lg px-4"
                           >
                             <Plus className="w-4 h-4 mr-2" />
@@ -2576,56 +2576,56 @@ QAI Store - Tài khoản premium uy tín #1
                           <TableHeader>
                             <TableRow className="bg-gradient-to-r from-gray-50 to-blue-50/50 border-b-2 border-gray-100">
                               <TableHead className="w-[20%] py-3 px-4 font-semibold text-gray-700">Tài khoản</TableHead>
-                              <TableHead 
+                              <TableHead
                                 className="w-[12%] py-3 px-3 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
                                 onClick={() => handleSort('customerName')}
                               >
                                 <div className="flex items-center space-x-1">
                                   <span>Khách hàng</span>
                                   {accountSortBy === 'customerName' && (
-                                    accountSortOrder === 'asc' ? 
-                                      <ChevronUp className="w-4 h-4" /> : 
+                                    accountSortOrder === 'asc' ?
+                                      <ChevronUp className="w-4 h-4" /> :
                                       <ChevronDown className="w-4 h-4" />
                                   )}
                                 </div>
                               </TableHead>
                               <TableHead className="w-[10%] py-3 px-3 font-semibold text-gray-700">Hạng</TableHead>
-                              <TableHead 
+                              <TableHead
                                 className="w-[10%] py-3 px-3 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
                                 onClick={() => handleSort('purchaseDate')}
                               >
                                 <div className="flex items-center space-x-1">
                                   <span>Ngày mua</span>
                                   {accountSortBy === 'purchaseDate' && (
-                                    accountSortOrder === 'asc' ? 
-                                      <ChevronUp className="w-4 h-4" /> : 
+                                    accountSortOrder === 'asc' ?
+                                      <ChevronUp className="w-4 h-4" /> :
                                       <ChevronDown className="w-4 h-4" />
                                   )}
                                 </div>
                               </TableHead>
-                              <TableHead 
+                              <TableHead
                                 className="w-[10%] py-3 px-3 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
                                 onClick={() => handleSort('expiryDate')}
                               >
                                 <div className="flex items-center space-x-1">
                                   <span>Hết hạn</span>
                                   {accountSortBy === 'expiryDate' && (
-                                    accountSortOrder === 'asc' ? 
-                                      <ChevronUp className="w-4 h-4" /> : 
+                                    accountSortOrder === 'asc' ?
+                                      <ChevronUp className="w-4 h-4" /> :
                                       <ChevronDown className="w-4 h-4" />
                                   )}
                                 </div>
                               </TableHead>
                               <TableHead className="w-[8%] py-3 px-3 font-semibold text-gray-700">Trạng thái</TableHead>
-                              <TableHead 
+                              <TableHead
                                 className="w-[10%] py-3 px-3 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
                                 onClick={() => handleSort('productType')}
                               >
                                 <div className="flex items-center space-x-1">
                                   <span>Sản phẩm</span>
                                   {accountSortBy === 'productType' && (
-                                    accountSortOrder === 'asc' ? 
-                                      <ChevronUp className="w-4 h-4" /> : 
+                                    accountSortOrder === 'asc' ?
+                                      <ChevronUp className="w-4 h-4" /> :
                                       <ChevronDown className="w-4 h-4" />
                                   )}
                                 </div>
@@ -2636,11 +2636,10 @@ QAI Store - Tài khoản premium uy tín #1
                           </TableHeader>
                           <TableBody>
                             {getPaginatedAccounts().accounts.map((account, index) => (
-                              <TableRow 
-                                key={account.id} 
-                                className={`hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-emerald-50/50 transition-all duration-200 border-b border-gray-100 ${
-                                  index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                                }`}
+                              <TableRow
+                                key={account.id}
+                                className={`hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-emerald-50/50 transition-all duration-200 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                                  }`}
                               >
                                 <TableCell className="py-4 px-4">
                                   <div className="space-y-2">
@@ -2676,15 +2675,15 @@ QAI Store - Tài khoản premium uy tín #1
                                 <TableCell className="py-4 px-3">
                                   {account.customerRank && (
                                     <div className="flex items-center space-x-1">
-                                      <div 
+                                      <div
                                         className={`w-6 h-6 rounded-full flex items-center justify-center ${account.customerRank.backgroundColor} shadow-sm`}
                                       >
                                         <account.customerRank.icon className="w-3 h-3 text-white" />
                                       </div>
-                                      <Badge 
-                                        variant="outline" 
+                                      <Badge
+                                        variant="outline"
                                         className="text-xs font-medium border px-1 py-0"
-                                        style={{ 
+                                        style={{
                                           borderColor: account.customerRank.color,
                                           color: account.customerRank.color,
                                           backgroundColor: `${account.customerRank.color}15`
@@ -2714,8 +2713,8 @@ QAI Store - Tài khoản premium uy tín #1
                                   </div>
                                 </TableCell>
                                 <TableCell className="py-4 px-3">
-                                  <Badge 
-                                    variant="outline" 
+                                  <Badge
+                                    variant="outline"
                                     className="text-xs px-1 py-0 font-medium border border-brand-purple/30 text-brand-purple bg-brand-purple/5"
                                   >
                                     {account.productType}
@@ -2731,9 +2730,9 @@ QAI Store - Tài khoản premium uy tín #1
                                 </TableCell>
                                 <TableCell className="text-right py-4 px-4">
                                   <div className="flex items-center justify-end space-x-1">
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
                                       className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300 h-7 px-2 transition-all duration-200 hover:scale-105"
                                       onClick={() => handleEditAccount(account)}
                                       title="Chỉnh sửa tài khoản"
@@ -2741,9 +2740,9 @@ QAI Store - Tài khoản premium uy tín #1
                                       <Edit className="w-3 h-3 mr-1" />
                                       Sửa
                                     </Button>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
                                       className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 h-7 px-2 transition-all duration-200 hover:scale-105"
                                       onClick={() => handleDeleteAccount(account)}
                                       title="Xóa tài khoản"
@@ -2780,7 +2779,7 @@ QAI Store - Tài khoản premium uy tín #1
                               </SelectContent>
                             </Select>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2">
                             <Button
                               variant="outline"
@@ -2790,12 +2789,12 @@ QAI Store - Tài khoản premium uy tín #1
                             >
                               Trước
                             </Button>
-                            
+
                             <div className="flex items-center space-x-1">
                               {Array.from({ length: Math.min(3, getPaginatedAccounts().totalPages) }, (_, i) => {
                                 let pageNumber = currentPage <= 2 ? i + 1 : currentPage - 1 + i;
                                 if (pageNumber > getPaginatedAccounts().totalPages) return null;
-                                
+
                                 return (
                                   <Button
                                     key={pageNumber}
@@ -2809,7 +2808,7 @@ QAI Store - Tài khoản premium uy tín #1
                                 );
                               })}
                             </div>
-                            
+
                             <Button
                               variant="outline"
                               size="sm"
@@ -2873,7 +2872,7 @@ QAI Store - Tài khoản premium uy tín #1
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -2885,7 +2884,7 @@ QAI Store - Tài khoản premium uy tín #1
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -2897,7 +2896,7 @@ QAI Store - Tài khoản premium uy tín #1
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -2909,7 +2908,7 @@ QAI Store - Tài khoản premium uy tín #1
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -2921,7 +2920,7 @@ QAI Store - Tài khoản premium uy tín #1
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="bg-gradient-to-r from-red-500 to-pink-500 text-white">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -2935,7 +2934,7 @@ QAI Store - Tài khoản premium uy tín #1
                   </Card>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="p-8">
                 {/* Enhanced Search and Filter with Send Account Actions */}
                 <div className="flex flex-col lg:flex-row gap-4 items-center mb-6">
@@ -2948,7 +2947,7 @@ QAI Store - Tài khoản premium uy tín #1
                       className="pl-10 border-2 border-gray-200 focus:border-orange-500 transition-colors"
                     />
                   </div>
-                  
+
                   <div className="flex items-center space-x-3">
                     <Select value={orderFilterStatus} onValueChange={setOrderFilterStatus}>
                       <SelectTrigger className="w-40 border-2 border-gray-200 hover:border-orange-500 transition-colors">
@@ -2991,7 +2990,7 @@ QAI Store - Tài khoản premium uy tín #1
                       <Send className="w-5 h-5 text-green-600" />
                       <span className="font-semibold text-green-800">Gửi tài khoản hàng loạt:</span>
                     </div>
-                    <Button 
+                    <Button
                       onClick={() => handleSelectAllOrders(selectedOrders.length === 0)}
                       variant="outline"
                       size="sm"
@@ -3000,8 +2999,8 @@ QAI Store - Tài khoản premium uy tín #1
                       <CheckCircle className="w-4 h-4 mr-2" />
                       {selectedOrders.length === 0 ? 'Chọn tất cả đơn hoàn thành' : 'Bỏ chọn tất cả'}
                     </Button>
-                    
-                    <Button 
+
+                    <Button
                       onClick={handleBulkSendAccounts}
                       disabled={selectedOrders.length === 0}
                       className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
@@ -3011,14 +3010,14 @@ QAI Store - Tài khoản premium uy tín #1
                       Gửi tài khoản ({selectedOrders.length})
                     </Button>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2 ml-auto">
                     <Button variant="outline" size="sm" onClick={() => setSelectedOrders([])}>
                       <XCircle className="w-4 h-4 mr-2" />
                       Xóa lựa chọn
                     </Button>
                     <div className="text-sm text-gray-600">
-                      Đã chọn: <span className="font-semibold text-green-600">{selectedOrders.length}</span> / 
+                      Đã chọn: <span className="font-semibold text-green-600">{selectedOrders.length}</span> /
                       <span className="font-semibold text-blue-600">{orders.filter(o => o.status === 'completed').length}</span> đơn hoàn thành
                     </div>
                   </div>
@@ -3030,7 +3029,7 @@ QAI Store - Tài khoản premium uy tín #1
                     <TableHeader className="bg-gradient-to-r from-gray-50 to-blue-50/50">
                       <TableRow>
                         <TableHead className="w-12 font-semibold">
-                          <Checkbox 
+                          <Checkbox
                             checked={selectedOrders.length > 0 && selectedOrders.length === orders.filter(o => o.status === 'completed').length}
                             onCheckedChange={handleSelectAllOrders}
                             className="border-2 border-gray-400"
@@ -3050,7 +3049,7 @@ QAI Store - Tài khoản premium uy tín #1
                       {filteredOrders.map((order) => (
                         <TableRow key={order.id} className="hover:bg-gradient-to-r hover:from-orange-50/50 hover:to-green-50/50 transition-all duration-200">
                           <TableCell>
-                            <Checkbox 
+                            <Checkbox
                               checked={selectedOrders.includes(order.id)}
                               onCheckedChange={(checked) => handleSelectOrder(order.id, checked as boolean)}
                               disabled={order.status !== 'completed'}
@@ -3117,20 +3116,20 @@ QAI Store - Tài khoản premium uy tín #1
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center space-x-1">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                title="Xem chi tiết" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title="Xem chi tiết"
                                 onClick={() => handleViewOrderDetail(order)}
                                 className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-all hover:scale-105"
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
                               {order.status === 'completed' && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  title="Gửi tài khoản ngay" 
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Gửi tài khoản ngay"
                                   onClick={() => handleSendAccountToCustomer(order)}
                                   className="text-green-600 hover:bg-green-50 hover:text-green-700 transition-all hover:scale-105 border border-green-200 hover:border-green-400"
                                 >
@@ -3148,18 +3147,18 @@ QAI Store - Tài khoản premium uy tín #1
                                   Xử lý
                                 </Button>
                               )}
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => setEditOrderDialog({ open: true, order })} 
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditOrderDialog({ open: true, order })}
                                 title="Chỉnh sửa"
                                 className="text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-all hover:scale-105"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all hover:scale-105"
                                 onClick={() => handleDeleteOrder(order)}
                                 title="Xóa đơn hàng"
@@ -3184,9 +3183,9 @@ QAI Store - Tài khoản premium uy tín #1
                                 <>
                                   <p className="text-gray-500 font-medium">Không tìm thấy đơn hàng nào</p>
                                   <p className="text-sm text-gray-400">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() => {
                                       setOrderSearchTerm('');
                                       setOrderFilterStatus('all');
@@ -3209,17 +3208,17 @@ QAI Store - Tài khoản premium uy tín #1
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                   <h4 className="font-semibold text-gray-900 mb-3">Thao tác nhanh</h4>
                   <div className="flex flex-wrap gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       className="text-green-600 border-green-300 hover:bg-green-50"
                       onClick={handleCompleteAllPendingOrders}
                     >
                       <CheckCircle className="w-4 h-4 mr-1" />
                       Hoàn thành tất cả chờ xử lý ({orders.filter(o => o.status === 'pending').length})
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       className="text-blue-600 border-blue-300 hover:bg-blue-50"
                       onClick={handleSendNotificationEmail}
@@ -3237,8 +3236,8 @@ QAI Store - Tài khoản premium uy tín #1
                         </>
                       )}
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       className="text-purple-600 border-purple-300 hover:bg-purple-50"
                       onClick={handleExportMonthlyReport}
@@ -3286,9 +3285,9 @@ QAI Store - Tài khoản premium uy tín #1
                           <RefreshCw className="w-4 h-4 mr-2" />
                           Khôi phục mẫu
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          onClick={() => handleTestEmail()} 
+                        <Button
+                          variant="outline"
+                          onClick={() => handleTestEmail()}
                           size="sm"
                           className="text-green-600 border-green-300 hover:bg-green-50"
                         >
@@ -3297,7 +3296,7 @@ QAI Store - Tài khoản premium uy tín #1
                         </Button>
                       </div>
                     </div>
-                    
+
                     <div className="bg-white p-4 rounded-lg border shadow-sm">
                       <h5 className="font-medium text-gray-700 mb-3">Xem trước email</h5>
                       <div className="text-sm text-gray-600 space-y-2">
@@ -3307,7 +3306,7 @@ QAI Store - Tài khoản premium uy tín #1
                           {emailMessage.substring(0, 300)}...
                         </div>
                       </div>
-                      
+
                       <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                         <p className="text-xs text-blue-700 font-medium mb-2">💡 Các biến có thể sử dụng:</p>
                         <div className="text-xs text-blue-600 space-y-1">
@@ -3318,7 +3317,7 @@ QAI Store - Tài khoản premium uy tín #1
                           <div><code>{'{duration}'}</code> - Thời hạn sử dụng</div>
                         </div>
                       </div>
-                      
+
                       <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-xs text-green-700 font-medium mb-1">✅ Email service status:</p>
                         <div className="flex items-center space-x-2">
@@ -3382,24 +3381,22 @@ QAI Store - Tài khoản premium uy tín #1
           open={deleteDialog.open}
           onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
           onConfirm={deleteDialog.onConfirm}
-          title={`Xóa ${
-            deleteDialog.type === 'user' ? 'người dùng' : 
-            deleteDialog.type === 'product' ? 'sản phẩm' : 
-            deleteDialog.type === 'order' ? 'đơn hàng' : 
-            'tài khoản khách hàng'
-          }`}
-          description={`Bạn có chắc chắn muốn xóa ${
-            deleteDialog.type === 'user' ? 'người dùng' : 
-            deleteDialog.type === 'product' ? 'sản phẩm' : 
-            deleteDialog.type === 'order' ? 'đơn hàng' : 
-            'tài khoản khách hàng'
-          } này không?`}
+          title={`Xóa ${deleteDialog.type === 'user' ? 'người dùng' :
+              deleteDialog.type === 'product' ? 'sản phẩm' :
+                deleteDialog.type === 'order' ? 'đơn hàng' :
+                  'tài khoản khách hàng'
+            }`}
+          description={`Bạn có chắc chắn muốn xóa ${deleteDialog.type === 'user' ? 'người dùng' :
+              deleteDialog.type === 'product' ? 'sản phẩm' :
+                deleteDialog.type === 'order' ? 'đơn hàng' :
+                  'tài khoản khách hàng'
+            } này không?`}
           itemName={
-            deleteDialog.item?.name || 
-            deleteDialog.item?.email || 
-            deleteDialog.item?.accountEmail || 
-            deleteDialog.item?.customerName || 
-            deleteDialog.item?.id || 
+            deleteDialog.item?.name ||
+            deleteDialog.item?.email ||
+            deleteDialog.item?.accountEmail ||
+            deleteDialog.item?.customerName ||
+            deleteDialog.item?.id ||
             ''
           }
           type={deleteDialog.type}
@@ -3415,15 +3412,15 @@ QAI Store - Tài khoản premium uy tín #1
                 </div>
                 <div>
                   <span className="text-xl font-bold">
-                    {sendAccountModal.order ? 
-                      `Gửi tài khoản cho đơn hàng #${sendAccountModal.order.id}` : 
+                    {sendAccountModal.order ?
+                      `Gửi tài khoản cho đơn hàng #${sendAccountModal.order.id}` :
                       `Gửi tài khoản hàng loạt (${selectedOrders.length} đơn hàng)`
                     }
                   </span>
                 </div>
               </DialogTitle>
               <DialogDescription>
-                {sendAccountModal.order ? 
+                {sendAccountModal.order ?
                   `Gửi thông tin tài khoản premium đến ${sendAccountModal.order.userEmail}` :
                   `Gửi thông tin tài khoản premium đến ${selectedOrders.length} khách hàng được chọn`
                 }
@@ -3500,7 +3497,7 @@ QAI Store - Tài khoản premium uy tín #1
                       className="w-full"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Nội dung email
@@ -3519,14 +3516,14 @@ QAI Store - Tài khoản premium uy tín #1
                     <Eye className="w-4 h-4 mr-2" />
                     Xem trước
                   </h5>
-                  
+
                   {sendAccountModal.order && (
                     <div className="space-y-3">
                       <div className="bg-white p-3 rounded border">
                         <div className="text-sm"><strong>Đến:</strong> {sendAccountModal.order.userEmail}</div>
                         <div className="text-sm"><strong>Tiêu đề:</strong> {emailSubject}</div>
                       </div>
-                      
+
                       <div className="bg-white p-3 rounded border text-sm">
                         <div className="font-medium mb-2">Nội dung email:</div>
                         <div className="text-xs font-mono bg-gray-50 p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap">
@@ -3568,16 +3565,16 @@ QAI Store - Tài khoản premium uy tín #1
                   Khôi phục mẫu
                 </Button>
               </div>
-              
+
               <div className="flex items-center space-x-3">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setSendAccountModal({ open: false, order: null })}
                   disabled={sendingEmails}
                 >
                   Hủy
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSendEmails}
                   disabled={sendingEmails || (!sendAccountModal.order && selectedOrders.length === 0)}
                   className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"

@@ -5,8 +5,8 @@
       "name": "Netflix Premium",
       "category": "streaming",
       "description": "4K Ultra HD, 4 thiết bị cùng lúc",
-      "price": 50000,
-      "originalPrice": 80000,
+      "price": 80000,
+      "originalPrice": 273000,
       "image": "🎬",
       "color": "bg-red-600",
       "badge": "Bán chạy",
@@ -26,22 +26,23 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
           "name": "1 tháng",
-          "price": 50000,
-          "originalPrice": 80000
+          "price": 80000,
+          "originalPrice": 273000
         },
         {
           "id": "3m",
           "name": "3 tháng",
-          "price": 140000,
-          "originalPrice": 240000
+          "price": 240000,
+          "originalPrice": 819000
         },
         {
           "id": "6m",
           "name": "6 tháng",
-          "price": 270000,
-          "originalPrice": 480000
+          "price": 449000,
+          "originalPrice": 3276000
         }
       ]
     },
@@ -50,8 +51,8 @@
       "name": "Spotify Premium",
       "category": "music",
       "description": "Spotify Premium - Premium quality service",
-      "price": 39000,
-      "originalPrice": 59000,
+      "price": 299000,
+      "originalPrice": 354000,
       "image": "🎵",
       "color": "bg-green-500",
       "badge": "Còn hàng",
@@ -71,16 +72,17 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
-          "name": "1 tháng",
-          "price": 39000,
-          "originalPrice": 59000
+          "name": "6 tháng",
+          "price": 299000,
+          "originalPrice": 354000
         },
         {
           "id": "3m",
           "name": "3 tháng",
-          "price": 110000,
-          "originalPrice": 177000
+          "price": 449000,
+          "originalPrice": 708000
         }
       ]
     },
@@ -89,8 +91,8 @@
       "name": "ChatGPT Plus",
       "category": "ai",
       "description": "ChatGPT Plus - Premium quality service",
-      "price": 120000,
-      "originalPrice": 200000,
+      "price": 79000,
+      "originalPrice": 500000,
       "image": "🤖",
       "color": "bg-purple-600",
       "badge": "Còn hàng",
@@ -110,16 +112,47 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
-          "name": "1 tháng",
-          "price": 120000,
-          "originalPrice": 200000
+          "name": "Dùng chung 8 người",
+          "price": 79000,
+          "originalPrice": 500000
+        },
+        {
+          "id": "2m",
+          "name": "Dùng chung 7 người",
+          "price": 99000,
+          "originalPrice": 500000
         },
         {
           "id": "3m",
-          "name": "3 tháng",
-          "price": 340000,
-          "originalPrice": 600000
+          "name": "Dùng chung 6 người",
+          "price": 139000,
+          "originalPrice": 500000
+        },
+        {
+          "id": "4m",
+          "name": "Dùng chung 5 người",
+          "price": 159000,
+          "originalPrice": 500000
+        },
+        {
+          "id": "5m",
+          "name": "Dùng chung 4 người",
+          "price": 199000,
+          "originalPrice": 500000
+        },
+        {
+          "id": "6m",
+          "name": "Dùng chung 3 người",
+          "price": 230000,
+          "originalPrice": 500000
+        },
+        {
+          "id": "7m",
+          "name": "Chính chủ mail riêng",
+          "price": 399000,
+          "originalPrice": 500000
         }
       ]
     },
@@ -128,8 +161,8 @@
       "name": "YouTube Premium",
       "category": "streaming",
       "description": "Ad-free YouTube + YouTube Music",
-      "price": 67000,
-      "originalPrice": 90000,
+      "price": 40000,
+      "originalPrice": 69000,
       "image": "📺",
       "color": "bg-red-600",
       "badge": "Hot",
@@ -149,16 +182,29 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
           "name": "1 tháng",
-          "price": 67000,
-          "originalPrice": 90000
+          "price": 40000,
+          "originalPrice": 69000
+        },
+        {
+          "id": "3m",
+          "name": "3 tháng",
+          "price": 90000,
+          "originalPrice": 207000
         },
         {
           "id": "6m",
           "name": "6 tháng",
-          "price": 380000,
-          "originalPrice": 540000
+          "price": 180000,
+          "originalPrice": 414000
+        },
+        {
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 290000,
+          "originalPrice": 828000
         }
       ]
     },
@@ -167,8 +213,8 @@
       "name": "Adobe Creative Cloud",
       "category": "design",
       "description": "Full suite of creative applications",
-      "price": 145000,
-      "originalPrice": 200000,
+      "price": 900000,
+      "originalPrice": 10400000,
       "image": "🎨",
       "color": "bg-orange-500",
       "badge": "Professional",
@@ -188,16 +234,23 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
-          "name": "1 tháng",
-          "price": 145000,
-          "originalPrice": 200000
+          "name": "Dùng chung 1 thiết bị",
+          "price": 900000,
+          "originalPrice": 10400000
         },
         {
           "id": "3m",
-          "name": "3 tháng",
-          "price": 420000,
-          "originalPrice": 600000
+          "name": "Dùng chung 2 thiết bị",
+          "price": 1500000,
+          "originalPrice": 10400000
+        },
+        {
+          "id": "3m",
+          "name": "Dùng riêng 5 thiết bị",
+          "price": 2000000,
+          "originalPrice": 10400000
         }
       ]
     },
@@ -206,8 +259,8 @@
       "name": "Microsoft Office 365",
       "category": "productivity",
       "description": "Complete office suite with cloud storage",
-      "price": 85000,
-      "originalPrice": 120000,
+      "price": 299000,
+      "originalPrice": 1699000,
       "image": "💼",
       "color": "bg-blue-600",
       "badge": "Essential",
@@ -227,16 +280,11 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
-          "name": "1 tháng",
-          "price": 85000,
-          "originalPrice": 120000
-        },
-        {
-          "id": "12m",
           "name": "12 tháng",
-          "price": 900000,
-          "originalPrice": 1440000
+          "price": 299000,
+          "originalPrice": 1699000
         }
       ]
     },
@@ -245,8 +293,8 @@
       "name": "CapCut Pro",
       "category": "design",
       "description": "Professional video editing with AI features",
-      "price": 69000,
-      "originalPrice": 99000,
+      "price": 99000,
+      "originalPrice": 109000,
       "image": "✂️",
       "color": "bg-black",
       "badge": "Trending",
@@ -266,16 +314,17 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
           "name": "1 tháng",
-          "price": 69000,
-          "originalPrice": 99000
+          "price": 99000,
+          "originalPrice": 109000
         },
         {
-          "id": "3m",
-          "name": "3 tháng",
-          "price": 199000,
-          "originalPrice": 297000
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 699000,
+          "originalPrice": 1500000
         }
       ]
     },
@@ -284,8 +333,8 @@
       "name": "Canva Pro",
       "category": "design",
       "description": "Professional design platform with premium features",
-      "price": 49000,
-      "originalPrice": 75000,
+      "price": 149000,
+      "originalPrice": 1490000,
       "image": "🎨",
       "color": "bg-purple-500",
       "badge": "Popular",
@@ -305,16 +354,17 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
-          "name": "1 tháng",
-          "price": 49000,
-          "originalPrice": 75000
+          "name": "12 tháng",
+          "price": 149000,
+          "originalPrice": 1490000
         },
         {
-          "id": "6m",
-          "name": "6 tháng",
+          "id": "24m",
+          "name": "24 tháng",
           "price": 249000,
-          "originalPrice": 450000
+          "originalPrice": 3000000
         }
       ]
     },
@@ -323,8 +373,8 @@
       "name": "Google Drive 1TB",
       "category": "storage",
       "description": "1TB cloud storage with Google Workspace",
-      "price": 45000,
-      "originalPrice": 65000,
+      "price": 249000,
+      "originalPrice": 500000,
       "image": "☁️",
       "color": "bg-blue-500",
       "badge": "Storage",
@@ -344,104 +394,45 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
-          "name": "1 tháng",
-          "price": 45000,
-          "originalPrice": 65000
+          "name": "Dung lượng 100GB 12 tháng",
+          "price": 249000,
+          "originalPrice": 500000
         },
         {
-          "id": "12m",
-          "name": "12 tháng",
-          "price": 499000,
+          "id": "3m",
+          "name": "Dung lượng 200GB 12 tháng",
+          "price": 349000,
           "originalPrice": 780000
-        }
-      ]
-    },
-    {
-      "id": 10,
-      "name": "Disney+ Hotstar",
-      "category": "streaming",
-      "description": "Disney, Marvel, Star Wars content",
-      "price": 55000,
-      "originalPrice": 80000,
-      "image": "🏰",
-      "color": "bg-blue-700",
-      "badge": "Family",
-      "badgeColor": "bg-green-500",
-      "inStock": true,
-      "rating": 4.5,
-      "reviews": 234,
-      "warranty": "30 ngày",
-      "sales": 234,
-      "stock": 45,
-      "status": "active",
-      "features": [
-        "Disney Content",
-        "Marvel Movies",
-        "Star Wars Series",
-        "4K Streaming"
-      ],
-      "durations": [
+        },
         {
-          "id": "1m",
-          "name": "1 tháng",
-          "price": 55000,
-          "originalPrice": 80000
+          "id": "4m",
+          "name": "Dung lượng 500GB 12 tháng",
+          "price": 449000,
+          "originalPrice": 1500000
+        },
+        {
+          "id": "5m",
+          "name": "Dung lượng 1TB 12 tháng",
+          "price": 559000,
+          "originalPrice": 2500000
         },
         {
           "id": "6m",
-          "name": "6 tháng",
-          "price": 299000,
-          "originalPrice": 480000
-        }
-      ]
-    },
-    {
-      "id": 11,
-      "name": "Apple Music",
-      "category": "music",
-      "description": "High-quality music streaming service",
-      "price": 42000,
-      "originalPrice": 60000,
-      "image": "🍎",
-      "color": "bg-gray-800",
-      "badge": "HiFi",
-      "badgeColor": "bg-purple-500",
-      "inStock": true,
-      "rating": 4.7,
-      "reviews": 678,
-      "warranty": "30 ngày",
-      "sales": 678,
-      "stock": 150,
-      "status": "active",
-      "features": [
-        "Lossless Audio",
-        "Spatial Audio",
-        "Apple Exclusive",
-        "Offline Download"
-      ],
-      "durations": [
-        {
-          "id": "1m",
-          "name": "1 tháng",
-          "price": 42000,
-          "originalPrice": 60000
-        },
-        {
-          "id": "6m",
-          "name": "6 tháng",
-          "price": 229000,
-          "originalPrice": 360000
+          "name": "Dung lượng 2TB 12 tháng",
+          "price": 649000,
+          "originalPrice": 4500000
         }
       ]
     },
     {
       "id": 12,
-      "name": "Zoom Pro",
+      "name": "Zoom Pro 100 người",
       "category": "productivity",
       "description": "Professional video conferencing solution",
-      "price": 89000,
-      "originalPrice": 125000,
+      "price": 250000,
+      "originalPrice": 370000,
       "image": "📹",
       "color": "bg-blue-500",
       "badge": "Business",
@@ -461,16 +452,29 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
           "name": "1 tháng",
-          "price": 89000,
-          "originalPrice": 125000
+          "price": 250000,
+          "originalPrice": 370000
+        },
+        {
+          "id": "3m",
+          "name": "3 tháng",
+          "price": 450000,
+          "originalPrice": 3399000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 750000,
+          "originalPrice": 3399000
         },
         {
           "id": "12m",
           "name": "12 tháng",
-          "price": 999000,
-          "originalPrice": 1500000
+          "price": 1500000,
+          "originalPrice": 3399000
         }
       ]
     },
@@ -479,8 +483,8 @@
       "name": "Udemy Business",
       "category": "education",
       "description": "Access to 25,000+ courses for teams",
-      "price": 199000,
-      "originalPrice": 299000,
+      "price": 399000,
+      "originalPrice": 990000,
       "image": "🎓",
       "color": "bg-purple-600",
       "badge": "Learning",
@@ -500,26 +504,21 @@
       ],
       "durations": [
         {
-          "id": "1m",
-          "name": "1 tháng",
-          "price": 199000,
-          "originalPrice": 299000
-        },
-        {
+          "featured": true,
           "id": "6m",
           "name": "6 tháng",
-          "price": 1099000,
-          "originalPrice": 1794000
+          "price": 399000,
+          "originalPrice": 990000
         }
       ]
     },
     {
       "id": 14,
-      "name": "Coursera Plus",
+      "name": "Coursera Business",
       "category": "education",
       "description": "Unlimited access to 7,000+ courses",
-      "price": 179000,
-      "originalPrice": 249000,
+      "price": 180000,
+      "originalPrice": 549000,
       "image": "📚",
       "color": "bg-blue-600",
       "badge": "Certificate",
@@ -539,16 +538,23 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
           "name": "1 tháng",
-          "price": 179000,
-          "originalPrice": 249000
+          "price": 180000,
+          "originalPrice": 549000
         },
         {
-          "id": "12m",
-          "name": "12 tháng",
-          "price": 1999000,
-          "originalPrice": 2988000
+          "id": "3m",
+          "name": "6 tháng",
+          "price": 299000,
+          "originalPrice": 549000
+        },
+        {
+          "id": "6m",
+          "name": "6 tháng",
+          "price": 499000,
+          "originalPrice": 549000
         }
       ]
     },
@@ -557,8 +563,8 @@
       "name": "Otter.ai Pro",
       "category": "ai",
       "description": "AI-powered meeting transcription",
-      "price": 79000,
-      "originalPrice": 120000,
+      "price": 249000,
+      "originalPrice": 350000,
       "image": "🦦",
       "color": "bg-indigo-500",
       "badge": "AI",
@@ -578,16 +584,11 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
           "name": "1 tháng",
-          "price": 79000,
-          "originalPrice": 120000
-        },
-        {
-          "id": "6m",
-          "name": "6 tháng",
-          "price": 429000,
-          "originalPrice": 720000
+          "price": 249000,
+          "originalPrice": 350000
         }
       ]
     },
@@ -596,8 +597,8 @@
       "name": "Beautiful.AI Pro",
       "category": "ai",
       "description": "AI-powered presentation maker",
-      "price": 89000,
-      "originalPrice": 130000,
+      "price": 160000,
+      "originalPrice": 249000,
       "image": "🎭",
       "color": "bg-pink-500",
       "badge": "Design",
@@ -617,16 +618,11 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
           "name": "1 tháng",
-          "price": 89000,
-          "originalPrice": 130000
-        },
-        {
-          "id": "12m",
-          "name": "12 tháng",
-          "price": 979000,
-          "originalPrice": 1560000
+          "price": 160000,
+          "originalPrice": 249000
         }
       ]
     },
@@ -635,8 +631,8 @@
       "name": "Duolingo Super",
       "category": "education",
       "description": "Premium language learning with AI",
-      "price": 59000,
-      "originalPrice": 89000,
+      "price": 199000,
+      "originalPrice": 1099000,
       "image": "🦜",
       "color": "bg-green-500",
       "badge": "Language",
@@ -656,16 +652,11 @@
       ],
       "durations": [
         {
-          "id": "1m",
-          "name": "1 tháng",
-          "price": 59000,
-          "originalPrice": 89000
-        },
-        {
+          "featured": true,
           "id": "12m",
           "name": "12 tháng",
-          "price": 649000,
-          "originalPrice": 1068000
+          "price": 199000,
+          "originalPrice": 1099000
         }
       ]
     },
@@ -674,8 +665,8 @@
       "name": "Grammarly Premium",
       "category": "productivity",
       "description": "Advanced writing assistant with AI",
-      "price": 79000,
-      "originalPrice": 119000,
+      "price": 249000,
+      "originalPrice": 1190000,
       "image": "✍️",
       "color": "bg-emerald-600",
       "badge": "Writing",
@@ -695,16 +686,17 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
-          "name": "1 tháng",
-          "price": 79000,
-          "originalPrice": 119000
+          "name": "Dùng chung 12 tháng",
+          "price": 249000,
+          "originalPrice": 1190000
         },
         {
           "id": "12m",
-          "name": "12 tháng",
-          "price": 869000,
-          "originalPrice": 1428000
+          "name": "Dùng riêng 6 tháng",
+          "price": 599000,
+          "originalPrice": 1190000
         }
       ]
     },
@@ -713,8 +705,8 @@
       "name": "Galaxy Vip",
       "category": "streaming",
       "description": "Premium Vietnamese streaming service",
-      "price": 35000,
-      "originalPrice": 55000,
+      "price": 169000,
+      "originalPrice": 250000,
       "image": "🌟",
       "color": "bg-yellow-500",
       "badge": "Local",
@@ -734,16 +726,17 @@
       ],
       "durations": [
         {
-          "id": "1m",
-          "name": "1 tháng",
-          "price": 35000,
-          "originalPrice": 55000
+          "featured": true,
+          "id": "3m",
+          "name": "3 tháng",
+          "price": 169000,
+          "originalPrice": 250000
         },
         {
-          "id": "6m",
-          "name": "6 tháng",
-          "price": 189000,
-          "originalPrice": 330000
+          "id": "12m",
+          "name": "12 tháng",
+          "price": 229000,
+          "originalPrice": 950000
         }
       ]
     },
@@ -752,8 +745,8 @@
       "name": "Vieon VIP",
       "category": "streaming",
       "description": "Vietnamese premium streaming platform",
-      "price": 29000,
-      "originalPrice": 45000,
+      "price": 79000,
+      "originalPrice": 129000,
       "image": "📱",
       "color": "bg-orange-500",
       "badge": "Vietnam",
@@ -773,61 +766,29 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
           "name": "1 tháng",
-          "price": 29000,
-          "originalPrice": 45000
+          "price": 79000,
+          "originalPrice": 129000
         },
         {
           "id": "3m",
           "name": "3 tháng",
-          "price": 79000,
-          "originalPrice": 135000
-        }
-      ]
-    },
-    {
-      "id": 21,
-      "name": "Leonardo AI",
-      "category": "ai",
-      "description": "Advanced AI image generation platform",
-      "price": 99000,
-      "originalPrice": 149000,
-      "image": "🎨",
-      "color": "bg-violet-600",
-      "badge": "AI Art",
-      "badgeColor": "bg-violet-500",
-      "inStock": true,
-      "rating": 4.7,
-      "reviews": 112,
-      "warranty": "30 ngày",
-      "sales": 112,
-      "stock": 30,
-      "status": "active",
-      "features": [
-        "AI Image Generation",
-        "Style Transfer",
-        "High Resolution",
-        "Commercial License"
-      ],
-      "durations": [
-        {
-          "id": "1m",
-          "name": "1 tháng",
-          "price": 99000,
-          "originalPrice": 149000
+          "price": 159000,
+          "originalPrice": 205000
         },
         {
           "id": "6m",
           "name": "6 tháng",
-          "price": 549000,
-          "originalPrice": 894000
+          "price": 229000,
+          "originalPrice": 350000
         }
       ]
     },
     {
       "id": 22,
-      "name": "Gamma Pro",
+      "name": "Gamma Plus & Pro",
       "category": "ai",
       "description": "AI-powered presentation and website builder",
       "price": 109000,
@@ -851,16 +812,17 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
-          "name": "1 tháng",
-          "price": 109000,
-          "originalPrice": 159000
+          "name": "Gamma plus 1 tháng",
+          "price": 170000,
+          "originalPrice": 270000
         },
         {
-          "id": "12m",
-          "name": "12 tháng",
-          "price": 1199000,
-          "originalPrice": 1908000
+          "id": "2m",
+          "name": "Gamma pro 1 tháng",
+          "price": 349000,
+          "originalPrice": 504000
         }
       ]
     },
@@ -869,8 +831,8 @@
       "name": "QuillBot Premium",
       "category": "education",
       "description": "AI writing and paraphrasing tool",
-      "price": 69000,
-      "originalPrice": 99000,
+      "price": 299000,
+      "originalPrice": 750000,
       "image": "🪶",
       "color": "bg-blue-500",
       "badge": "Writing",
@@ -890,55 +852,11 @@
       ],
       "durations": [
         {
-          "id": "1m",
-          "name": "1 tháng",
-          "price": 69000,
-          "originalPrice": 99000
-        },
-        {
+          "featured": true,
           "id": "12m",
           "name": "12 tháng",
-          "price": 759000,
-          "originalPrice": 1188000
-        }
-      ]
-    },
-    {
-      "id": 24,
-      "name": "Tidal HiFi",
-      "category": "music",
-      "description": "High-fidelity music streaming",
-      "price": 52000,
-      "originalPrice": 79000,
-      "image": "🌊",
-      "color": "bg-cyan-600",
-      "badge": "HiFi",
-      "badgeColor": "bg-cyan-500",
-      "inStock": true,
-      "rating": 4.6,
-      "reviews": 156,
-      "warranty": "30 ngày",
-      "sales": 156,
-      "stock": 45,
-      "status": "active",
-      "features": [
-        "Master Quality Audio",
-        "Exclusive Content",
-        "Music Videos",
-        "Artist Interviews"
-      ],
-      "durations": [
-        {
-          "id": "1m",
-          "name": "1 tháng",
-          "price": 52000,
-          "originalPrice": 79000
-        },
-        {
-          "id": "6m",
-          "name": "6 tháng",
-          "price": 289000,
-          "originalPrice": 474000
+          "price": 2299000,
+          "originalPrice": 750000
         }
       ]
     },
@@ -947,8 +865,8 @@
       "name": "Figma Pro",
       "category": "design",
       "description": "Professional design and prototyping tool",
-      "price": 119000,
-      "originalPrice": 169000,
+      "price": 120000,
+      "originalPrice": 499000,
       "image": "🎯",
       "color": "bg-purple-500",
       "badge": "Design",
@@ -968,16 +886,11 @@
       ],
       "durations": [
         {
+          "featured": true,
           "id": "1m",
           "name": "1 tháng",
-          "price": 119000,
-          "originalPrice": 169000
-        },
-        {
-          "id": "12m",
-          "name": "12 tháng",
-          "price": 1309000,
-          "originalPrice": 2028000
+          "price": 120000,
+          "originalPrice": 499000
         }
       ]
     }
@@ -997,6 +910,7 @@
       "address": "123 Nguyễn Huệ, Q1, TP.HCM",
       "points": 50000000,
       "rank": "silver",
+      "coins": 50000,
       "preferences": {
         "categories": [
           "streaming",
@@ -1019,6 +933,7 @@
       "phone": "0987654321",
       "address": "456 Lê Lợi, Q3, TP.HCM",
       "points": 450,
+      "coins": 50000,
       "rank": "bronze",
       "preferences": {
         "categories": [
@@ -1042,6 +957,7 @@
       "phone": "0123456789",
       "address": "Demo Address",
       "points": 189,
+      "coins": 50000,
       "rank": "bronze",
       "preferences": {
         "categories": [
@@ -1055,32 +971,178 @@
   ],
   "orders": [
     {
-      "id": "ORD_001",
-      "userId": "user_001",
-      "userEmail": "nguyenvana@gmail.com",
-      "customerName": "Nguyễn Văn A",
+      "id": "ORD_1751190446729",
+      "userId": "demo",
+      "userEmail": "demo@qaistore.com",
+      "customerName": "Demo User",
+      "customerPhone": "0389660305",
       "products": [
         {
           "id": 1,
           "name": "Netflix Premium",
           "quantity": 1,
-          "price": 50000,
+          "price": 80000,
           "duration": "1 tháng"
         }
       ],
-      "total": 50000,
+      "total": 80000,
+      "originalTotal": 80000,
+      "discount": 0,
       "status": "completed",
-      "paymentMethod": "Ví điện tử",
-      "createdAt": "2024-03-15T10:30:00.000Z",
-      "date": "2024-03-15T10:30:00.000Z",
-      "shippingAddress": "123 Nguyễn Huệ, Q1, TP.HCM",
-      "notes": "Giao hàng nhanh"
+      "paymentMethod": "wallet",
+      "paymentStatus": "completed",
+      "createdAt": "2025-06-29T09:47:26.729Z",
+      "date": "2025-06-29T09:47:26.729Z",
+      "completedAt": "2025-06-29T09:47:32.097Z",
+      "shippingAddress": "xczcx",
+      "notes": "",
+      "transactionId": "WALLET_1751190452008_ybzt17iql",
+      "deliveryInfo": {
+        "email": "demo@qaistore.com",
+        "deliveredAt": "2025-06-29T09:47:32.097Z",
+        "accountCredentials": [
+          {
+            "itemId": 1,
+            "itemName": "Netflix Premium",
+            "credentials": {
+              "email": "netflix.premium.1751190452097@qaistore.com",
+              "password": "NFE1OOIL5R!",
+              "profilePins": [
+                "1234",
+                "5678",
+                "9012",
+                "3456"
+              ],
+              "note": "Tài khoản Netflix Premium 4K - Sử dụng được trên 4 thiết bị cùng lúc"
+            },
+            "deliveredAt": "2025-06-29T09:47:32.097Z"
+          }
+        ]
+      },
+      "updatedAt": "2025-06-29T09:47:32.097Z"
+    },
+    {
+      "id": "ORD_1751190144034",
+      "userId": "demo",
+      "userEmail": "demo@qaistore.com",
+      "customerName": "Demo User",
+      "customerPhone": "0389660305",
+      "products": [
+        {
+          "id": 3,
+          "name": "ChatGPT Plus",
+          "quantity": 1,
+          "price": 79000,
+          "duration": "Dùng chung 8 người"
+        }
+      ],
+      "total": 79000,
+      "originalTotal": 79000,
+      "discount": 0,
+      "status": "completed",
+      "paymentMethod": "wallet",
+      "paymentStatus": "completed",
+      "createdAt": "2025-06-29T09:42:24.034Z",
+      "date": "2025-06-29T09:42:24.034Z",
+      "completedAt": "2025-06-29T09:47:32.011Z",
+      "shippingAddress": "",
+      "notes": "Order completed with digital delivery",
+      "transactionId": "WALLET_1751190146928_wdj7pdixw",
+      "deliveryInfo": {
+        "email": "demo@qaistore.com",
+        "deliveredAt": "2025-06-29T09:42:26.994Z",
+        "accountCredentials": [
+          {
+            "itemId": 3,
+            "itemName": "ChatGPT Plus",
+            "credentials": {
+              "email": "chatgpt.plus.1751190146993@qaistore.com",
+              "password": "GPTAFGV2HYM!",
+              "note": "Tài khoản ChatGPT Plus - Truy cập GPT-4 và các tính năng cao cấp"
+            },
+            "deliveredAt": "2025-06-29T09:42:26.993Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ORD_1751190072770",
+      "userId": "demo",
+      "userEmail": "demo@qaistore.com",
+      "customerName": "Demo User",
+      "customerPhone": "0389660305",
+      "products": [
+        {
+          "id": 3,
+          "name": "ChatGPT Plus",
+          "quantity": 1,
+          "price": 79000,
+          "duration": "Dùng chung 8 người"
+        }
+      ],
+      "total": 79000,
+      "originalTotal": 79000,
+      "discount": 0,
+      "status": "completed",
+      "paymentMethod": "wallet",
+      "paymentStatus": "completed",
+      "createdAt": "2025-06-29T09:41:12.770Z",
+      "date": "2025-06-29T09:41:12.770Z",
+      "completedAt": "2025-06-29T09:47:32.011Z",
+      "shippingAddress": "",
+      "notes": "Order completed with digital delivery",
+      "transactionId": "WALLET_1751190079521_mbnv85zsm",
+      "deliveryInfo": {
+        "email": "demo@qaistore.com",
+        "deliveredAt": "2025-06-29T09:41:19.599Z",
+        "accountCredentials": [
+          {
+            "itemId": 3,
+            "itemName": "ChatGPT Plus",
+            "credentials": {
+              "email": "chatgpt.plus.1751190079599@qaistore.com",
+              "password": "GPTHBHJ39FC!",
+              "note": "Tài khoản ChatGPT Plus - Truy cập GPT-4 và các tính năng cao cấp"
+            },
+            "deliveredAt": "2025-06-29T09:41:19.599Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ORD_1751188953438",
+      "userId": "demo",
+      "userEmail": "demo@qaistore.com",
+      "customerName": "Demo User",
+      "customerPhone": "0389660305",
+      "products": [
+        {
+          "id": 6,
+          "name": "Microsoft Office 365",
+          "quantity": 1,
+          "price": 299000,
+          "duration": "12 tháng"
+        }
+      ],
+      "total": 299000,
+      "originalTotal": 299000,
+      "discount": 0,
+      "status": "pending",
+      "paymentMethod": "momo",
+      "paymentStatus": "pending",
+      "createdAt": "2025-06-29T09:22:33.438Z",
+      "date": "2025-06-29T09:22:33.438Z",
+      "completedAt": null,
+      "shippingAddress": "",
+      "notes": "",
+      "transactionId": "TXN_1751188953438"
     },
     {
       "id": "ORD_002",
       "userId": "demo",
       "userEmail": "demo@qaistore.com",
       "customerName": "Demo User",
+      "customerPhone": "",
       "products": [
         {
           "id": 2,
@@ -1098,12 +1160,17 @@
         }
       ],
       "total": 159000,
+      "originalTotal": 159000,
+      "discount": 0,
       "status": "completed",
       "paymentMethod": "Thẻ ngân hàng",
+      "paymentStatus": "completed",
       "createdAt": "2024-03-16T14:20:00.000Z",
       "date": "2024-03-16T14:20:00.000Z",
-      "shippingAddress": "Demo Address",
-      "notes": ""
+      "completedAt": "2025-06-29T09:47:32.011Z",
+      "shippingAddress": "",
+      "notes": "Order completed with digital delivery",
+      "transactionId": "ORD_002"
     }
   ],
   "customerAccounts": [
@@ -1152,9 +1219,9 @@
       "addedAt": "2024-03-26T13:15:00.000Z"
     },
     {
-      "userId": "user_001",
-      "productId": 2,
-      "addedAt": "2024-03-25T09:30:00.000Z"
+      "userId": "demo",
+      "productId": 4,
+      "addedAt": "2025-06-29T06:13:10.288Z"
     }
   ],
   "userCarts": [
@@ -1162,8 +1229,8 @@
       "userId": "demo",
       "productId": 4,
       "productName": "YouTube Premium",
-      "price": 67000,
-      "originalPrice": 90000,
+      "price": 40000,
+      "originalPrice": 69000,
       "quantity": 1,
       "selectedDuration": "1m",
       "duration": "1 tháng",
@@ -1172,6 +1239,36 @@
       "description": "Ad-free YouTube + YouTube Music",
       "warranty": "30 ngày",
       "addedAt": "2024-03-26T14:00:00.000Z"
+    },
+    {
+      "userId": "demo",
+      "productId": 5,
+      "productName": "Adobe Creative Cloud",
+      "price": 900000,
+      "originalPrice": 10400000,
+      "quantity": 1,
+      "selectedDuration": "1m",
+      "duration": "Dùng chung 1 thiết bị",
+      "image": "🎨",
+      "color": "bg-orange-500",
+      "description": "Full suite of creative applications",
+      "warranty": "30 ngày",
+      "addedAt": "2025-06-29T06:12:46.662Z"
+    },
+    {
+      "userId": "demo",
+      "productId": 6,
+      "productName": "Microsoft Office 365",
+      "price": 299000,
+      "originalPrice": 1699000,
+      "quantity": 1,
+      "selectedDuration": "1m",
+      "duration": "12 tháng",
+      "image": "💼",
+      "color": "bg-blue-600",
+      "description": "Complete office suite with cloud storage",
+      "warranty": "30 ngày",
+      "addedAt": "2025-06-29T09:12:04.728Z"
     }
   ],
   "userWallets": [
@@ -1251,7 +1348,7 @@
     }
   ],
   "metadata": {
-    "lastUpdated": "2025-06-28T14:50:04.266Z",
+    "lastUpdated": "2025-06-29T16:44:36.411Z",
     "version": "3.0.0",
     "totalUsers": 3,
     "totalProducts": 25,

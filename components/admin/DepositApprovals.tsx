@@ -11,6 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { CheckCircle, XCircle, Clock, RefreshCw, Search, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import DataSyncHelper from '@/lib/syncHelper';
+// import data from '@/lib/data.json';
+// import { User } from '@/types/user.interface';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PendingDeposit {
   orderId: string;
@@ -25,6 +28,7 @@ interface PendingDeposit {
   status: 'pending' | 'approved' | 'rejected';
 }
 
+
 export default function DepositApprovals() {
   const [pendingDeposits, setPendingDeposits] = useState<PendingDeposit[]>([]);
   const [filteredDeposits, setFilteredDeposits] = useState<PendingDeposit[]>([]);
@@ -36,7 +40,7 @@ export default function DepositApprovals() {
   // Load pending deposits
   const loadPendingDeposits = () => {
     const rawDeposits = JSON.parse(localStorage.getItem('qai-pending-deposits') || '[]');
-    
+
     // Ensure all deposits have required fields with defaults
     const deposits = rawDeposits.map((deposit: any) => ({
       orderId: deposit.orderId || '',
@@ -50,10 +54,10 @@ export default function DepositApprovals() {
       createdAt: deposit.createdAt || new Date().toISOString(),
       status: deposit.status || 'pending'
     })) as PendingDeposit[];
-    
+
     setPendingDeposits(deposits);
     setFilteredDeposits(deposits);
-    console.log("Loaded pending deposits", { count: deposits.length, deposits });
+    // console.log("Loaded pending deposits", { count: deposits.length, deposits });
   };
 
   useEffect(() => {
@@ -77,9 +81,20 @@ export default function DepositApprovals() {
     }
   }, [searchTerm, pendingDeposits]);
 
+  const { user, isLoading } = useAuth();
+
   const handleApprove = async (deposit: PendingDeposit) => {
+
     setIsProcessing(deposit.orderId);
-    console.log("🟢 Approving deposit", { orderId: deposit.orderId, userEmail: deposit.userEmail });
+
+    // console.log("🟢 Approving deposit", { orderId: deposit.orderId, userEmail: deposit.userEmail });
+    // const users: User[] = data.users;
+
+    // const getUserByEmail = (email: string): User | undefined => {
+    //   return users.find(user => user.email === email);
+    // };
+
+    // const currentUser = user?.email;
 
     try {
       // Calculate final amounts
@@ -104,18 +119,29 @@ export default function DepositApprovals() {
         bonusAmount: bonusAmount > 0 ? bonusAmount : undefined
       });
 
+      // 🔄 Cập nhật xu cho user đang login (nếu là người đó)
+      if (user?.email === deposit.userEmail) {
+        const storedUser = localStorage.getItem('qai_user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          userData.coins = (userData.coins || 0) + totalReceived;
+          localStorage.setItem('qai_user', JSON.stringify(userData));
+          // setUser(userData); 
+        }
+      }
+
       toast({
         title: "✅ Đã phê duyệt",
         description: `Giao dịch ${deposit.orderId} đã được phê duyệt. Người dùng ${deposit.userEmail} nhận được ${formatCoins(totalReceived)}.`,
       });
 
-      console.log("✅ Deposit approved and synced successfully", { 
-        orderId: deposit.orderId, 
-        totalReceived,
-        userEmail: deposit.userEmail,
-        bonusAmount 
-      });
-      
+      // console.log("✅ Deposit approved and synced successfully", {
+      //   orderId: deposit.orderId,
+      //   totalReceived,
+      //   userEmail: deposit.userEmail,
+      //   bonusAmount
+      // });
+
     } catch (error) {
       console.error("❌ Error approving deposit:", error);
       toast({
@@ -130,7 +156,7 @@ export default function DepositApprovals() {
 
   const handleReject = async (deposit: PendingDeposit) => {
     setIsProcessing(deposit.orderId);
-    console.log("🔴 Rejecting deposit", { orderId: deposit.orderId, userEmail: deposit.userEmail });
+    // console.log("🔴 Rejecting deposit", { orderId: deposit.orderId, userEmail: deposit.userEmail });
 
     try {
       // Remove from pending deposits
@@ -148,18 +174,18 @@ export default function DepositApprovals() {
         status: 'rejected',
         methodName: deposit.methodName
       });
-      
+
       toast({
         title: "❌ Đã từ chối",
         description: `Giao dịch ${deposit.orderId} của ${deposit.userEmail} đã bị từ chối.`,
         variant: "destructive",
       });
 
-      console.log("✅ Deposit rejected and synced", { 
-        orderId: deposit.orderId, 
-        userEmail: deposit.userEmail 
+      console.log("✅ Deposit rejected and synced", {
+        orderId: deposit.orderId,
+        userEmail: deposit.userEmail
       });
-      
+
     } catch (error) {
       console.error("❌ Error rejecting deposit:", error);
       toast({
@@ -209,7 +235,7 @@ export default function DepositApprovals() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -221,7 +247,7 @@ export default function DepositApprovals() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -307,15 +333,15 @@ export default function DepositApprovals() {
                         <TableCell>
                           <Badge className={getStatusColor(deposit.status)}>
                             {deposit.status === 'pending' ? 'Chờ duyệt' :
-                             deposit.status === 'approved' ? 'Đã duyệt' : 'Đã từ chối'}
+                              deposit.status === 'approved' ? 'Đã duyệt' : 'Đã từ chối'}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   size="sm"
                                   onClick={() => setSelectedDeposit(deposit)}
                                 >
@@ -372,7 +398,7 @@ export default function DepositApprovals() {
                                 )}
                               </DialogContent>
                             </Dialog>
-                            
+
                             {deposit.status === 'pending' && (
                               <>
                                 <Button

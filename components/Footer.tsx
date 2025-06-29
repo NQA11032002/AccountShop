@@ -48,18 +48,19 @@ export default function Footer() {
           <div className="space-y-6">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-brand rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">Q</span>
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                {/* <span className="text-white font-bold text-xl">Q</span> */}
+                <img src="/images/logo.png" alt="" />
               </div>
               <div>
                 <h3 className="text-xl font-bold">QAI STORE</h3>
-                <p className="text-gray-400 text-sm">SHOP TÀI KHOẢN UY TÍN</p>
+                <p className="text-gray-400 text-sm">SHOP TÀI KHOẢN</p>
               </div>
             </div>
 
             {/* Description */}
             <p className="text-gray-300 text-sm leading-relaxed">
-              Cung cấp tài khoản premium chất lượng cao với giá tốt nhất thị trường. 
+              Cung cấp tài khoản premium chất lượng cao với giá tốt nhất thị trường.
               Cam kết bảo hành và hỗ trợ khách hàng 24/7.
             </p>
 
@@ -158,7 +159,7 @@ export default function Footer() {
           {/* Newsletter & Social */}
           <div className="space-y-6">
             <h4 className="text-lg font-semibold">Theo dõi chúng tôi</h4>
-            
+
             {/* Social Links */}
             <div className="flex space-x-4">
               <a
@@ -194,7 +195,7 @@ export default function Footer() {
                   placeholder="Nhập email của bạn"
                   className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-brand-emerald"
                 />
-                <Button 
+                <Button
                   type="submit"
                   className="w-full bg-brand-emerald hover:bg-brand-emerald/90 text-white"
                 >
@@ -226,7 +227,7 @@ export default function Footer() {
             <div className="text-sm text-gray-400">
               © {currentYear} QAI STORE. Tất cả quyền được bảo lưu.
             </div>
-            
+
             <div className="flex items-center space-x-6 text-sm text-gray-400">
               <span>Thiết kế bởi QAI Team</span>
               <span>•</span>

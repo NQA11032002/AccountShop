@@ -24,13 +24,13 @@ export default function Header() {
   const { favorites } = useFavorites();
   const { balance, formatCoins } = useWallet();
 
-  console.log("ENHANCED Header component rendered", { 
-    isMenuOpen, 
-    itemsCount, 
-    realtimeCartCount, 
-    user: user?.email, 
-    favoritesCount: favorites.length 
-  });
+  // console.log("ENHANCED Header component rendered", {
+  //   isMenuOpen,
+  //   itemsCount,
+  //   realtimeCartCount,
+  //   user: user?.email,
+  //   favoritesCount: favorites.length
+  // });
 
   // Enhanced real-time cart sync for Header
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function Header() {
     // Subscribe to cart sync events
     const unsubscribe = DataSyncHelper.subscribeToCartSync((eventData) => {
       console.log("🔄 Header: Cart sync event received", eventData);
-      
+
       if (eventData.userId === user.id) {
         if (eventData.type === 'delete') {
           const newCount = eventData.updatedCart?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
@@ -176,13 +176,15 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 border-b border-gray-200">
           {/* Left - Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">5K</span>
+            <div className="w-10 h-10  rounded-lg flex items-center justify-center">
+              {/* <span className="text-white font-bold text-lg">5K</span> */}
+              <img src="/images/logo.png" alt="" />
             </div>
             <div className="flex flex-col">
               <h1 className="text-xl font-bold text-gray-800 leading-tight">
-                SHOP TÀI KHOẢN
+                QAI STORE
               </h1>
+              <p className="text-gray-400 text-sm">SHOP TÀI KHOẢN</p>
             </div>
           </div>
 
@@ -246,9 +248,9 @@ export default function Header() {
                     <span className="ml-2 hidden sm:inline text-sm">{user.name}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 bg-white/95 backdrop-blur-md border-white/20 text-gray-800 shadow-xl rounded-xl">
+                <DropdownMenuContent align="end" className="w-64 bg-white/95 backdrop-blur-md  border-white/20 text-gray-800 shadow-xl rounded-xl">
                   <DropdownMenuItem asChild>
-                    <Link href="/wallet" className="flex items-center px-4 py-3 hover:bg-green-50 rounded-lg">
+                    <Link href="/wallet" className="flex items-center px-4 py-3 cursor-grab hover:bg-green-50 rounded-lg">
                       <Wallet className="mr-3 h-4 w-4 text-green-600" />
                       <div>
                         <span>Ví của tôi</span>
@@ -257,31 +259,31 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg">
+                    <Link href="/accounts" className="flex items-center px-4 py-3 cursor-grab hover:bg-purple-50 rounded-lg">
                       <Shield className="mr-3 h-4 w-4 text-purple-600" />
                       <span>Tài khoản của tôi</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/orders" className="flex items-center px-4 py-3 hover:bg-blue-50 rounded-lg">
+                    <Link href="/orders" className="flex items-center px-4 py-3 cursor-grab hover:bg-blue-50 rounded-lg">
                       <ShoppingCart className="mr-3 h-4 w-4 text-blue-600" />
                       <span>Đơn hàng của tôi</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
+                    <Link href="/favorites" className="flex items-center px-4 py-3 cursor-grab hover:bg-pink-50 rounded-lg">
                       <Heart className="mr-3 h-4 w-4 text-pink-600" />
                       <span>Yêu thích</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/my-ranking" className="flex items-center px-4 py-3 hover:bg-yellow-50 rounded-lg">
+                    <Link href="/my-ranking" className="flex items-center px-4 py-3 cursor-grab hover:bg-yellow-50 rounded-lg">
                       <span className="mr-3 text-yellow-600">👑</span>
                       <span>Hạng khách hàng</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-100" />
-                  <DropdownMenuItem onClick={logout} className="flex items-center px-4 py-3 hover:bg-red-50 text-red-600 rounded-lg">
+                  <DropdownMenuItem onClick={logout} className="flex items-center px-4 py-3 cursor-grab hover:bg-red-50 text-red-600 rounded-lg">
                     <LogOut className="mr-3 h-4 w-4" />
                     <span>Đăng xuất</span>
                   </DropdownMenuItem>
@@ -321,7 +323,7 @@ export default function Header() {
                     {item.name}
                     <ChevronDown className="w-4 h-4 ml-1 group-hover:rotate-180 transition-transform duration-300" />
                   </a>
-                  
+
                   {/* Mega Menu Dropdown */}
                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-screen max-w-5xl bg-white/95 backdrop-blur-lg rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 mt-1">
                     <div className="p-6">
@@ -361,21 +363,21 @@ export default function Header() {
                           </div>
                         ))}
                       </div>
-                      
+
                       {/* Streamlined Footer */}
                       <div className="mt-6 pt-4 border-t border-gray-200">
                         <div className="flex items-center justify-between">
                           <p className="text-gray-500 text-sm">Khám phá hàng trăm sản phẩm chất lượng</p>
                           <div className="flex space-x-3">
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white text-xs px-4 py-2 shadow-md"
                             >
                               Xem tất cả
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs px-4 py-2"
                             >
                               Hỗ trợ

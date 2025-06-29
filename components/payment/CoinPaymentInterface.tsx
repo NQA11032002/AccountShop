@@ -9,12 +9,12 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Coins, 
-  Wallet, 
-  Shield, 
-  Zap, 
-  CheckCircle2, 
+import {
+  Coins,
+  Wallet,
+  Shield,
+  Zap,
+  CheckCircle2,
   AlertCircle,
   Sparkles,
   TrendingUp,
@@ -32,12 +32,12 @@ interface CoinPaymentInterfaceProps {
   appliedDiscount?: any;
 }
 
-export default function CoinPaymentInterface({ 
-  amount, 
-  onPayment, 
-  isProcessing, 
+export default function CoinPaymentInterface({
+  amount,
+  onPayment,
+  isProcessing,
   orderItems,
-  appliedDiscount 
+  appliedDiscount
 }: CoinPaymentInterfaceProps) {
   const { balance, canAfford, formatCoins } = useWallet();
   const { user } = useAuth();
@@ -160,8 +160,8 @@ export default function CoinPaymentInterface({
               <span>Số dư hiện tại</span>
               <span className="font-medium">{formatCoins(balance)}</span>
             </div>
-            <Progress 
-              value={balancePercentage} 
+            <Progress
+              value={balancePercentage}
               className="h-3"
               style={{
                 background: isAffordable ? 'rgb(220 252 231)' : 'rgb(254 243 199)'
@@ -234,13 +234,13 @@ export default function CoinPaymentInterface({
               <span>Tạm tính:</span>
               <span>{formatCoins(amount + (appliedDiscount ? (appliedDiscount.type === 'percentage' ? Math.min((amount * appliedDiscount.value) / 100, appliedDiscount.maxDiscount || Infinity) : appliedDiscount.value) : 0))}</span>
             </div>
-            
+
             {appliedDiscount && (
               <div className="flex justify-between text-sm text-green-600">
                 <span>Giảm giá ({appliedDiscount.code}):</span>
                 <span>
                   -{formatCoins(
-                    appliedDiscount.type === 'percentage' ? 
+                    appliedDiscount.type === 'percentage' ?
                       Math.min((amount * appliedDiscount.value) / 100, appliedDiscount.maxDiscount || Infinity) :
                       appliedDiscount.value
                   )}
@@ -255,9 +255,9 @@ export default function CoinPaymentInterface({
                 Miễn phí
               </span>
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex justify-between font-bold text-lg">
               <span className="text-gray-800">Tổng thanh toán:</span>
               <span className="text-2xl text-brand-blue font-bold">
@@ -284,15 +284,15 @@ export default function CoinPaymentInterface({
                 </p>
               </div>
             </div>
-            
+
             <Button
               onClick={handlePayment}
               disabled={!isAffordable || isProcessing}
               size="lg"
               className={`
                 px-8 py-4 text-lg font-semibold min-w-[200px] rounded-lg
-                ${isAffordable 
-                  ? 'bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white shadow-md' 
+                ${isAffordable
+                  ? 'bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white shadow-md'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }
                 transform transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95

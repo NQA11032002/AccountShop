@@ -5,14 +5,14 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePayment } from '@/contexts/PaymentContext';
-import { 
-  Shield, 
-  Clock, 
-  CheckCircle, 
-  AlertCircle, 
-  Search, 
-  Filter, 
-  Copy, 
+import {
+  Shield,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Search,
+  Filter,
+  Copy,
   ExternalLink,
   Calendar,
   User,
@@ -56,23 +56,24 @@ export default function AccountsPage() {
   const { orders } = usePayment();
   const { toast } = useToast();
   const router = useRouter();
-  
+
   const [accounts, setAccounts] = useState<AccountData[]>([]);
   const [filteredAccounts, setFilteredAccounts] = useState<AccountData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
 
-  console.log("AccountsPage rendered", { 
-    user: user?.email, 
-    ordersCount: orders.length,
-    accountsCount: accounts.length
-  });
+  // console.log("AccountsPage rendered", { 
+  //   user: user?.email, 
+  //   ordersCount: orders.length,
+  //   accountsCount: accounts.length
+  // });
 
   useEffect(() => {
+
     // Extract account data from completed orders
     const extractedAccounts: AccountData[] = [];
-    
+
     orders.forEach(order => {
       if (order.status === 'completed' && order.deliveryInfo?.accountCredentials) {
         order.deliveryInfo.accountCredentials.forEach((accountInfo: any) => {
@@ -81,13 +82,13 @@ export default function AccountsPage() {
             // Calculate expiry date based on duration
             const purchaseDate = new Date(order.date);
             const expiryDate = new Date(purchaseDate);
-            
+
             // Parse duration to add to expiry date
             const durationMatch = orderItem.duration.match(/(\d+)\s*(tháng|ngày|năm)/i);
             if (durationMatch) {
               const amount = parseInt(durationMatch[1]);
               const unit = durationMatch[2].toLowerCase();
-              
+
               if (unit === 'tháng') {
                 expiryDate.setMonth(expiryDate.getMonth() + amount);
               } else if (unit === 'ngày') {
@@ -96,12 +97,12 @@ export default function AccountsPage() {
                 expiryDate.setFullYear(expiryDate.getFullYear() + amount);
               }
             }
-            
+
             // Determine status
             const now = new Date();
-            const status: 'active' | 'expired' | 'suspended' = 
+            const status: 'active' | 'expired' | 'suspended' =
               now > expiryDate ? 'expired' : 'active';
-            
+
             extractedAccounts.push({
               id: `${order.id}-${accountInfo.itemId}`,
               accountEmail: accountInfo.credentials.email,
@@ -123,7 +124,7 @@ export default function AccountsPage() {
         });
       }
     });
-    
+
     setAccounts(extractedAccounts);
     console.log("Extracted accounts:", extractedAccounts);
   }, [orders]);
@@ -267,7 +268,7 @@ export default function AccountsPage() {
         {/* Account Credentials */}
         <div className="space-y-4">
           <h3 className="font-semibold text-lg">Thông tin đăng nhập</h3>
-          
+
           <div className="grid grid-cols-1 gap-4">
             <div className="p-4 border rounded-lg">
               <label className="text-sm font-medium text-gray-600">Email/Username</label>
@@ -338,9 +339,9 @@ export default function AccountsPage() {
             <div className="p-4 border rounded-lg">
               <label className="text-sm font-medium text-gray-600">Liên kết trực tiếp</label>
               <div className="flex items-center justify-between mt-1">
-                <a 
-                  href={account.link} 
-                  target="_blank" 
+                <a
+                  href={account.link}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-brand-blue hover:underline text-sm flex-1 mr-2 truncate"
                 >
@@ -384,7 +385,7 @@ export default function AccountsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-blue/5 via-brand-purple/5 to-brand-emerald/5">
       <Header />
-      
+
       <main className="pt-20 pb-16">
         {/* Page Header */}
         <section className="relative bg-gradient-to-r from-brand-blue via-brand-purple to-brand-emerald text-white py-20 overflow-hidden">
@@ -395,7 +396,7 @@ export default function AccountsPage() {
             <div className="absolute bottom-20 left-32 w-12 h-12 bg-white/10 rounded-full animate-ping"></div>
             <div className="absolute bottom-10 right-10 w-24 h-24 border border-white/25 rounded-full animate-spin"></div>
           </div>
-          
+
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-5xl mx-auto text-center">
               <div className="flex items-center justify-center space-x-4 mb-6">
@@ -416,11 +417,11 @@ export default function AccountsPage() {
                   </h1>
                 </div>
               </div>
-              
+
               <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
                 Theo dõi và quản lý tất cả tài khoản premium của bạn một cách <span className="text-yellow-300 font-semibold">an toàn</span> và <span className="text-emerald-300 font-semibold">hiệu quả</span>
               </p>
-              
+
               {/* Enhanced Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-300 hover:scale-105">
@@ -449,7 +450,7 @@ export default function AccountsPage() {
         </section>
 
         <div className="container mx-auto px-4 py-12">
-          
+
           {/* Enhanced Account Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
             <Card className="relative bg-gradient-to-br from-brand-blue via-brand-purple to-indigo-600 text-white overflow-hidden group hover:scale-105 transition-all duration-300 shadow-2xl">
@@ -468,7 +469,7 @@ export default function AccountsPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="relative bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 text-white overflow-hidden group hover:scale-105 transition-all duration-300 shadow-2xl">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500"></div>
               <CardContent className="p-8 relative z-10">
@@ -485,7 +486,7 @@ export default function AccountsPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white overflow-hidden group hover:scale-105 transition-all duration-300 shadow-2xl">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500"></div>
               <CardContent className="p-8 relative z-10">
@@ -502,7 +503,7 @@ export default function AccountsPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="relative bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 text-white overflow-hidden group hover:scale-105 transition-all duration-300 shadow-2xl">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500"></div>
               <CardContent className="p-8 relative z-10">
@@ -520,7 +521,7 @@ export default function AccountsPage() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Enhanced Filters */}
           <Card className="mb-12 border-0 shadow-2xl bg-gradient-to-r from-white via-gray-50 to-white">
             <CardContent className="p-8">
@@ -545,7 +546,7 @@ export default function AccountsPage() {
                     </button>
                   )}
                 </div>
-                
+
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <Filter className="w-5 h-5 text-brand-purple" />
@@ -564,7 +565,7 @@ export default function AccountsPage() {
                   </Select>
                 </div>
               </div>
-              
+
               {/* Quick Stats */}
               {(searchQuery || statusFilter !== 'all') && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
@@ -619,11 +620,10 @@ export default function AccountsPage() {
                     </TableHeader>
                     <TableBody>
                       {filteredAccounts.map((account, index) => (
-                        <TableRow 
-                          key={account.id} 
-                          className={`hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-emerald-50/50 transition-all duration-200 border-b border-gray-100 ${
-                            index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                          }`}
+                        <TableRow
+                          key={account.id}
+                          className={`hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-emerald-50/50 transition-all duration-200 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                            }`}
                         >
                           <TableCell className="py-6">
                             <div className={`w-12 h-12 ${account.productColor} rounded-2xl flex items-center justify-center text-lg shadow-lg hover:scale-110 transition-transform duration-200`}>
@@ -671,8 +671,8 @@ export default function AccountsPage() {
                             </div>
                           </TableCell>
                           <TableCell className="py-6">
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className="text-sm px-3 py-1 font-medium border-2 border-brand-purple/30 text-brand-purple bg-brand-purple/5 hover:bg-brand-purple/10 transition-colors"
                             >
                               {account.platform}
@@ -687,9 +687,9 @@ export default function AccountsPage() {
                           <TableCell className="text-right py-6">
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                                 >
                                   <Eye className="w-4 h-4 mr-2" />
@@ -717,29 +717,29 @@ export default function AccountsPage() {
                     <Search className="w-6 h-6 text-white" />
                   </div>
                 </div>
-                
+
                 <div className="max-w-lg mx-auto">
                   <h3 className="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent mb-4">
                     {searchQuery || statusFilter !== 'all' ? '🔍 Không tìm thấy tài khoản' : '🎯 Chưa có tài khoản nào'}
                   </h3>
                   <p className="text-gray-600 text-lg mb-8 leading-relaxed">
-                    {searchQuery || statusFilter !== 'all' 
+                    {searchQuery || statusFilter !== 'all'
                       ? 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm để tìm thấy tài khoản bạn đang cần.'
                       : 'Bạn chưa có tài khoản premium nào. Hãy khám phá và mua các sản phẩm chất lượng của chúng tôi!'
                     }
                   </p>
-                  
+
                   <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <Button 
-                      onClick={() => router.push('/products')} 
+                    <Button
+                      onClick={() => router.push('/products')}
                       className="bg-gradient-to-r from-brand-blue via-brand-purple to-brand-emerald hover:from-brand-blue/90 hover:via-brand-purple/90 hover:to-brand-emerald/90 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 px-8 py-4 text-lg font-semibold rounded-2xl"
                     >
                       <Zap className="w-5 h-5 mr-3" />
                       Khám phá sản phẩm
                     </Button>
-                    
+
                     {(searchQuery || statusFilter !== 'all') && (
-                      <Button 
+                      <Button
                         variant="outline"
                         onClick={() => {
                           setSearchQuery('');
@@ -752,7 +752,7 @@ export default function AccountsPage() {
                       </Button>
                     )}
                   </div>
-                  
+
                   {!searchQuery && statusFilter === 'all' && (
                     <div className="mt-12 p-6 bg-gradient-to-r from-blue-100/50 to-emerald-100/50 rounded-2xl border border-blue-200/50">
                       <h4 className="font-semibold text-gray-800 mb-2">💡 Gợi ý cho bạn</h4>

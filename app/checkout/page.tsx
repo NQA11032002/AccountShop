@@ -45,9 +45,9 @@ function CheckoutPageSkeleton() {
 function CheckoutPageContent() {
   const { items, itemsCount, totalAmount, totalSavings, clearCart, addItem } = useCart();
   const { user } = useAuth();
-  const { 
-    paymentMethods, 
-    selectedPaymentMethod, 
+  const {
+    paymentMethods,
+    selectedPaymentMethod,
     setSelectedPaymentMethod,
     appliedDiscount,
     applyDiscountCode,
@@ -60,7 +60,7 @@ function CheckoutPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [currentStep, setCurrentStep] = useState(1);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState('');
@@ -68,7 +68,7 @@ function CheckoutPageContent() {
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
   const [paymentMode] = useState<'coins'>('coins'); // Focus on coin payments only
   const [finalOrderAmount, setFinalOrderAmount] = useState(0);
-  
+
   // Buy now mode state
   const [isBuyNowMode, setIsBuyNowMode] = useState(false);
   const [buyNowItem, setBuyNowItem] = useState<any>(null);
@@ -81,7 +81,7 @@ function CheckoutPageContent() {
     socialContact: ''
   });
   const [agreeTOS, setAgreeTOS] = useState(false);
-  
+
   // Check for buy now mode and load product data
   useEffect(() => {
     const mode = searchParams.get('mode');
@@ -130,23 +130,23 @@ function CheckoutPageContent() {
     const itemsCount = effectiveItems.reduce((total, item) => total + item.quantity, 0);
     const totalAmount = effectiveItems.reduce((total, item) => total + (item.price * item.quantity), 0);
     const totalSavings = effectiveItems.reduce((total, item) => total + ((item.originalPrice - item.price) * item.quantity), 0);
-    
+
     return { itemsCount, totalAmount, totalSavings };
   };
 
   const calculateFinalTotal = () => {
     const { totalAmount: effectiveTotalAmount } = getEffectiveTotals();
-    
-    const discountAmount = appliedDiscount ? 
-      (appliedDiscount.type === 'percentage' ? 
+
+    const discountAmount = appliedDiscount ?
+      (appliedDiscount.type === 'percentage' ?
         Math.min((effectiveTotalAmount * appliedDiscount.value) / 100, appliedDiscount.maxDiscount || Infinity) :
         appliedDiscount.value) : 0;
-    
+
     // No processing fees for coin payments - always free
     const processingFee = 0;
-    
+
     const finalTotal = Math.max(0, effectiveTotalAmount - discountAmount + processingFee);
-    
+
     console.log("calculateFinalTotal", {
       mode: isBuyNowMode ? 'buynow' : 'cart',
       effectiveTotalAmount,
@@ -155,22 +155,22 @@ function CheckoutPageContent() {
       finalTotal,
       paymentMode: 'coins'
     });
-    
+
     return finalTotal;
   };
 
   const { itemsCount: effectiveItemsCount, totalAmount: effectiveTotalAmount } = getEffectiveTotals();
-  
-  console.log("CheckoutPage rendered", { 
-    currentStep, 
+
+  console.log("CheckoutPage rendered", {
+    currentStep,
     mode: isBuyNowMode ? 'buynow' : 'cart',
     buyNowItem: buyNowItem?.name,
-    effectiveItemsCount, 
-    effectiveTotalAmount, 
+    effectiveItemsCount,
+    effectiveTotalAmount,
     finalTotal: calculateFinalTotal(),
     appliedDiscount: appliedDiscount?.code,
     paymentMode,
-    user: user?.email 
+    user: user?.email
   });
 
   // Rest of the component logic...
@@ -232,7 +232,7 @@ function CheckoutPageContent() {
     }
 
     setIsApplyingDiscount(true);
-    console.log("Applying discount code", { code: discountCodeInput, total: effectiveTotalAmount });
+    // console.log("Applying discount code", { code: discountCodeInput, total: effectiveTotalAmount });
 
     try {
       const success = await applyDiscountCode(discountCodeInput.trim().toUpperCase(), effectiveTotalAmount);
@@ -240,15 +240,15 @@ function CheckoutPageContent() {
         setDiscountCodeInput('');
       }
     } catch (error) {
-      console.error("Discount application error:", error);
+      // console.error("Discount application error:", error);
     } finally {
       setIsApplyingDiscount(false);
     }
   };
 
   const handleCreateOrder = async () => {
-    console.log("Creating order with customer info", { customerInfo, finalTotal: calculateFinalTotal() });
-    
+    // console.log("Creating order with customer info", { customerInfo, finalTotal: calculateFinalTotal() });
+
     if (!customerInfo.fullName || !customerInfo.email || !customerInfo.phone) {
       toast({
         title: "Thông tin không đầy đủ",
@@ -270,7 +270,7 @@ function CheckoutPageContent() {
     try {
       const effectiveItems = getEffectiveItems();
       const finalTotal = calculateFinalTotal();
-      
+
       const orderData = {
         items: effectiveItems,
         total: finalTotal,
@@ -278,19 +278,15 @@ function CheckoutPageContent() {
         mode: isBuyNowMode ? 'buynow' : 'cart'
       };
 
-      console.log("Creating order with data:", orderData);
-      
+      // console.log("Creating order with data:", orderData);
+
       const newOrderId = await createOrder(orderData);
       setOrderId(newOrderId);
       setFinalOrderAmount(finalTotal);
-      
+
       // Move to payment step
       setCurrentStep(2);
-      
-      console.log("Order created successfully", { orderId: newOrderId, finalTotal });
-      
     } catch (error: any) {
-      console.error("Order creation failed:", error);
       toast({
         title: "Tạo đơn hàng thất bại",
         description: error.message || "Có lỗi xảy ra khi tạo đơn hàng.",
@@ -301,12 +297,12 @@ function CheckoutPageContent() {
 
   const handleCoinPayment = async () => {
     if (!orderId) {
-      console.error("No order ID for payment");
+      // console.error("No order ID for payment");
       return;
     }
 
     const finalTotal = calculateFinalTotal();
-    
+
     if (!canAfford(finalTotal)) {
       toast({
         title: "Số dư không đủ",
@@ -316,14 +312,11 @@ function CheckoutPageContent() {
       return;
     }
 
-    console.log("Processing coin payment", { orderId, amount: finalTotal });
-
     try {
       // Deduct coins first
-      console.log("Starting coin deduction process", { finalTotal, orderId });
-      
+
       const deductionSuccess = await deductCoins(
-        finalTotal, 
+        finalTotal,
         `Thanh toán đơn hàng ${orderId}`,
         orderId
       );
@@ -338,7 +331,6 @@ function CheckoutPageContent() {
         return;
       }
 
-      console.log("Coins deducted successfully, processing payment completion", { orderId });
 
       // Process payment completion (this will handle delivery and order status)
       const success = await processPayment(orderId, {
@@ -349,8 +341,7 @@ function CheckoutPageContent() {
       });
 
       if (success) {
-        console.log("Payment processing completed successfully", { orderId });
-        
+
         // Clear cart if not in buy now mode
         if (!isBuyNowMode) {
           clearCart();
@@ -358,21 +349,19 @@ function CheckoutPageContent() {
           // Clear buy now data
           sessionStorage.removeItem('qai-store-buy-now-item');
         }
-        
+
         setOrderPlaced(true);
         setCurrentStep(3);
 
         // Redirect to orders page after delay
-        setTimeout(() => {
-          router.push('/orders');
-        }, 3000);
+        // setTimeout(() => {
+        //   router.push('/orders');
+        // }, 3000);
       } else {
-        console.error("Payment processing failed after coin deduction", { orderId });
-        
+
         // Refund the coins that were deducted
-        console.log("Refunding coins due to payment processing failure", { finalTotal, orderId });
         refundCoins(finalTotal, `Hoàn tiền do lỗi xử lý đơn hàng ${orderId}`, orderId);
-        
+
         toast({
           title: "Lỗi xử lý thanh toán",
           description: "Có lỗi trong quá trình xử lý. Coins đã được hoàn lại vào ví của bạn.",
@@ -380,14 +369,14 @@ function CheckoutPageContent() {
         });
       }
     } catch (error: any) {
-      console.error("💥 Payment failed:", error);
-      
+      // console.error("💥 Payment failed:", error);
+
       // If the error occurred after coins were deducted, we should refund them
       // We can check if the error message indicates payment processing failure
       if (error.message && error.message.includes("payment") && !error.message.includes("deduction")) {
-        console.log("🔄 Refunding coins due to payment processing error", { finalTotal, orderId });
+        // console.log("🔄 Refunding coins due to payment processing error", { finalTotal, orderId });
         refundCoins(finalTotal, `Hoàn tiền do lỗi thanh toán đơn hàng ${orderId}`, orderId);
-        
+
         toast({
           title: "Thanh toán thất bại",
           description: "Có lỗi trong quá trình thanh toán. Coins đã được hoàn lại vào ví của bạn.",
@@ -403,39 +392,39 @@ function CheckoutPageContent() {
     }
   };
 
-  const handleExternalPaymentSuccess = async (paymentData: any) => {
-    console.log("External payment successful", { orderId, paymentData });
+  // const handleExternalPaymentSuccess = async (paymentData: any) => {
+  //   console.log("External payment successful", { orderId, paymentData });
 
-    try {
-      // Update order with external payment info
-      const success = await processPayment(orderId, paymentData);
+  //   try {
+  //     // Update order with external payment info
+  //     const success = await processPayment(orderId, paymentData);
 
-      if (success) {
-        // Clear cart if not in buy now mode
-        if (!isBuyNowMode) {
-          clearCart();
-        } else {
-          // Clear buy now data
-          sessionStorage.removeItem('qai-store-buy-now-item');
-        }
-        
-        setOrderPlaced(true);
-        setCurrentStep(3);
-        
-        // Redirect to orders page after delay
-        setTimeout(() => {
-          router.push('/orders');
-        }, 3000);
-      }
-    } catch (error: any) {
-      console.error("Payment processing failed:", error);
-      toast({
-        title: "Xử lý thanh toán thất bại",
-        description: error.message || "Có lỗi xảy ra khi xử lý thanh toán.",
-        variant: "destructive",
-      });
-    }
-  };
+  //     if (success) {
+  //       // Clear cart if not in buy now mode
+  //       if (!isBuyNowMode) {
+  //         clearCart();
+  //       } else {
+  //         // Clear buy now data
+  //         sessionStorage.removeItem('qai-store-buy-now-item');
+  //       }
+
+  //       setOrderPlaced(true);
+  //       setCurrentStep(3);
+
+  //       // Redirect to orders page after delay
+  //       setTimeout(() => {
+  //         router.push('/orders');
+  //       }, 3000);
+  //     }
+  //   } catch (error: any) {
+  //     console.error("Payment processing failed:", error);
+  //     toast({
+  //       title: "Xử lý thanh toán thất bại",
+  //       description: error.message || "Có lỗi xảy ra khi xử lý thanh toán.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
 
   const handleExternalPaymentError = (error: string) => {
     console.error("External payment error:", error);
@@ -460,7 +449,7 @@ function CheckoutPageContent() {
                 Đặt hàng thành công! 🎉
               </h1>
               <p className="text-gray-600 mb-6">
-                Cảm ơn bạn đã mua hàng! Tài khoản đã được gửi về email của bạn.
+                Cảm ơn bạn đã mua hàng! Tài khoản sẽ được gửi về email của bạn. Vui lòng để ý email để nhận tài khoản!
               </p>
               <div className="bg-white p-6 rounded-lg shadow-md mb-6">
                 <p className="font-medium mb-2">Mã đơn hàng: {orderId}</p>
@@ -487,7 +476,7 @@ function CheckoutPageContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4 py-8">
           {/* Progress Steps */}
@@ -501,29 +490,27 @@ function CheckoutPageContent() {
                 <div key={item.step} className="flex items-center">
                   <div className={`
                     w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium
-                    ${currentStep >= item.step 
-                      ? 'bg-blue-600 text-white' 
+                    ${currentStep >= item.step
+                      ? 'bg-blue-600 text-white'
                       : 'bg-gray-200 text-gray-500'
                     }
                   `}>
                     {currentStep > item.step ? <Check className="w-5 h-5" /> : item.step}
                   </div>
-                  <span className={`ml-2 text-sm font-medium ${
-                    currentStep >= item.step ? 'text-blue-600' : 'text-gray-500'
-                  }`}>
+                  <span className={`ml-2 text-sm font-medium ${currentStep >= item.step ? 'text-blue-600' : 'text-gray-500'
+                    }`}>
                     {item.label}
                   </span>
                   {item.step < 3 && (
-                    <div className={`w-12 h-0.5 ml-4 ${
-                      currentStep > item.step ? 'bg-blue-600' : 'bg-gray-200'
-                    }`} />
+                    <div className={`w-12 h-0.5 ml-4 ${currentStep > item.step ? 'bg-blue-600' : 'bg-gray-200'
+                      }`} />
                   )}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Main Content */}
               <div className="lg:col-span-2">
@@ -575,7 +562,7 @@ function CheckoutPageContent() {
                       <div className="space-y-2">
                         <Label htmlFor="socialContact" className="flex items-center space-x-2">
                           <MessageCircle className="w-4 h-4 text-blue-500" />
-                          <span>Zalo/Facebook (tùy chọn)</span>
+                          <span>Zalo/Facebook (tùy chọn) *</span>
                         </Label>
                         <div className="relative">
                           <Input
@@ -642,8 +629,8 @@ function CheckoutPageContent() {
                       <Separator />
 
                       <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="agreeTOS" 
+                        <Checkbox
+                          id="agreeTOS"
                           checked={agreeTOS}
                           onCheckedChange={(checked) => setAgreeTOS(!!checked)}
                         />
@@ -659,11 +646,11 @@ function CheckoutPageContent() {
                         </Label>
                       </div>
 
-                      <Button 
+                      <Button
                         onClick={handleCreateOrder}
                         className="w-full btn-primary"
                         size="lg"
-                        disabled={!customerInfo.fullName || !customerInfo.email || !customerInfo.phone || !agreeTOS}
+                        disabled={!customerInfo.fullName || !customerInfo.email || !customerInfo.phone || !agreeTOS || !customerInfo.socialContact}
                       >
                         Tiếp tục thanh toán
                       </Button>
@@ -718,13 +705,13 @@ function CheckoutPageContent() {
                         <span>Tạm tính:</span>
                         <span>{formatPrice(effectiveTotalAmount)}</span>
                       </div>
-                      
+
                       {appliedDiscount && (
                         <div className="flex justify-between text-green-600">
                           <span>Giảm giá ({appliedDiscount.code}):</span>
                           <span>
                             -{formatPrice(
-                              appliedDiscount.type === 'percentage' ? 
+                              appliedDiscount.type === 'percentage' ?
                                 Math.min((effectiveTotalAmount * appliedDiscount.value) / 100, appliedDiscount.maxDiscount || Infinity) :
                                 appliedDiscount.value
                             )}
@@ -739,9 +726,9 @@ function CheckoutPageContent() {
                           Miễn phí
                         </span>
                       </div>
-                      
+
                       <Separator />
-                      
+
                       <div className="flex justify-between font-semibold text-base">
                         <span>Tổng cộng:</span>
                         <span className="text-blue-600">{formatPrice(calculateFinalTotal())}</span>

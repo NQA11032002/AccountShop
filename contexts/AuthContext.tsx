@@ -30,11 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeAuth = async () => {
       console.log("🔐 Initializing authentication system");
-      
+
       try {
         // Load users from JSON API first
         const apiUsers = await DataSyncHelper.fetchFromAPI('users');
-        
+
         if (Array.isArray(apiUsers) && apiUsers.length > 0) {
           console.log("👥 Loaded users from JSON API", { count: apiUsers.length });
           localStorage.setItem('qai_users', JSON.stringify(apiUsers));
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!storedUsers) {
           const demoUsers = [{
             id: "demo",
-            email: "demo@qaistore.com", 
+            email: "demo@qaistore.com",
             password: "123456",
             name: "Demo User",
             avatar: "https://ui-avatars.com/api/?name=Demo+User&background=6366f1&color=fff",
@@ -98,12 +98,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     console.log("🔐 Login attempt", { email });
     setIsLoading(true);
-    
+
     try {
       // Try to authenticate with latest user data from API
       const apiUsers = await DataSyncHelper.fetchFromAPI('users');
       let users: any[] = [];
-      
+
       if (Array.isArray(apiUsers) && apiUsers.length > 0) {
         users = apiUsers;
         localStorage.setItem('qai_users', JSON.stringify(users));
@@ -114,12 +114,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         users = storedUsers ? JSON.parse(storedUsers) : [];
         console.log("💾 Using local user data");
       }
-      
+
       // Find user with credentials
-      const foundUser = users.find((u: any) => 
+      const foundUser = users.find((u: any) =>
         u.email === email && u.password === password
       );
-      
+
       if (foundUser) {
         const userData: User = {
           id: foundUser.id,
@@ -128,10 +128,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           avatar: foundUser.avatar,
           joinDate: foundUser.joinDate
         };
-        
+
         setUser(userData);
         localStorage.setItem('qai_user', JSON.stringify(userData));
-        
+
         // Load user-specific data from JSON API with proper error handling
         console.log("📥 Loading user-specific data");
         try {
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
           console.warn("⚠️ Some user data failed to load:", error);
         }
-        
+
         console.log("✅ Login successful", userData);
         return true;
       } else {
@@ -164,24 +164,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (email: string, password: string, name: string): Promise<boolean> => {
     console.log("📝 Registration attempt", { email, name });
     setIsLoading(true);
-    
+
     try {
       // Get current users from API or local storage
       const apiUsers = await DataSyncHelper.fetchFromAPI('users');
       let users = Array.isArray(apiUsers) ? apiUsers : [];
-      
+
       if (users.length === 0) {
         const storedUsers = localStorage.getItem('qai_users');
         users = storedUsers ? JSON.parse(storedUsers) : [];
       }
-      
+
       // Check if user already exists
       const existingUser = users.find((u: any) => u.email === email);
       if (existingUser) {
         console.log("❌ Registration failed - user already exists");
         return false;
       }
-      
+
       // Create new user with full profile
       const newUser = {
         id: `user_${Date.now()}`,
@@ -203,14 +203,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           currency: "VND"
         }
       };
-      
+
       // Save to JSON API
       const apiSuccess = await DataSyncHelper.saveToAPI('users', [newUser], 'add');
-      
+
       // Update local storage
       users.push(newUser);
       localStorage.setItem('qai_users', JSON.stringify(users));
-      
+
       // Initialize user data structures with proper error handling
       try {
         await Promise.allSettled([
@@ -239,7 +239,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.warn("⚠️ Failed to initialize some user data structures:", error);
       }
-      
+
       // Auto-login
       const userData: User = {
         id: newUser.id,
@@ -248,10 +248,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar: newUser.avatar,
         joinDate: newUser.joinDate
       };
-      
+
       setUser(userData);
       localStorage.setItem('qai_user', JSON.stringify(userData));
-      
+
       console.log("✅ Registration successful", { userId: userData.id, apiSynced: apiSuccess });
       return true;
     } catch (error) {
@@ -267,7 +267,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const currentUserId = user?.id;
     setUser(null);
     localStorage.removeItem('qai_user');
-    
+
     // Clear all user-specific data using sync helper
     if (currentUserId) {
       DataSyncHelper.clearUserData(currentUserId);

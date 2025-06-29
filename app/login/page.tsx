@@ -16,17 +16,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
-  console.log("LoginPage rendered", { email: email ? "provided" : "empty" });
+  // console.log("LoginPage rendered", { email: email ? "provided" : "empty" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login form submitted", { email });
-    
+    // console.log("Login form submitted", { email });
+
     if (!email || !password) {
       toast({
         title: "Lỗi đăng nhập",
@@ -38,7 +38,7 @@ export default function LoginPage() {
 
     setIsLoading(true);
     const success = await login(email, password);
-    
+
     if (success) {
       toast({
         title: "Đăng nhập thành công!",
@@ -52,7 +52,7 @@ export default function LoginPage() {
         variant: "destructive",
       });
     }
-    
+
     setIsLoading(false);
   };
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
               Nhập thông tin để truy cập vào tài khoản của bạn
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
@@ -139,7 +139,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-brand-purple to-brand-blue hover:from-brand-purple/90 hover:to-brand-blue/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-primary/90 px-4 py-2 w-full h-12 bg-gradient-to-r from-brand-emerald to-brand-blue hover:from-brand-emerald/90 hover:to-brand-blue/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
@@ -159,8 +159,8 @@ export default function LoginPage() {
             <div className="mt-6 text-center">
               <p className="text-gray-600">
                 Chưa có tài khoản?{' '}
-                <Link 
-                  href="/register" 
+                <Link
+                  href="/register"
                   className="text-brand-blue hover:text-brand-purple font-medium transition-colors"
                 >
                   Đăng ký ngay
@@ -179,8 +179,8 @@ export default function LoginPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="text-gray-600 hover:text-brand-blue transition-colors text-sm"
           >
             ← Quay về trang chủ
