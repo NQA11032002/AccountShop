@@ -82,7 +82,7 @@ export default function PromotionalAccounts() {
 
   const handleAddToCart = (item: PromotionalItem) => {
     console.log("Adding promotional item to cart", { item });
-    
+
     if (!user) {
       toast({
         title: "Cần đăng nhập",
@@ -118,7 +118,7 @@ export default function PromotionalAccounts() {
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-gray-50"></div>
       <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600"></div>
-      
+
       <div className="container-max section-padding relative z-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -156,8 +156,8 @@ export default function PromotionalAccounts() {
               <CardContent className="p-0">
                 {/* Product Image Area */}
                 <div className="relative h-44 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden border-b border-gray-100">
-                  <img 
-                    src={item.image} 
+                  <img
+                    src={item.image}
                     alt={item.name}
                     className="w-14 h-14 object-contain filter drop-shadow-sm"
                   />
@@ -173,7 +173,7 @@ export default function PromotionalAccounts() {
                     <h3 className="font-bold text-gray-900 text-base leading-tight line-clamp-1">
                       {item.name}
                     </h3>
-                    
+
                     <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                       {item.description}
                     </p>

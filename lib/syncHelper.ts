@@ -12,15 +12,15 @@ export class DataSyncHelper {
   static async fetchFromAPI(type?: string, retryCount = 0): Promise<any> {
     const maxRetries = 2;
     const retryDelay = 1000; // 1 second
-    
+
     try {
       const url = type ? `${this.API_BASE_URL}?type=${type}` : this.API_BASE_URL;
       console.log(`🌐 Fetching data from API: ${url} (attempt ${retryCount + 1})`);
-      
+
       // Add timeout and specific fetch options
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -29,18 +29,18 @@ export class DataSyncHelper {
         signal: controller.signal,
         cache: 'no-cache'
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
-        console.log(`✅ API fetch successful for ${type || 'all data'}`, { 
-          count: Array.isArray(result.data) ? result.data.length : 'N/A' 
+        console.log(`✅ API fetch successful for ${type || 'all data'}`, {
+          count: Array.isArray(result.data) ? result.data.length : 'N/A'
         });
         return result.data;
       } else {
@@ -49,17 +49,17 @@ export class DataSyncHelper {
       }
     } catch (error) {
       console.warn(`⚠️ API fetch attempt ${retryCount + 1} failed:`, error);
-      
+
       // Check if it's a network error or browser extension interference
       const isNetworkError = error instanceof TypeError && error.message.includes('Failed to fetch');
       const isAbortError = error instanceof Error && error.name === 'AbortError';
-      
+
       if ((isNetworkError || isAbortError) && retryCount < maxRetries) {
         console.log(`🔄 Retrying API fetch in ${retryDelay}ms...`);
         await new Promise(resolve => setTimeout(resolve, retryDelay));
         return this.fetchFromAPI(type, retryCount + 1);
       }
-      
+
       // Return appropriate fallback data
       console.log(`📝 Using fallback data due to API unavailability`);
       return type ? [] : { products: [], users: [], orders: [], customerAccounts: [] };
@@ -72,25 +72,25 @@ export class DataSyncHelper {
   static async saveToAPI(type: string, data: any[], action: 'bulk_update' | 'add' | 'update' = 'bulk_update'): Promise<boolean> {
     try {
       console.log(`💾 Saving ${type} data to API`, { count: data.length, action });
-      
+
       // Validate input parameters
       if (!type || typeof type !== 'string') {
         console.error('❌ Invalid type parameter:', type);
         return false;
       }
-      
+
       if (!Array.isArray(data)) {
         console.error('❌ Data must be an array:', data);
         return false;
       }
-      
+
       // Prepare request body and validate JSON serialization
       const requestBody = {
         type,
         items: data,
         action
       };
-      
+
       let jsonBody;
       try {
         jsonBody = JSON.stringify(requestBody);
@@ -98,15 +98,15 @@ export class DataSyncHelper {
         console.error('❌ Failed to serialize request body:', jsonError);
         return false;
       }
-      
+
       if (!jsonBody || jsonBody === '{}' || jsonBody === 'null') {
         console.error('❌ Invalid JSON body produced:', jsonBody);
         return false;
       }
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-      
+
       const response = await fetch(this.API_BASE_URL, {
         method: 'POST',
         headers: {
@@ -115,15 +115,15 @@ export class DataSyncHelper {
         body: jsonBody,
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         console.log(`✅ API save successful for ${type}`);
         return true;
@@ -144,13 +144,13 @@ export class DataSyncHelper {
   static async updateItemAPI(type: string, id: string | number, item: any): Promise<boolean> {
     try {
       console.log(`🔄 Updating ${type} item via API`, { id });
-      
+
       // Validate input parameters
       if (!type || !id || !item) {
         console.error('❌ Missing required parameters for update:', { type, id, item });
         return false;
       }
-      
+
       const requestBody = { type, id, item };
       let jsonBody;
       try {
@@ -159,7 +159,7 @@ export class DataSyncHelper {
         console.error('❌ Failed to serialize update body:', jsonError);
         return false;
       }
-      
+
       const response = await fetch(this.API_BASE_URL, {
         method: 'PUT',
         headers: {
@@ -167,9 +167,9 @@ export class DataSyncHelper {
         },
         body: jsonBody,
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         console.log(`✅ API update successful for ${type} item`, { id });
         return true;
@@ -189,13 +189,13 @@ export class DataSyncHelper {
   static async deleteItemAPI(type: string, id: string | number): Promise<boolean> {
     try {
       console.log(`🗑️ Deleting ${type} item via API`, { id });
-      
+
       const response = await fetch(`${this.API_BASE_URL}?type=${type}&id=${id}`, {
         method: 'DELETE',
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         console.log(`✅ API delete successful for ${type} item`, { id });
         return true;
@@ -213,14 +213,14 @@ export class DataSyncHelper {
    */
   static clearUserData(userId: string) {
     console.log("Clearing all user data", { userId });
-    
+
     const keysToRemove = [
       `qai-store-cart-${userId}`,
       `qai_favorites_${userId}`,
       `qai_orders_${userId}`,
       `qai_payment_${userId}`
     ];
-    
+
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
       console.log(`Removed localStorage key: ${key}`);
@@ -291,16 +291,16 @@ export class DataSyncHelper {
   static getDataSummary(userId: string) {
     const cartData = localStorage.getItem(`qai-store-cart-${userId}`);
     const favoritesData = localStorage.getItem(`qai_favorites_${userId}`);
-    
+
     let cartCount = 0;
     let favoritesCount = 0;
-    
+
     try {
       if (cartData) {
         const cart = JSON.parse(cartData);
         cartCount = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.quantity || 0), 0) : 0;
       }
-      
+
       if (favoritesData) {
         const favorites = JSON.parse(favoritesData);
         favoritesCount = Array.isArray(favorites) ? favorites.length : 0;
@@ -308,7 +308,7 @@ export class DataSyncHelper {
     } catch (error) {
       console.error("Error getting data summary:", error);
     }
-    
+
     return { cartCount, favoritesCount };
   }
 
@@ -317,18 +317,18 @@ export class DataSyncHelper {
    */
   static syncWalletData(userId: string, walletData: { balance: number; transactions: any[] }) {
     console.log("💰 Syncing wallet data", { userId, balance: walletData.balance, transactionCount: walletData.transactions.length });
-    
+
     try {
       const walletKey = `qai-wallet-${userId}`;
       localStorage.setItem(walletKey, JSON.stringify(walletData));
-      
+
       // Trigger sync event for other tabs
       window.dispatchEvent(new StorageEvent('storage', {
         key: walletKey,
         newValue: JSON.stringify(walletData),
         storageArea: localStorage
       }));
-      
+
       console.log("✅ Wallet data synced successfully");
     } catch (error) {
       console.error("❌ Error syncing wallet data:", error);
@@ -340,31 +340,31 @@ export class DataSyncHelper {
    */
   static async syncAdminData(dataType: 'users' | 'products' | 'orders' | 'accounts', data: any[]) {
     console.log(`🔄 Syncing admin ${dataType} data`, { count: data.length });
-    
+
     try {
       // Save to JSON API first
       const apiSuccess = await this.saveToAPI(dataType, data);
-      
+
       // Continue with localStorage sync for immediate reactivity
       const adminKey = `qai_admin_${dataType}`;
       const timestamp = Date.now();
-      
+
       const syncData = {
         data,
         timestamp,
         lastModified: new Date().toISOString(),
         apiSynced: apiSuccess
       };
-      
+
       localStorage.setItem(adminKey, JSON.stringify(syncData));
-      
+
       // Trigger storage event to notify all admin sections
       window.dispatchEvent(new StorageEvent('storage', {
         key: adminKey,
         newValue: JSON.stringify(syncData),
         storageArea: localStorage
       }));
-      
+
       // Also trigger a general admin sync event
       window.dispatchEvent(new CustomEvent('admin-data-sync', {
         detail: { type: dataType, data, timestamp, apiSynced: apiSuccess }
@@ -374,10 +374,10 @@ export class DataSyncHelper {
       if (dataType === 'products') {
         this.syncProductsToUserContext(data);
       }
-      
-      console.log(`✅ Admin ${dataType} data synced successfully`, { 
-        localStorage: true, 
-        api: apiSuccess 
+
+      console.log(`✅ Admin ${dataType} data synced successfully`, {
+        localStorage: true,
+        api: apiSuccess
       });
     } catch (error) {
       console.error(`❌ Error syncing admin ${dataType} data:`, error);
@@ -398,16 +398,16 @@ export class DataSyncHelper {
     bonusAmount?: number;
   }) {
     console.log(`💳 Syncing deposit ${depositData.status}:`, depositData);
-    
+
     try {
       // Update the user's wallet data directly
       const userWalletKey = `qai-wallet-${depositData.userId}`;
       const userWallet = JSON.parse(localStorage.getItem(userWalletKey) || '{"balance": 0, "transactions": []}');
-      
+
       if (depositData.status === 'approved') {
         // Add money to user's balance
         userWallet.balance += depositData.finalAmount;
-        
+
         // Update or add transaction
         const transactionIndex = userWallet.transactions.findIndex((tx: any) => tx.id === depositData.orderId);
         if (transactionIndex !== -1) {
@@ -441,32 +441,32 @@ export class DataSyncHelper {
           };
         }
       }
-      
+
       // Save updated wallet data
       localStorage.setItem(userWalletKey, JSON.stringify(userWallet));
-      
+
       // Trigger storage event for real-time sync
       window.dispatchEvent(new StorageEvent('storage', {
         key: userWalletKey,
         newValue: JSON.stringify(userWallet),
         storageArea: localStorage
       }));
-      
+
       // Trigger custom wallet sync event
       window.dispatchEvent(new CustomEvent('wallet-sync', {
         detail: { userId: depositData.userId, walletData: userWallet }
       }));
-      
+
       // Trigger custom deposit sync event
       window.dispatchEvent(new CustomEvent('deposit-sync', {
         detail: depositData
       }));
-      
+
       console.log(`✅ Deposit ${depositData.status} synced for user: ${depositData.userEmail}`, {
         orderId: depositData.orderId,
         newBalance: userWallet.balance
       });
-      
+
     } catch (error) {
       console.error(`❌ Error syncing deposit ${depositData.status}:`, error);
     }
@@ -477,13 +477,13 @@ export class DataSyncHelper {
    */
   static async loadAdminData(dataType: 'users' | 'products' | 'orders' | 'accounts', forceAPI = false): Promise<any[]> {
     console.log(`📥 Loading admin ${dataType} data`, { forceAPI });
-    
+
     try {
       // Try API first if forced or localStorage is stale/empty
       const adminKey = `qai_admin_${dataType}`;
       const stored = localStorage.getItem(adminKey);
       let shouldFetchFromAPI = forceAPI;
-      
+
       if (!shouldFetchFromAPI && stored) {
         try {
           const parsedData = JSON.parse(stored);
@@ -500,11 +500,11 @@ export class DataSyncHelper {
       } else {
         shouldFetchFromAPI = true; // No stored data
       }
-      
+
       if (shouldFetchFromAPI) {
         console.log(`🌐 Fetching ${dataType} from API`);
         const apiData = await this.fetchFromAPI(dataType);
-        
+
         if (Array.isArray(apiData) && apiData.length > 0) {
           // Save to localStorage for faster subsequent access
           const syncData = {
@@ -514,20 +514,20 @@ export class DataSyncHelper {
             apiSynced: true
           };
           localStorage.setItem(adminKey, JSON.stringify(syncData));
-          
+
           console.log(`✅ Loaded ${dataType} from API`, { count: apiData.length });
           return apiData;
         }
       }
-      
+
       // Fallback to localStorage
       if (stored) {
         const parsedData = JSON.parse(stored);
-        
+
         if (parsedData.data && parsedData.timestamp) {
-          console.log(`💾 Loaded ${dataType} from localStorage`, { 
-            count: parsedData.data.length, 
-            lastModified: parsedData.lastModified 
+          console.log(`💾 Loaded ${dataType} from localStorage`, {
+            count: parsedData.data.length,
+            lastModified: parsedData.lastModified
           });
           return parsedData.data;
         } else {
@@ -535,7 +535,7 @@ export class DataSyncHelper {
           return parsedData;
         }
       }
-      
+
       console.log(`📝 No ${dataType} data found, returning empty array`);
       return [];
     } catch (error) {
@@ -551,16 +551,16 @@ export class DataSyncHelper {
     try {
       const adminKey = `qai_admin_${dataType}`;
       const stored = localStorage.getItem(adminKey);
-      
+
       if (!stored) return true;
-      
+
       const parsedData = JSON.parse(stored);
       if (!parsedData.timestamp) return true;
-      
+
       const now = Date.now();
       const age = now - parsedData.timestamp;
       const maxAge = maxAgeMinutes * 60 * 1000; // Convert to milliseconds
-      
+
       return age > maxAge;
     } catch (error) {
       console.error(`Error checking ${dataType} data staleness:`, error);
@@ -591,7 +591,7 @@ export class DataSyncHelper {
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('wallet-sync', handleCustomWalletSync as EventListener);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('wallet-sync', handleCustomWalletSync as EventListener);
@@ -605,9 +605,9 @@ export class DataSyncHelper {
     const handler = (event: CustomEvent) => {
       callback(event.detail);
     };
-    
+
     window.addEventListener('deposit-sync', handler as EventListener);
-    
+
     return () => {
       window.removeEventListener('deposit-sync', handler as EventListener);
     };
@@ -620,15 +620,15 @@ export class DataSyncHelper {
    */
   static async updateCustomerRanking(customerEmail: string, orderTotal: number, itemCount: number): Promise<void> {
     console.log(`📊 Updating customer ranking:`, { customerEmail, orderTotal, itemCount });
-    
+
     try {
       // Load existing rankings from JSON API
       const apiRankings = await this.fetchFromAPI('userRankings');
-      
+
       // Find or create customer ranking record
-      let rankingRecord = Array.isArray(apiRankings) ? 
+      let rankingRecord = Array.isArray(apiRankings) ?
         apiRankings.find((r: any) => r.userEmail === customerEmail || r.userId === customerEmail) : null;
-      
+
       if (!rankingRecord) {
         // Create new ranking record
         rankingRecord = {
@@ -644,7 +644,7 @@ export class DataSyncHelper {
           nextRankPoints: 300,
           rewards: []
         };
-        
+
         await this.saveToAPI('userRankings', [rankingRecord], 'add');
       } else {
         // Update existing ranking
@@ -653,14 +653,14 @@ export class DataSyncHelper {
         rankingRecord.totalSpent = (rankingRecord.totalSpent || 0) + orderTotal;
         rankingRecord.totalOrders = (rankingRecord.totalOrders || 0) + 1;
         rankingRecord.lastUpdated = new Date().toISOString();
-        
+
         // Update rank based on new totals
         rankingRecord.rank = this.determineCustomerRank(rankingRecord.totalSpent, rankingRecord.totalOrders);
-        
+
         // Update via API
         await this.saveUserData(rankingRecord.userId, 'userRankings', rankingRecord, 'update');
       }
-      
+
       console.log(`✅ Customer ranking updated:`, {
         customerEmail,
         newRank: rankingRecord.rank,
@@ -668,7 +668,7 @@ export class DataSyncHelper {
         totalOrders: rankingRecord.totalOrders,
         points: rankingRecord.points
       });
-      
+
     } catch (error) {
       console.error(`❌ Error updating customer ranking:`, error);
     }
@@ -681,16 +681,16 @@ export class DataSyncHelper {
   static calculateRankingPoints(orderTotal: number, itemCount: number): number {
     // Base points: 1 point per 2000 VND spent (200k = 100 points)
     const basePoints = Math.floor(orderTotal / 2000);
-    
+
     // Bonus points: 10 points per item purchased
     const itemBonus = itemCount * 10;
-    
+
     // Volume bonus: extra points for large orders
     let volumeBonus = 0;
     if (orderTotal >= 1000000) volumeBonus = 100; // 1M+ VND
     else if (orderTotal >= 500000) volumeBonus = 50; // 500K+ VND
     else if (orderTotal >= 200000) volumeBonus = 20; // 200K+ VND
-    
+
     const totalPoints = basePoints + itemBonus + volumeBonus;
     console.log(`💰 Calculated ranking points:`, {
       orderTotal,
@@ -700,7 +700,7 @@ export class DataSyncHelper {
       volumeBonus,
       totalPoints
     });
-    
+
     return totalPoints;
   }
 
@@ -709,16 +709,16 @@ export class DataSyncHelper {
    */
   static updateCustomerPoints(customerEmail: string, pointsChange: number, reason: string) {
     console.log("💎 Updating customer points", { customerEmail, pointsChange, reason });
-    
+
     try {
       // Get current points
       const currentPointsKey = `qai_customer_points_${customerEmail}`;
       const currentPoints = parseInt(localStorage.getItem(currentPointsKey) || '0');
       const newTotalPoints = Math.max(0, currentPoints + pointsChange); // Don't allow negative points
-      
+
       // Save updated points
       localStorage.setItem(currentPointsKey, newTotalPoints.toString());
-      
+
       // Save point transaction history
       const historyKey = `qai_point_history_${customerEmail}`;
       const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
@@ -729,14 +729,14 @@ export class DataSyncHelper {
         timestamp: new Date().toISOString()
       });
       localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)));
-      
-      console.log("✅ Customer points updated", { 
-        customerEmail, 
+
+      console.log("✅ Customer points updated", {
+        customerEmail,
         pointsChange,
         newTotalPoints,
         reason
       });
-      
+
       // Broadcast points update
       window.dispatchEvent(new CustomEvent('customerPointsUpdated', {
         detail: { customerEmail, pointsChange, newTotalPoints, reason }
@@ -752,16 +752,16 @@ export class DataSyncHelper {
   static determineCustomerRank(totalSpent: number, totalOrders: number): string {
     // Diamond: 15M+ VND, 50+ orders
     if (totalSpent >= 15000000 && totalOrders >= 50) return 'diamond';
-    
+
     // Platinum: 5M+ VND, 20+ orders  
     if (totalSpent >= 5000000 && totalOrders >= 20) return 'platinum';
-    
+
     // Gold: 1.5M+ VND, 8+ orders
     if (totalSpent >= 1500000 && totalOrders >= 8) return 'gold';
-    
+
     // Silver: 500K+ VND, 3+ orders
     if (totalSpent >= 500000 && totalOrders >= 3) return 'silver';
-    
+
     // Bronze: default
     return 'bronze';
   }
@@ -773,9 +773,9 @@ export class DataSyncHelper {
     const handler = (event: CustomEvent) => {
       callback(event.detail);
     };
-    
+
     window.addEventListener('order-completion-sync', handler as EventListener);
-    
+
     return () => {
       window.removeEventListener('order-completion-sync', handler as EventListener);
     };
@@ -788,9 +788,9 @@ export class DataSyncHelper {
     const handler = (event: CustomEvent) => {
       callback(event.detail);
     };
-    
+
     window.addEventListener('customer-ranking-update', handler as EventListener);
-    
+
     return () => {
       window.removeEventListener('customer-ranking-update', handler as EventListener);
     };
@@ -821,7 +821,7 @@ export class DataSyncHelper {
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('admin-data-sync', handleCustomSync as EventListener);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('admin-data-sync', handleCustomSync as EventListener);
@@ -833,28 +833,28 @@ export class DataSyncHelper {
    */
   static syncUserOrderData(userId: string, orderData: any) {
     console.log(`📋 Syncing user order data:`, { userId, orderId: orderData.orderId });
-    
+
     try {
       // Update user's order list
       const userOrdersKey = `qai_orders_${userId}`;
       const userOrders = JSON.parse(localStorage.getItem(userOrdersKey) || '[]');
-      
+
       // Find and update existing order or add new one
       const orderIndex = userOrders.findIndex((order: any) => order.id === orderData.orderId);
       if (orderIndex !== -1) {
         userOrders[orderIndex].status = 'completed';
         userOrders[orderIndex].paymentStatus = 'completed';
       }
-      
+
       localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
-      
+
       // Trigger storage event
       window.dispatchEvent(new StorageEvent('storage', {
         key: userOrdersKey,
         newValue: JSON.stringify(userOrders),
         storageArea: localStorage
       }));
-      
+
       console.log(`✅ User order data synced for user: ${userId}`);
     } catch (error) {
       console.error(`❌ Error syncing user order data:`, error);
@@ -866,24 +866,24 @@ export class DataSyncHelper {
    */
   static updateOrderStatistics(orderData: any) {
     console.log(`📊 Updating order statistics:`, orderData);
-    
+
     try {
       const statsKey = 'qai_order_statistics';
       const stats = JSON.parse(localStorage.getItem(statsKey) || '{}');
-      
+
       // Update statistics
       stats.totalOrdersCompleted = (stats.totalOrdersCompleted || 0) + 1;
       stats.totalRevenue = (stats.totalRevenue || 0) + orderData.total;
       stats.lastOrderDate = orderData.completedAt;
       stats.totalCustomers = new Set([...(stats.totalCustomers || []), orderData.userEmail]).size;
-      
+
       localStorage.setItem(statsKey, JSON.stringify(stats));
-      
+
       // Broadcast statistics update
       window.dispatchEvent(new CustomEvent('order-statistics-update', {
         detail: stats
       }));
-      
+
       console.log(`✅ Order statistics updated:`, stats);
     } catch (error) {
       console.error(`❌ Error updating order statistics:`, error);
@@ -895,16 +895,16 @@ export class DataSyncHelper {
    */
   static forceOrderRefresh(userId: string) {
     console.log(`🔄 Force refreshing order data for user: ${userId}`);
-    
+
     // Trigger refresh events
     window.dispatchEvent(new CustomEvent('force-order-refresh', {
       detail: { userId }
     }));
-    
+
     // Update timestamp to trigger reactivity
     const refreshKey = `qai_order_refresh_${userId}`;
     localStorage.setItem(refreshKey, Date.now().toString());
-    
+
     window.dispatchEvent(new StorageEvent('storage', {
       key: refreshKey,
       newValue: Date.now().toString(),
@@ -919,10 +919,10 @@ export class DataSyncHelper {
     const handler = (event: CustomEvent) => {
       callback(event.detail);
     };
-    
+
     window.addEventListener('global-order-sync', handler as EventListener);
     window.addEventListener('force-order-refresh', handler as EventListener);
-    
+
     return () => {
       window.removeEventListener('global-order-sync', handler as EventListener);
       window.removeEventListener('force-order-refresh', handler as EventListener);
@@ -934,7 +934,7 @@ export class DataSyncHelper {
    */
   static syncProductsToUserContext(adminProducts: any[]) {
     console.log(`🛍️ Syncing products to user context:`, { count: adminProducts.length });
-    
+
     try {
       // Transform admin product format to user product format
       const userProducts = adminProducts.map((adminProduct: any) => ({
@@ -968,16 +968,16 @@ export class DataSyncHelper {
         timestamp: Date.now(),
         lastModified: new Date().toISOString()
       };
-      
+
       localStorage.setItem(userProductsKey, JSON.stringify(userSyncData));
-      
+
       // Trigger user product sync events
       window.dispatchEvent(new StorageEvent('storage', {
         key: userProductsKey,
         newValue: JSON.stringify(userSyncData),
         storageArea: localStorage
       }));
-      
+
       window.dispatchEvent(new CustomEvent('user-products-sync', {
         detail: { products: userProducts, timestamp: Date.now() }
       }));
@@ -1039,12 +1039,12 @@ export class DataSyncHelper {
    */
   static async loadUserProducts(): Promise<any[]> {
     console.log(`📥 Loading user products with multiple fallback options`);
-    
+
     try {
       // 1st priority: Try to load from localStorage cache first (faster)
       const userProductsKey = 'qai_user_products';
       const stored = localStorage.getItem(userProductsKey);
-      
+
       if (stored) {
         try {
           const parsedData = JSON.parse(stored);
@@ -1053,10 +1053,10 @@ export class DataSyncHelper {
             const age = Date.now() - parsedData.timestamp;
             if (age < 5 * 60 * 1000) {
               console.log(`⚡ Using fresh cached products`, { count: parsedData.data.length });
-              
+
               // Asynchronously try to update from API in background
               this.updateProductsInBackground();
-              
+
               return parsedData.data;
             }
           }
@@ -1065,39 +1065,39 @@ export class DataSyncHelper {
           localStorage.removeItem(userProductsKey);
         }
       }
-      
+
       // 2nd priority: Try JSON API
       try {
         const apiProducts = await this.fetchFromAPI('products');
-        
+
         if (Array.isArray(apiProducts) && apiProducts.length > 0) {
           console.log(`🌐 Loaded products from JSON API`, { count: apiProducts.length });
-          
+
           // Transform and cache for user context
           const userProducts = this.transformProductsForUser(apiProducts);
-          
+
           const userSyncData = {
             data: userProducts,
             timestamp: Date.now(),
             lastModified: new Date().toISOString(),
             apiSynced: true
           };
-          
+
           localStorage.setItem(userProductsKey, JSON.stringify(userSyncData));
-          
+
           // Trigger sync event
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('user-products-sync', {
               detail: { products: userProducts, timestamp: Date.now() }
             }));
           }
-          
+
           return userProducts;
         }
       } catch (apiError) {
         console.warn('API fetch failed, trying fallback sources:', apiError);
       }
-      
+
       // 3rd priority: Use stale cache if available
       if (stored) {
         try {
@@ -1110,14 +1110,14 @@ export class DataSyncHelper {
           console.warn('Stale cache corrupted:', error);
         }
       }
-      
+
       // 4th priority: Try admin products from localStorage
       try {
         const adminProducts = await this.loadAdminData('products');
         if (adminProducts.length > 0) {
           console.log(`🔄 Loading from admin localStorage`, { count: adminProducts.length });
           const userProducts = this.transformProductsForUser(adminProducts);
-          
+
           // Cache the transformed products
           const userSyncData = {
             data: userProducts,
@@ -1125,14 +1125,14 @@ export class DataSyncHelper {
             lastModified: new Date().toISOString(),
             apiSynced: false
           };
-          
+
           localStorage.setItem(userProductsKey, JSON.stringify(userSyncData));
           return userProducts;
         }
       } catch (adminError) {
         console.warn('Admin data loading failed:', adminError);
       }
-      
+
       console.log(`📝 No products found from any source, returning empty array`);
       return [];
     } catch (error) {
@@ -1146,11 +1146,11 @@ export class DataSyncHelper {
    */
   static async loadUserData(userId: string, dataType: string): Promise<any[]> {
     console.log(`👤 Loading ${dataType} for user ${userId}`);
-    
+
     try {
       const cacheKey = `qai_user_${dataType}_${userId}`;
       const stored = localStorage.getItem(cacheKey);
-      
+
       // Check fresh cache first
       if (stored) {
         try {
@@ -1168,19 +1168,19 @@ export class DataSyncHelper {
           localStorage.removeItem(cacheKey);
         }
       }
-      
+
       // Try JSON API
       try {
         const apiData = await this.fetchFromAPI(dataType);
-        
+
         if (Array.isArray(apiData)) {
           // Filter by userId if applicable
-          const userData = apiData.filter((item: any) => 
+          const userData = apiData.filter((item: any) =>
             item.userId === userId || item.id === userId
           );
-          
+
           console.log(`🌐 Loaded ${dataType} from API`, { count: userData.length });
-          
+
           // Cache the data
           const cacheData = {
             data: userData,
@@ -1188,22 +1188,22 @@ export class DataSyncHelper {
             lastModified: new Date().toISOString(),
             apiSynced: true
           };
-          
+
           localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-          
+
           // Trigger sync event
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent(`user-${dataType}-sync`, {
               detail: { data: userData, userId, timestamp: Date.now() }
             }));
           }
-          
+
           return userData;
         }
       } catch (apiError) {
         console.warn(`API fetch failed for ${dataType}:`, apiError);
       }
-      
+
       // Use stale cache as fallback
       if (stored) {
         try {
@@ -1216,7 +1216,7 @@ export class DataSyncHelper {
           console.warn(`Stale cache corrupted for ${dataType}:`, error);
         }
       }
-      
+
       console.log(`📝 No ${dataType} found for user ${userId}`);
       return [];
     } catch (error) {
@@ -1230,13 +1230,13 @@ export class DataSyncHelper {
    */
   static async saveUserData(userId: string, dataType: string, data: any, action: 'add' | 'update' | 'delete' = 'add'): Promise<boolean> {
     console.log(`💾 Saving ${dataType} for user ${userId}`, { action, data });
-    
+
     try {
       // Prepare data for API
       const dataWithUserId = { ...data, userId };
-      
+
       let success = false;
-      
+
       if (action === 'add') {
         success = await this.saveToAPI(dataType, [dataWithUserId], 'add');
       } else if (action === 'update') {
@@ -1246,7 +1246,7 @@ export class DataSyncHelper {
           id: data.id,
           item: dataWithUserId
         };
-        
+
         let jsonBody;
         try {
           jsonBody = JSON.stringify(updateBody);
@@ -1254,7 +1254,7 @@ export class DataSyncHelper {
           console.error('❌ Failed to serialize update body:', jsonError);
           return false;
         }
-        
+
         const response = await fetch(this.API_BASE_URL, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -1270,39 +1270,39 @@ export class DataSyncHelper {
         const result = await response.json();
         success = result.success;
       }
-      
+
       if (success) {
         // Update local cache
         const cacheKey = `qai_user_${dataType}_${userId}`;
         const currentData = await this.loadUserData(userId, dataType);
-        
+
         let updatedData;
         if (action === 'add') {
           updatedData = [...currentData, dataWithUserId];
         } else if (action === 'update') {
-          updatedData = currentData.map((item: any) => 
+          updatedData = currentData.map((item: any) =>
             item.id === data.id ? { ...item, ...dataWithUserId } : item
           );
         } else if (action === 'delete') {
           updatedData = currentData.filter((item: any) => item.id !== data.id);
         }
-        
+
         const cacheData = {
           data: updatedData,
           timestamp: Date.now(),
           lastModified: new Date().toISOString(),
           apiSynced: true
         };
-        
+
         localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-        
+
         // Trigger sync event
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent(`user-${dataType}-sync`, {
             detail: { data: updatedData, userId, timestamp: Date.now(), action }
           }));
         }
-        
+
         console.log(`✅ Successfully saved ${dataType} for user ${userId}`);
         return true;
       } else {
@@ -1324,20 +1324,20 @@ export class DataSyncHelper {
     try {
       const cacheKey = `qai_user_${dataType}_${userId}`;
       const stored = localStorage.getItem(cacheKey);
-      
+
       let currentData: any[] = [];
       if (stored) {
         const parsedData = JSON.parse(stored);
         currentData = parsedData.data || [];
       }
-      
+
       const dataWithUserId = { ...data, userId };
       let updatedData: any[];
-      
+
       if (action === 'add') {
         updatedData = [...currentData, dataWithUserId];
       } else if (action === 'update') {
-        updatedData = currentData.map((item: any) => 
+        updatedData = currentData.map((item: any) =>
           item.id === data.id ? { ...item, ...dataWithUserId } : item
         );
       } else if (action === 'delete') {
@@ -1345,16 +1345,16 @@ export class DataSyncHelper {
       } else {
         updatedData = currentData;
       }
-      
+
       const cacheData = {
         data: updatedData,
         timestamp: Date.now(),
         lastModified: new Date().toISOString(),
         apiSynced: false
       };
-      
+
       localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-      
+
       console.log(`💾 Updated local ${dataType} cache for user ${userId}`);
       return true;
     } catch (error) {
@@ -1368,7 +1368,7 @@ export class DataSyncHelper {
    */
   static async syncOrderCreation(orderData: any): Promise<boolean> {
     console.log(`📦 Syncing order creation`, { orderId: orderData.orderId });
-    
+
     try {
       // Save order to JSON API
       const apiOrder = {
@@ -1391,16 +1391,16 @@ export class DataSyncHelper {
         shippingAddress: orderData.shippingAddress || '',
         notes: orderData.notes || ''
       };
-      
+
       const success = await this.saveToAPI('orders', [apiOrder], 'add');
-      
+
       // Trigger sync event for real-time updates
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('order-created', {
           detail: { orderData: apiOrder, timestamp: Date.now() }
         }));
       }
-      
+
       console.log(`✅ Order creation synchronized`, { orderId: orderData.orderId, apiSynced: success });
       return success;
     } catch (error) {
@@ -1414,23 +1414,23 @@ export class DataSyncHelper {
    */
   static async syncOrderStatusUpdate(statusData: any): Promise<boolean> {
     console.log(`📝 Syncing order status update`, { orderId: statusData.orderId, status: statusData.status });
-    
+
     try {
       // Update order status in JSON API
       const updateData = {
         status: statusData.status,
         updatedAt: statusData.updatedAt || new Date().toISOString()
       };
-      
+
       const success = await this.updateOrderInAPI(statusData.orderId, updateData);
-      
+
       // Trigger sync event for real-time updates
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('order-status-updated', {
           detail: { statusData, timestamp: Date.now() }
         }));
       }
-      
+
       console.log(`✅ Order status update synchronized`, { orderId: statusData.orderId, status: statusData.status });
       return success;
     } catch (error) {
@@ -1444,7 +1444,7 @@ export class DataSyncHelper {
    */
   static async syncOrderCompletion(completionData: any): Promise<boolean> {
     console.log(`🎉 Syncing order completion across website and admin`, { orderId: completionData.orderId });
-    
+
     try {
       // Save completed order directly to JSON API for immediate admin visibility
       if (completionData.fullOrderData) {
@@ -1463,19 +1463,19 @@ export class DataSyncHelper {
           accountCredentials: completionData.accountCredentials
         }
       });
-      
+
       // Update customer accounts for admin dashboard
       if (completionData.accountCredentials) {
         await this.syncCustomerAccounts(completionData);
       }
-      
+
       // Broadcast order completion event to all tabs and admin dashboard
       if (typeof window !== 'undefined') {
         // Primary order completion event
         window.dispatchEvent(new CustomEvent('order-completed', {
           detail: { completionData, timestamp: Date.now() }
         }));
-        
+
         // Admin-specific order completion event for real-time dashboard updates
         window.dispatchEvent(new CustomEvent('admin-order-completed', {
           detail: {
@@ -1488,21 +1488,21 @@ export class DataSyncHelper {
             orderData: completionData.fullOrderData
           }
         }));
-        
+
         // Store completion data for cross-tab communication and admin sync
         localStorage.setItem(`qai_order_completion_${completionData.orderId}`, JSON.stringify({
           ...completionData,
           timestamp: Date.now(),
           syncedToAdmin: true
         }));
-        
+
         // Trigger immediate admin data refresh
         localStorage.setItem('qai_admin_refresh', JSON.stringify({
           type: 'order_completion',
           orderId: completionData.orderId,
           timestamp: Date.now()
         }));
-        
+
         // Clean up old completion events (older than 1 hour)
         setTimeout(() => {
           Object.keys(localStorage).forEach(key => {
@@ -1519,10 +1519,10 @@ export class DataSyncHelper {
           });
         }, 100);
       }
-      
-      console.log(`✅ Order completion synchronized across all platforms`, { 
+
+      console.log(`✅ Order completion synchronized across all platforms`, {
         orderId: completionData.orderId,
-        apiUpdated: updateSuccess 
+        apiUpdated: updateSuccess
       });
       return updateSuccess;
     } catch (error) {
@@ -1540,13 +1540,13 @@ export class DataSyncHelper {
         console.error('❌ Missing orderId or updateData:', { orderId, updateData });
         return false;
       }
-      
+
       const requestBody = {
         type: 'orders',
         id: orderId,
         item: updateData
       };
-      
+
       let jsonBody;
       try {
         jsonBody = JSON.stringify(requestBody);
@@ -1554,13 +1554,13 @@ export class DataSyncHelper {
         console.error('❌ Failed to serialize order update body:', jsonError);
         return false;
       }
-      
+
       const response = await fetch(this.API_BASE_URL, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: jsonBody
       });
-      
+
       const result = await response.json();
       return result.success;
     } catch (error) {
@@ -1595,7 +1595,7 @@ export class DataSyncHelper {
         totalOrders: 1,
         currentRank: 'bronze'
       }));
-      
+
       const success = await this.saveToAPI('customerAccounts', customerAccounts, 'add');
       console.log(`✅ Customer accounts synchronized`, { count: customerAccounts.length });
       return success;
@@ -1610,11 +1610,11 @@ export class DataSyncHelper {
    */
   static async forceSync(userId: string): Promise<void> {
     console.log(`🔄 Force syncing all data for user ${userId}`);
-    
+
     try {
       // Trigger sync events for all user data types
       const dataTypes = ['orders', 'userFavorites', 'userCarts', 'userWallets', 'userRankings'];
-      
+
       for (const dataType of dataTypes) {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent(`user-${dataType}-sync`, {
@@ -1622,7 +1622,7 @@ export class DataSyncHelper {
           }));
         }
       }
-      
+
       console.log(`✅ Force sync completed for user ${userId}`);
     } catch (error) {
       console.error(`❌ Force sync failed for user ${userId}:`, error);
@@ -1644,7 +1644,7 @@ export class DataSyncHelper {
             lastModified: new Date().toISOString(),
             apiSynced: true
           };
-          
+
           localStorage.setItem('qai_user_products', JSON.stringify(userSyncData));
           console.log(`🔄 Background update completed`, { count: userProducts.length });
         }
@@ -1662,10 +1662,10 @@ export class DataSyncHelper {
       try {
         const apiData = await this.fetchFromAPI(dataType);
         if (Array.isArray(apiData)) {
-          const userData = apiData.filter((item: any) => 
+          const userData = apiData.filter((item: any) =>
             item.userId === userId || item.id === userId
           );
-          
+
           const cacheKey = `qai_user_${dataType}_${userId}`;
           const cacheData = {
             data: userData,
@@ -1673,7 +1673,7 @@ export class DataSyncHelper {
             lastModified: new Date().toISOString(),
             apiSynced: true
           };
-          
+
           localStorage.setItem(cacheKey, JSON.stringify(cacheData));
           console.log(`🔄 Background ${dataType} update completed for user ${userId}`, { count: userData.length });
         }
@@ -1848,7 +1848,7 @@ export class DataSyncHelper {
       window.addEventListener('global-cart-clearance', handleCartClearance as EventListener);
       window.addEventListener('header-cart-update', handleCartUpdate as EventListener);
     }
-    
+
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('global-cart-deletion', handleCartDeletion as EventListener);
@@ -1879,7 +1879,7 @@ export class DataSyncHelper {
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('user-products-sync', handleCustomSync as EventListener);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('user-products-sync', handleCustomSync as EventListener);

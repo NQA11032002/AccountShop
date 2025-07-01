@@ -15,8 +15,6 @@ export default function CartPage() {
   const { items, itemsCount, totalAmount, totalSavings, updateQuantity, removeItem, clearCart } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-  console.log("CartPage rendered", { itemsCount, totalAmount });
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
   };
@@ -54,7 +52,7 @@ export default function CartPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        
+
         <main className="pt-20 pb-16">
           <div className="container mx-auto px-4 py-12">
             <div className="max-w-2xl mx-auto text-center">
@@ -67,7 +65,7 @@ export default function CartPage() {
               <p className="text-gray-600 mb-8">
                 Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các tài khoản premium của chúng tôi!
               </p>
-              <Button 
+              <Button
                 onClick={handleContinueShopping}
                 className="bg-gradient-to-r from-brand-blue to-brand-purple hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3"
               >
@@ -86,7 +84,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <main className="pt-20 pb-16">
         {/* Page Header */}
         <section className="bg-gradient-to-r from-brand-blue to-brand-purple text-white py-12">
@@ -114,7 +112,7 @@ export default function CartPage() {
 
         <div className="container mx-auto px-4 py-12">
           <div className="grid lg:grid-cols-3 gap-8">
-            
+
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between mb-6">
@@ -133,7 +131,7 @@ export default function CartPage() {
               </div>
 
               {items.map((item) => (
-                <Card key={`${item.id}-${item.durationId}`} className="overflow-hidden">
+                <Card key={`${item.id}-${item.duration}`} className="overflow-hidden">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
                       {/* Product Image */}
@@ -144,7 +142,7 @@ export default function CartPage() {
                       {/* Product Info */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                          {item.name}
+                          {item.product_name}
                         </h3>
                         <p className="text-sm text-gray-600 mb-2">
                           {item.description}
@@ -169,9 +167,9 @@ export default function CartPage() {
                           <div className="text-lg font-bold text-brand-blue">
                             {formatPrice(item.price)}
                           </div>
-                          {item.originalPrice > item.price && (
+                          {item.original_price > item.price && (
                             <div className="text-sm text-gray-500 line-through">
-                              {formatPrice(item.originalPrice)}
+                              {formatPrice(item.original_price)}
                             </div>
                           )}
                         </div>
@@ -181,7 +179,7 @@ export default function CartPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleQuantityChange(item.id, item.durationId, item.quantity - 1)}
+                            onClick={() => handleQuantityChange(item.id, item.duration, item.quantity - 1)}
                             disabled={item.quantity <= 1}
                             className="w-8 h-8 p-0"
                           >
@@ -193,7 +191,7 @@ export default function CartPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleQuantityChange(item.id, item.durationId, item.quantity + 1)}
+                            onClick={() => handleQuantityChange(item.id, item.duration, item.quantity + 1)}
                             className="w-8 h-8 p-0"
                           >
                             <Plus className="w-3 h-3" />
@@ -204,7 +202,7 @@ export default function CartPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRemoveItem(item.id, item.durationId)}
+                          onClick={() => handleRemoveItem(item.id, item.duration)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -221,9 +219,9 @@ export default function CartPage() {
                         <div className="text-lg font-bold text-brand-blue">
                           {formatPrice(item.price * item.quantity)}
                         </div>
-                        {item.originalPrice > item.price && (
+                        {item.original_price > item.price && (
                           <div className="text-sm text-brand-emerald">
-                            Tiết kiệm {formatPrice((item.originalPrice - item.price) * item.quantity)}
+                            Tiết kiệm {formatPrice((item.original_price - item.price) * item.quantity)}
                           </div>
                         )}
                       </div>

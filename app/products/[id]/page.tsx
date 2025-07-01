@@ -16,18 +16,23 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useToast } from '@/hooks/use-toast';
-import { getProductById, formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
+import { formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
+import { fetchProductById } from '@/lib/api';
+import { Review } from '@/types/reviews.interface';
+import { fetchReviews, postReview } from '@/lib/api';
+import { addToCart } from '@/lib/api';
 
-interface Review {
-  id: number;
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  rating: number;
-  comment: string;
-  date: string;
-  helpful: number;
-}
+// interface Review {
+//   id: number;
+//   productId: number;
+//   userId: string;
+//   userName: string;
+//   userAvatar: string;
+//   rating: number;
+//   comment: string;
+//   date: string;
+//   helpful: number;
+// }
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -37,57 +42,56 @@ export default function ProductDetailPage() {
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const { toast } = useToast();
 
-  const [selectedDuration, setSelectedDuration] = useState('1m');
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-
+  const { sessionId } = useAuth();
+  console.log("sessionID" + sessionId);
   const productId = parseInt(params.id as string);
 
-  console.log("ProductDetailPage rendered", { productId, user: user?.email });
-
   // Get product from centralized data
-  const product = getProductById(productId);
 
-  const selectedPrice = product?.durations.find(d => d.id === selectedDuration);
+  const selectedPrice = Array.isArray(product?.durations)
+    ? product.durations.find((d: any) => d.id === selectedDuration)
+    : null;
 
+  //hiển thị chi tiết sản phẩm
   useEffect(() => {
-    // Load reviews for this product
-    const storedReviews = localStorage.getItem(`reviews_${productId}`);
-    if (storedReviews) {
-      setReviews(JSON.parse(storedReviews));
-    } else {
-      // Sample reviews
-      const sampleReviews: Review[] = [
-        {
-          id: 1,
-          userId: 'user1',
-          userName: 'Minh Hoàng',
-          userAvatar: 'https://ui-avatars.com/api/?name=Minh+Hoang&background=6366f1&color=fff',
-          rating: 5,
-          comment: 'Tài khoản chất lượng, sử dụng ổn định. Giao hàng nhanh, hỗ trợ tốt!',
-          date: '2024-01-15',
-          helpful: 12
-        },
-        {
-          id: 2,
-          userId: 'user2',
-          userName: 'Thu Trang',
-          userAvatar: 'https://ui-avatars.com/api/?name=Thu+Trang&background=ec4899&color=fff',
-          rating: 4,
-          comment: 'Account work tốt, giá cả hợp lý. Sẽ mua lại lần sau.',
-          date: '2024-01-12',
-          helpful: 8
+    const loadProduct = async () => {
+      try {
+        const data = await fetchProductById(productId);
+        setProduct(data);
+        if (data.durations?.length) {
+          setSelectedDuration(data.durations[0].id);
         }
-      ];
-      setReviews(sampleReviews);
-    }
+      } catch (error) {
+        console.error('Failed to load product', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProduct();
   }, [productId]);
 
-  const handleAddToCart = () => {
-    console.log("Adding product to cart", { productId, selectedDuration });
+  //hiển thị danh sách review product
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const data = await fetchReviews(productId);
+        setReviews(data);
+      } catch (error) {
+        console.error('Failed to fetch reviews:', error);
+      }
+    };
+    loadReviews();
+  }, [productId]);
 
-    if (!user) {
+
+  const handleAddToCart = async () => {
+    if (!user || !sessionId) {
       toast({
         title: "Cần đăng nhập",
         description: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.",
@@ -99,18 +103,29 @@ export default function ProductDetailPage() {
 
     if (!product || !selectedPrice) return;
 
-    const cartItem = createCartItem(product, selectedPrice);
+    try {
+      const cartItem = createCartItem(product, selectedPrice, parseInt(user.id));
 
-    addItem(cartItem);
-    toast({
-      title: "Đã thêm vào giỏ hàng!",
-      description: `${product.name} (${selectedPrice.name}) đã được thêm vào giỏ hàng.`,
-    });
+      // 🟢 Gọi API thêm vào giỏ
+      const addedItem = await addToCart(cartItem, sessionId);
+
+      // 🟢 Cập nhật state context giỏ hàng
+      addItem(addedItem);
+
+      toast({
+        title: "Đã thêm vào giỏ hàng!",
+        description: `${product.name} (${selectedPrice.name}) đã được thêm vào giỏ hàng.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Lỗi khi thêm vào giỏ hàng",
+        description: "Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+      console.error(error);
+    }
   };
-
   const handleBuyNow = () => {
-    console.log("Buy now clicked - direct checkout", { productId, selectedDuration });
-
     if (!user) {
       toast({
         title: "Cần đăng nhập",
@@ -123,17 +138,15 @@ export default function ProductDetailPage() {
 
     if (!product || !selectedPrice) return;
 
-    // Create buy now item data
-    const buyNowItem = createCartItem(product, selectedPrice);
+    const buyNowItem = createCartItem(product, selectedPrice, parseInt(user.id));
 
-    // Encode product data and redirect to checkout with buy now mode
     const buyNowData = {
       id: buyNowItem.id,
-      name: buyNowItem.name,
+      name: buyNowItem.product_name,
       price: buyNowItem.price,
-      originalPrice: buyNowItem.originalPrice,
+      originalPrice: buyNowItem.original_price,
       duration: buyNowItem.duration,
-      durationId: buyNowItem.durationId,
+      durationId: buyNowItem.selected_duration,
       image: buyNowItem.image,
       color: buyNowItem.color,
       description: buyNowItem.description,
@@ -141,7 +154,6 @@ export default function ProductDetailPage() {
       quantity: 1
     };
 
-    // Store buy now data in sessionStorage for security and redirect
     sessionStorage.setItem('qai-store-buy-now-item', JSON.stringify(buyNowData));
     router.push('/checkout?mode=buynow');
 
@@ -233,29 +245,43 @@ export default function ProductDetailPage() {
 
     setIsSubmittingReview(true);
 
-    const review: Review = {
-      id: Date.now(),
-      userId: user.id,
-      userName: user.name,
-      userAvatar: user.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name),
-      rating: newReview.rating,
-      comment: newReview.comment,
-      date: new Date().toISOString().split('T')[0],
-      helpful: 0
-    };
+    try {
+      const reviewData = {
+        user_id: user.id,
+        user_name: user.name,
+        user_avatar: user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`,
+        rating: newReview.rating,
+        comment: newReview.comment,
+        product_id: product.id,
+      };
 
-    const updatedReviews = [review, ...reviews];
-    setReviews(updatedReviews);
-    localStorage.setItem(`reviews_${productId}`, JSON.stringify(updatedReviews));
+      const newPostedReview = await postReview(productId, reviewData);
+      setReviews(prev => [newPostedReview, ...prev]);
+      setNewReview({ rating: 5, comment: '' });
 
-    setNewReview({ rating: 5, comment: '' });
-    setIsSubmittingReview(false);
-
-    toast({
-      title: "Đánh giá thành công!",
-      description: "Cảm ơn bạn đã đánh giá sản phẩm.",
-    });
+      toast({
+        title: "Đánh giá thành công!",
+        description: "Cảm ơn bạn đã đánh giá sản phẩm.",
+      });
+    } catch (error) {
+      console.error('Lỗi khi gửi đánh giá:', error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể gửi đánh giá.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Đang tải sản phẩm...
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -366,7 +392,7 @@ export default function ProductDetailPage() {
             <div>
               <h3 className="font-semibold text-brand-charcoal mb-3">Chọn thời hạn:</h3>
               <div className="grid grid-cols-2 gap-3">
-                {product.durations.map((duration) => (
+                {Array.isArray(product.durations) && product.durations.map((duration: any) => (
                   <button
                     key={duration.id}
                     onClick={() => setSelectedDuration(duration.id)}
@@ -476,7 +502,7 @@ export default function ProductDetailPage() {
                     <h3 className="text-xl font-bold text-gray-800">Bao gồm trong gói</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {product.features.map((feature, index) => (
+                    {Array.isArray(product.features) && product.features.map((feature: any, index: number) => (
                       <div key={index} className="flex items-center space-x-3 p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-green-200/50 hover:shadow-md transition-shadow">
                         <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
                           <Check className="w-5 h-5 text-white" />
@@ -671,13 +697,13 @@ export default function ProductDetailPage() {
                     <CardContent className="p-6">
                       <div className="flex items-start space-x-4">
                         <Avatar>
-                          <AvatarImage src={review.userAvatar} alt={review.userName} />
-                          <AvatarFallback>{review.userName.charAt(0)}</AvatarFallback>
+                          <AvatarImage src={review.user_avatar} alt={review.user_name} />
+                          <AvatarFallback>{review.user_name?.charAt(0) || '?'}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <h4 className="font-medium">{review.userName}</h4>
+                              <h4 className="font-medium">{review.user_name}</h4>
                               <div className="flex items-center space-x-2">
                                 <div className="flex">
                                   {[1, 2, 3, 4, 5].map((star) => (

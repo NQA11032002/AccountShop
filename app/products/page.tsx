@@ -13,63 +13,41 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataSyncHelper } from '@/lib/syncHelper';
 import ProductCard from '@/components/ProductCard';
+import { useProducts } from '@/lib/products';
+
+
 
 function ProductsContent() {
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
+  // const [searchQuery, setSearchQuery] = useState('');
+  // const [selectedCategory, setSelectedCategory] = useState('all');
+  // const [sortBy, setSortBy] = useState('popular');
+  // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // const [products, setProducts] = useState<any[]>([]);
+
+  // const [products, setProducts] = useState<ProductBase[]>([]);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('popular');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [products, setProducts] = useState<any[]>([]);
+  const searchParams = useSearchParams();
 
-  // Load products from admin sync or fallback to static data
-  useEffect(() => {
-    const loadProducts = async () => {
-      console.log("🛍️ Loading products for Products page");
-      
-      try {
-        // Load products from API data.json file
-        const syncedProducts = await DataSyncHelper.loadUserProducts();
-        
-        if (Array.isArray(syncedProducts) && syncedProducts.length > 0) {
-          console.log("✅ Products page loaded from data.json API", { 
-            count: syncedProducts.length,
-            source: 'API data.json'
-          });
-          setProducts(syncedProducts);
-        } else {
-          console.log("⚠️ No products found in data.json API");
-          setProducts([]);
-        }
-      } catch (error) {
-        console.warn("⚠️ Error loading products from API:", error);
-        setProducts([]);
-      }
-    };
-    
-    // Use a small delay to prevent race conditions and allow proper initialization
-    const timeoutId = setTimeout(loadProducts, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, []);
 
-  // Subscribe to product sync updates
-  useEffect(() => {
-    const unsubscribe = DataSyncHelper.subscribeToUserProductSync((syncedProducts) => {
-      console.log("🔄 Products updated from admin sync", { count: syncedProducts.length });
-      setProducts(syncedProducts);
-    });
 
-    return unsubscribe;
-  }, []);
+  //load sản phẩm lên website
+  const { products, loading, error } = useProducts();
+
 
   // Handle URL query parameters
   useEffect(() => {
     const categoryParam = searchParams?.get('category');
     const searchParam = searchParams?.get('search');
-    
-    console.log("URL params detected", { categoryParam, searchParam });
-    
+
+    // console.log("URL params detected", { categoryParam, searchParam });
+
     if (categoryParam) {
       // Map breadcrumb category values to product page categories
       const categoryMapping: { [key: string]: string } = {
@@ -81,7 +59,7 @@ function ProductsContent() {
         'Productivity': 'productivity',
         // Header category values to product page categories
         'language': 'education',
-        'cheap-courses': 'education', 
+        'cheap-courses': 'education',
         'programming': 'education',
         'education': 'education',
         'chatgpt': 'ai',
@@ -111,11 +89,11 @@ function ProductsContent() {
         'zoom': 'productivity',
         'adobe-key': 'design'
       };
-      
+
       const mappedCategory = categoryMapping[categoryParam] || categoryParam.toLowerCase();
       setSelectedCategory(mappedCategory);
     }
-    
+
     if (searchParam) {
       setSearchQuery(searchParam);
     }
@@ -123,7 +101,7 @@ function ProductsContent() {
 
 
 
-  console.log("ProductsPage rendered", { searchQuery, selectedCategory, sortBy, viewMode, productsCount: products.length });
+  // console.log("ProductsPage rendered", { searchQuery, selectedCategory, sortBy, viewMode, productsCount: products.length });
 
   const categories = [
     { value: 'all', label: 'Tất cả', count: products.length },
@@ -134,44 +112,43 @@ function ProductsContent() {
     { value: 'productivity', label: 'Năng suất', count: products.filter(p => p.category === 'productivity').length },
     { value: 'education', label: 'Học tập', count: products.filter(p => p.category === 'education').length },
   ];
-
   const filteredProducts = useMemo(() => {
-    let filtered = products;
+    let list = [...products];
 
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+    if (searchQuery)
+      list = list.filter(
+        p =>
+          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    }
 
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
-    }
+    if (selectedCategory !== 'all')
+      list = list.filter(p => p.category === selectedCategory);
 
-    // Sort products
     switch (sortBy) {
       case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
+        list.sort(
+          (a, b) =>
+            (a.durations?.[0]?.price || 0) - (b.durations?.[0]?.price || 0)
+        );
         break;
       case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
+        list.sort(
+          (a, b) =>
+            (b.durations?.[0]?.price || 0) - (a.durations?.[0]?.price || 0)
+        );
         break;
       case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
+        list.sort((a, b) => b.rating - a.rating);
         break;
       case 'name':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        list.sort((a, b) => a.name.localeCompare(b.name));
         break;
-      default: // popular
-        filtered.sort((a, b) => b.reviews - a.reviews);
+      default:
+        list.sort((a, b) => b.reviews - a.reviews);
     }
-
-    return filtered;
-  }, [searchQuery, selectedCategory, sortBy, products]);
-
+    return list;
+  }, [products, searchQuery, selectedCategory, sortBy]);
   const handleBuyNow = (productId: number) => {
     console.log(`Buy now clicked for product ${productId}`);
     if (typeof window !== 'undefined') {
@@ -184,7 +161,7 @@ function ProductsContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       {/* Page Header */}
       <section className="bg-gradient-hero py-20">
         <div className="container-max section-padding">
@@ -219,24 +196,22 @@ function ProductsContent() {
                   </h2>
                   <p className="text-blue-100 text-sm mt-1">Tìm tài khoản theo danh mục</p>
                 </div>
-                
+
                 <div className="p-6 space-y-3">
                   {categories.map((category) => (
                     <button
                       key={category.value}
                       onClick={() => setSelectedCategory(category.value)}
-                      className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${
-                        selectedCategory === category.value
-                          ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow-sm'
-                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                      }`}
+                      className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${selectedCategory === category.value
+                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow-sm'
+                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          selectedCategory === category.value
-                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
-                            : 'bg-white text-gray-600 border border-gray-200'
-                        }`}>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedCategory === category.value
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                          : 'bg-white text-gray-600 border border-gray-200'
+                          }`}>
                           {category.value === 'all' && '🌟'}
                           {category.value === 'entertainment' && '🎬'}
                           {category.value === 'music' && '🎵'}
@@ -246,9 +221,8 @@ function ProductsContent() {
                           {category.value === 'education' && '📚'}
                         </div>
                         <div className="text-left">
-                          <div className={`font-semibold ${
-                            selectedCategory === category.value ? 'text-blue-700' : 'text-gray-800'
-                          }`}>
+                          <div className={`font-semibold ${selectedCategory === category.value ? 'text-blue-700' : 'text-gray-800'
+                            }`}>
                             {category.label}
                           </div>
                           <div className="text-xs text-gray-500">
@@ -256,11 +230,10 @@ function ProductsContent() {
                           </div>
                         </div>
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        selectedCategory === category.value
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-gray-200 text-gray-600'
-                      }`}>
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${selectedCategory === category.value
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-200 text-gray-600'
+                        }`}>
                         {category.count}
                       </div>
                     </button>
@@ -331,9 +304,9 @@ function ProductsContent() {
                   {searchQuery && ` cho "${searchQuery}"`}
                   {selectedCategory !== 'all' && ` trong danh mục "${categories.find(c => c.value === selectedCategory)?.label}"`}
                 </p>
-                
+
                 {(searchQuery || selectedCategory !== 'all') && (
-                  <Button 
+                  <Button
                     onClick={() => {
                       setSearchQuery('');
                       setSelectedCategory('all');
@@ -349,14 +322,14 @@ function ProductsContent() {
 
               {/* Products */}
               {filteredProducts.length > 0 ? (
-                <div className={viewMode === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-2 gap-4 lg:gap-6' 
+                <div className={viewMode === 'grid'
+                  ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-2 gap-4 lg:gap-6'
                   : 'space-y-4'
                 }>
                   {filteredProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
+                    <ProductCard
+                      key={product.id}
+                      product={product}
                       isListView={viewMode === 'list'}
                       size="medium"
                       showFeatures={true}
@@ -373,7 +346,7 @@ function ProductsContent() {
                   <p className="text-gray-500 mb-6">
                     Thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục khác
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setSearchQuery('');
                       setSelectedCategory('all');

@@ -1224,53 +1224,7 @@
       "addedAt": "2025-06-29T06:13:10.288Z"
     }
   ],
-  "userCarts": [
-    {
-      "userId": "demo",
-      "productId": 4,
-      "productName": "YouTube Premium",
-      "price": 40000,
-      "originalPrice": 69000,
-      "quantity": 1,
-      "selectedDuration": "1m",
-      "duration": "1 tháng",
-      "image": "📺",
-      "color": "bg-red-600",
-      "description": "Ad-free YouTube + YouTube Music",
-      "warranty": "30 ngày",
-      "addedAt": "2024-03-26T14:00:00.000Z"
-    },
-    {
-      "userId": "demo",
-      "productId": 5,
-      "productName": "Adobe Creative Cloud",
-      "price": 900000,
-      "originalPrice": 10400000,
-      "quantity": 1,
-      "selectedDuration": "1m",
-      "duration": "Dùng chung 1 thiết bị",
-      "image": "🎨",
-      "color": "bg-orange-500",
-      "description": "Full suite of creative applications",
-      "warranty": "30 ngày",
-      "addedAt": "2025-06-29T06:12:46.662Z"
-    },
-    {
-      "userId": "demo",
-      "productId": 6,
-      "productName": "Microsoft Office 365",
-      "price": 299000,
-      "originalPrice": 1699000,
-      "quantity": 1,
-      "selectedDuration": "1m",
-      "duration": "12 tháng",
-      "image": "💼",
-      "color": "bg-blue-600",
-      "description": "Complete office suite with cloud storage",
-      "warranty": "30 ngày",
-      "addedAt": "2025-06-29T09:12:04.728Z"
-    }
-  ],
+  "userCarts": [],
   "userWallets": [
     {
       "userId": "demo",
@@ -1348,7 +1302,7 @@
     }
   ],
   "metadata": {
-    "lastUpdated": "2025-06-29T16:44:36.411Z",
+    "lastUpdated": "2025-07-01T16:53:03.625Z",
     "version": "3.0.0",
     "totalUsers": 3,
     "totalProducts": 25,

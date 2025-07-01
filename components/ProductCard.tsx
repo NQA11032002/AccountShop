@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from 'react';
 import Link from 'next/link';
 import { Star, ShoppingCart, Eye, Heart, CheckCircle, Zap, Clock, Shield } from 'lucide-react';
@@ -10,7 +9,9 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useToast } from '@/hooks/use-toast';
-import { getFeaturedDuration, formatPrice, calculateSavings, createCartItem, type ProductBase } from '@/lib/utils';
+// import { getFeaturedDuration, formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
+import { ProductBase } from '@/lib/products';
+import { getFeaturedDuration, formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
 
 interface ProductCardProps {
   product: ProductBase;
@@ -21,8 +22,8 @@ interface ProductCardProps {
   className?: string;
 }
 
-export default function ProductCard({ 
-  product, 
+export default function ProductCard({
+  product,
   isListView = false,
   showFeatures = true,
   showFavoriteButton = true,
@@ -35,33 +36,17 @@ export default function ProductCard({
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const { toast } = useToast();
 
-  console.log("ProductCard rendered", { 
-    productId: product.id, 
-    productName: product.name, 
-    isListView, 
-    size,
-    user: user?.email 
-  });
-
-  // Get featured duration with fallback
-  const featuredDuration = getFeaturedDuration(product);
-  const savings = calculateSavings(featuredDuration.originalPrice || featuredDuration.price, featuredDuration.price);
-  const standardDurationId = '1m';
+  const featuredDuration = getFeaturedDuration(product.durations || []);
+  const savings = calculateSavings(
+    featuredDuration.original_price || featuredDuration.price,
+    featuredDuration.price
+  );
+  const standardDurationId = featuredDuration.id.toString();
 
   const handleAddToCart = async () => {
-    if (isProcessing) {
-      console.log("Already processing, skipping...");
-      return;
-    }
-    
+    if (isProcessing) return;
     setIsProcessing(true);
-    
-    console.log("🛒 Adding product to cart", { 
-      productId: product.id, 
-      user: user?.email,
-      durationId: standardDurationId
-    });
-    
+
     if (!user) {
       toast({
         title: "Cần đăng nhập",
@@ -72,7 +57,7 @@ export default function ProductCard({
       return;
     }
 
-    if (!product.inStock) {
+    if (!product.in_stock) {
       toast({
         title: "Sản phẩm hết hàng",
         description: "Sản phẩm này hiện tại đã hết hàng.",
@@ -82,7 +67,6 @@ export default function ProductCard({
       return;
     }
 
-    // Kiểm tra nếu sản phẩm đã có trong giỏ hàng
     if (isInCart(product.id, standardDurationId)) {
       toast({
         title: "Sản phẩm đã có trong giỏ",
@@ -92,39 +76,27 @@ export default function ProductCard({
       return;
     }
 
-    // Create cart item with standardized durationId
     const cartItem = {
-      ...createCartItem(product, featuredDuration),
+      ...createCartItem(product, featuredDuration, parseInt(user.id)),
       durationId: standardDurationId
     };
-    
+
     const currentQuantity = getItemQuantity(product.id, standardDurationId);
-    
-    // Add exactly 1 item
-    addItem(cartItem, 1);
-    
-    // Wait for state to update
+    addItem(cartItem);
+
     setTimeout(() => {
       const newQuantity = getItemQuantity(product.id, standardDurationId);
-      console.log("✅ Cart updated", { 
-        productId: product.id, 
-        oldQuantity: currentQuantity, 
-        newQuantity: newQuantity
-      });
-      
-      const action = currentQuantity > 0 ? 'Đã tăng số lượng!' : 'Đã thêm vào giỏ hàng!';
       toast({
-        title: action,
+        title: currentQuantity > 0 ? 'Đã tăng số lượng!' : 'Đã thêm vào giỏ hàng!',
         description: `${product.name} (${featuredDuration.name}) - Số lượng: ${newQuantity}`,
       });
-      
       setIsProcessing(false);
     }, 100);
   };
 
   const handleToggleFavorite = () => {
-    console.log("Toggling favorite", { productId: product.id, user: user?.email });
-    
+    // console.log("Toggling favorite", { productId: product.id, user: user?.email });
+
     if (!user) {
       toast({
         title: "Cần đăng nhập",
@@ -138,7 +110,7 @@ export default function ProductCard({
       id: product.id,
       name: product.name,
       price: featuredDuration.price,
-      originalPrice: featuredDuration.originalPrice || featuredDuration.price,
+      originalPrice: featuredDuration.original_price || featuredDuration.price,
       image: product.image,
       color: product.color || 'bg-gray-500',
       description: product.description,
@@ -163,8 +135,8 @@ export default function ProductCard({
   };
 
   const handleBuyNow = () => {
-    console.log("Buy now clicked - direct checkout", { productId: product.id });
-    
+    // console.log("Buy now clicked - direct checkout", { productId: product.id });
+
     if (!user) {
       toast({
         title: "Cần đăng nhập",
@@ -182,7 +154,7 @@ export default function ProductCard({
       id: product.id,
       name: product.name,
       price: featuredDuration.price,
-      originalPrice: featuredDuration.originalPrice || featuredDuration.price,
+      originalPrice: featuredDuration.original_price || featuredDuration.price,
       duration: featuredDuration.name,
       durationId: standardDurationId,
       image: product.image,
@@ -191,13 +163,13 @@ export default function ProductCard({
       warranty: product.warranty || '30 ngày',
       quantity: 1
     };
-    
+
     // Store buy now data and redirect to checkout
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('qai-store-buy-now-item', JSON.stringify(buyNowItem));
       window.location.href = '/checkout?mode=buynow';
     }
-    
+
     toast({
       title: "Chuyển đến thanh toán",
       description: `Đang xử lý ${product.name} - ${featuredDuration.name}`,
@@ -244,13 +216,12 @@ export default function ProductCard({
             <div className="flex items-start justify-between">
               <h3 className={`${config.textSize} font-bold text-gray-900`}>{product.name}</h3>
               {showFavoriteButton && (
-                <button 
+                <button
                   onClick={handleToggleFavorite}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
-                    isFavorite(product.id) 
-                      ? 'bg-red-500 text-white hover:bg-red-600' 
-                      : 'bg-gray-100 text-gray-600 hover:text-red-500 hover:bg-red-50'
-                  }`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${isFavorite(product.id)
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-gray-100 text-gray-600 hover:text-red-500 hover:bg-red-50'
+                    }`}
                 >
                   <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
                 </button>
@@ -266,16 +237,16 @@ export default function ProductCard({
               <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
                 {formatPrice(featuredDuration.price)}
               </span>
-              {featuredDuration.originalPrice && (
+              {featuredDuration.original_price && (
                 <span className="text-sm text-gray-400 line-through">
-                  {formatPrice(featuredDuration.originalPrice)}
+                  {formatPrice(featuredDuration.original_price)}
                 </span>
               )}
             </div>
             <div className={`flex space-x-2 ${config.gap}`}>
-              <Button 
+              <Button
                 onClick={handleAddToCart}
-                disabled={!product.inStock || isProcessing}
+                disabled={!product.in_stock || isProcessing}
                 className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl"
               >
                 {isProcessing ? (
@@ -313,10 +284,10 @@ export default function ProductCard({
     <Card className={`group relative bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden hover:scale-[1.02] flex flex-col w-full max-w-sm mx-auto transform hover:-translate-y-1 ${className}`}>
       {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      
+
       {/* Product Icon */}
       <div className="absolute top-5 left-5 z-10">
-        <div 
+        <div
           className={`${config.iconSize} rounded-2xl flex items-center justify-center text-2xl shadow-lg transform group-hover:scale-110 transition-transform duration-300 ${product.color || 'bg-gray-500'}`}
         >
           <span className="filter drop-shadow-sm">{product.image}</span>
@@ -326,7 +297,7 @@ export default function ProductCard({
       {/* Status Badge */}
       {product.badge && (
         <div className="absolute top-5 right-5 z-10">
-          <Badge className={`${product.badgeColor} text-white px-3 py-1.5 text-xs font-bold rounded-lg shadow-md transform group-hover:scale-105 transition-transform duration-300`}>
+          <Badge className={`${product.badge_color} text-white px-3 py-1.5 text-xs font-bold rounded-lg shadow-md transform group-hover:scale-105 transition-transform duration-300`}>
             {product.badge}
           </Badge>
         </div>
@@ -334,13 +305,12 @@ export default function ProductCard({
 
       {/* Favorite Button */}
       {showFavoriteButton && (
-        <button 
+        <button
           onClick={handleToggleFavorite}
-          className={`absolute top-14 right-5 z-10 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 shadow-md opacity-0 group-hover:opacity-100 ${
-            isFavorite(product.id) 
-              ? 'bg-red-500 text-white hover:bg-red-600' 
-              : 'bg-white/90 text-gray-600 hover:text-red-500 hover:bg-white'
-          }`}
+          className={`absolute top-14 right-5 z-10 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 shadow-md opacity-0 group-hover:opacity-100 ${isFavorite(product.id)
+            ? 'bg-red-500 text-white hover:bg-red-600'
+            : 'bg-white/90 text-gray-600 hover:text-red-500 hover:bg-white'
+            }`}
         >
           <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
         </button>
@@ -348,17 +318,20 @@ export default function ProductCard({
 
       {/* Stock Status */}
       <div className="absolute top-24 right-5 z-10">
-        <Badge variant={product.inStock ? "default" : "destructive"} className="text-xs px-2 py-1 rounded-md shadow-sm">
-          {product.inStock ? (
+        <Badge variant={product.in_stock ? "default" : "destructive"} className="text-xs px-2 py-1 rounded-md shadow-sm">
+          {product.in_stock ? (
             <><span className="mr-1">✓</span>Còn hàng</>
           ) : (
             <><span className="mr-1">⚠️</span>Hết hàng</>
-          )}
+          )
+
+          }
         </Badge>
+
       </div>
 
       {/* Savings Badge */}
-      {featuredDuration.originalPrice && savings > 0 && (
+      {featuredDuration.original_price && savings > 0 && (
         <div className="absolute top-32 right-5 z-10">
           <Badge className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md shadow-sm">
             -{savings}%
@@ -410,11 +383,10 @@ export default function ProductCard({
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`w-3 h-3 lg:w-4 lg:h-4 ${
-                    i < Math.floor(product.rating)
-                      ? 'text-yellow-400 fill-current'
-                      : 'text-gray-300'
-                  }`}
+                  className={`w-3 h-3 lg:w-4 lg:h-4 ${i < Math.floor(product.rating)
+                    ? 'text-yellow-400 fill-current'
+                    : 'text-gray-300'
+                    }`}
                 />
               ))}
             </div>
@@ -428,9 +400,9 @@ export default function ProductCard({
             <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
               {formatPrice(featuredDuration.price)}
             </span>
-            {featuredDuration.originalPrice && (
+            {featuredDuration.original_price && (
               <span className="ml-2 text-xs lg:text-sm text-gray-400 line-through">
-                {formatPrice(featuredDuration.originalPrice)}
+                {formatPrice(featuredDuration.original_price)}
               </span>
             )}
           </div>
@@ -452,7 +424,7 @@ export default function ProductCard({
         <div className={`flex ${config.gap} mt-4`}>
           <Button
             onClick={handleAddToCart}
-            disabled={!product.inStock || isProcessing}
+            disabled={!product.in_stock || isProcessing}
             className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-2 lg:py-3 text-xs lg:text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
