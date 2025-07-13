@@ -12,25 +12,26 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 
 export default function CartPage() {
-  const { items, itemsCount, totalAmount, totalSavings, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, itemsCount, totalAmount, totalSavings, updateQuantity, removeItem, clearAllCart } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
   };
 
-  const handleQuantityChange = (id: number, durationId: string, newQuantity: number) => {
-    console.log("Cart quantity change", { id, durationId, newQuantity });
-    updateQuantity(id, durationId, newQuantity);
+  const handleQuantityChange = (productId: number, durationId: number, newQuantity: number) => {
+    if (newQuantity < 1) return; // Ngăn không cho giảm dưới 1
+    updateQuantity(productId, durationId, newQuantity);
   };
 
+
   const handleRemoveItem = (id: number, durationId: string) => {
-    console.log("Removing item from cart", { id, durationId });
+    // console.log("Removing item from cart", { id, durationId });
     removeItem(id, durationId);
   };
 
   const handleCheckout = () => {
-    console.log("Starting checkout process", { items, totalAmount });
+    // console.log("Starting checkout process", { items, totalAmount });
     // Use Next.js navigation instead of window.location.href
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('navigate-to-checkout', {
@@ -67,7 +68,7 @@ export default function CartPage() {
               </p>
               <Button
                 onClick={handleContinueShopping}
-                className="bg-gradient-to-r from-brand-blue to-brand-purple hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3"
+                className="bg-gradient-to-r from-brand-charcoal to-brand-blue hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Tiếp tục mua sắm
@@ -122,7 +123,7 @@ export default function CartPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={clearCart}
+                  onClick={clearAllCart}
                   className="text-red-600 border-red-600 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -135,8 +136,8 @@ export default function CartPage() {
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
                       {/* Product Image */}
-                      <div className={`w-20 h-20 ${item.color} rounded-lg flex items-center justify-center text-2xl flex-shrink-0`}>
-                        {item.image}
+                      <div className={`w-20 h-20 rounded-lg flex items-center justify-center text-2xl flex-shrink-0`}>
+                        <img src={`/images/products/${item.image}`} alt="Product image" />
                       </div>
 
                       {/* Product Info */}
@@ -179,7 +180,7 @@ export default function CartPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleQuantityChange(item.id, item.duration, item.quantity - 1)}
+                            onClick={() => handleQuantityChange(item.id, item.selected_duration, item.quantity - 1)}
                             disabled={item.quantity <= 1}
                             className="w-8 h-8 p-0"
                           >
@@ -191,12 +192,13 @@ export default function CartPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleQuantityChange(item.id, item.duration, item.quantity + 1)}
+                            onClick={() => handleQuantityChange(item.id, item.selected_duration, item.quantity + 1)}
                             className="w-8 h-8 p-0"
                           >
                             <Plus className="w-3 h-3" />
                           </Button>
                         </div>
+
 
                         {/* Remove Button */}
                         <Button
@@ -245,7 +247,7 @@ export default function CartPage() {
                     </div>
                     <div className="flex justify-between text-brand-emerald">
                       <span>Giảm giá:</span>
-                      <span className="font-medium">-{formatPrice(totalSavings)}</span>
+                      <span className="font-medium">{formatPrice(totalSavings)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Phí vận chuyển:</span>
@@ -271,7 +273,7 @@ export default function CartPage() {
                   <Button
                     onClick={handleCheckout}
                     disabled={isCheckingOut}
-                    className="w-full bg-gradient-to-r from-brand-blue to-brand-purple hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg"
+                    className="w-full bg-gradient-to-r from-brand-blue to-brand-charcoal hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg"
                   >
                     <CreditCard className="w-5 h-5 mr-2" />
                     Thanh toán ngay

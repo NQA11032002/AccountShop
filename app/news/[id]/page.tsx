@@ -9,13 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Calendar, 
-  Clock, 
-  Eye, 
-  Share2, 
-  Heart, 
-  MessageCircle, 
+import {
+  Calendar,
+  Clock,
+  Eye,
+  Share2,
+  Heart,
+  MessageCircle,
   ArrowLeft,
   ThumbsUp,
   ThumbsDown,
@@ -25,6 +25,8 @@ import {
   Linkedin
 } from 'lucide-react';
 
+
+
 export default function NewsDetailPage() {
   const params = useParams();
   const [article, setArticle] = useState<any>(null);
@@ -32,8 +34,6 @@ export default function NewsDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
-
-  console.log("News detail page rendered", { id: params.id });
 
   const newsCategories = [
     { id: 'all', name: 'Tất cả', count: 24 },
@@ -330,16 +330,18 @@ export default function NewsDetailPage() {
     }
   ];
 
+
+
   useEffect(() => {
     const foundArticle = newsArticles.find(a => a.id === parseInt(params.id as string));
     if (foundArticle) {
       setArticle(foundArticle);
       // Set related articles (same category, excluding current article)
-      const related = newsArticles.filter(a => 
+      const related = newsArticles.filter(a =>
         a.category === foundArticle.category && a.id !== foundArticle.id
       ).slice(0, 3);
       setRelatedArticles(related);
-      
+
       // Sample comments
       setComments([
         {
@@ -380,10 +382,18 @@ export default function NewsDetailPage() {
     );
   }
 
+
+  // async function generateStaticParams() {
+  //   return newsArticles.map((article) => ({
+  //     id: article.id.toString(),
+  //   }));
+  // }
+
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       <main className="bg-white">
         {/* Breadcrumb */}
         <div className="bg-gray-50 py-4">
@@ -412,11 +422,11 @@ export default function NewsDetailPage() {
               <Badge className="bg-blue-100 text-blue-800 mb-4">
                 {newsCategories.find(cat => cat.id === article.category)?.name}
               </Badge>
-              
+
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
                 {article.title}
               </h1>
-              
+
               <p className="text-xl text-gray-600 mb-6 leading-relaxed">
                 {article.excerpt}
               </p>
@@ -433,7 +443,7 @@ export default function NewsDetailPage() {
                     <p className="text-sm text-gray-600">{article.authorBio}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-6 text-sm text-gray-500">
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 mr-1" />
@@ -456,8 +466,8 @@ export default function NewsDetailPage() {
         {/* Article Image */}
         <section className="mb-8">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <img 
-              src={article.image} 
+            <img
+              src={article.image}
               alt={article.title}
               className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
             />
@@ -468,10 +478,10 @@ export default function NewsDetailPage() {
         <section className="py-8">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row gap-8">
-              
+
               {/* Main Content */}
               <div className="lg:w-3/4">
-                <div 
+                <div
                   className="prose prose-lg max-w-none mb-8"
                   dangerouslySetInnerHTML={{ __html: article.content }}
                 />
@@ -499,7 +509,7 @@ export default function NewsDetailPage() {
                       <ThumbsUp className="w-4 h-4 mr-2" />
                       {article.likes + (isLiked ? 1 : 0)}
                     </Button>
-                    
+
                     <Button
                       variant={isBookmarked ? "default" : "outline"}
                       onClick={() => setIsBookmarked(!isBookmarked)}
@@ -508,7 +518,7 @@ export default function NewsDetailPage() {
                       {isBookmarked ? 'Đã lưu' : 'Lưu bài'}
                     </Button>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600 mr-2">Chia sẻ:</span>
                     <Button variant="outline" size="sm">
@@ -528,7 +538,7 @@ export default function NewsDetailPage() {
                   <h3 className="text-xl font-bold text-gray-900 mb-6">
                     Bình luận ({comments.length})
                   </h3>
-                  
+
                   <div className="space-y-6">
                     {comments.map((comment) => (
                       <div key={comment.id} className="flex space-x-4">
@@ -565,7 +575,7 @@ export default function NewsDetailPage() {
               {/* Sidebar */}
               <div className="lg:w-1/4">
                 <div className="sticky top-8 space-y-6">
-                  
+
                   {/* Author Card */}
                   <Card>
                     <CardHeader>
@@ -599,8 +609,8 @@ export default function NewsDetailPage() {
                           {relatedArticles.map((related) => (
                             <Link key={related.id} href={`/news/${related.id}`}>
                               <div className="flex space-x-3 group cursor-pointer">
-                                <img 
-                                  src={related.image} 
+                                <img
+                                  src={related.image}
                                   alt={related.title}
                                   className="w-16 h-16 object-cover rounded-lg"
                                 />

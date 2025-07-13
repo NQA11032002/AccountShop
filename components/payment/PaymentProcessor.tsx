@@ -14,13 +14,13 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import PaymentInstructions from './PaymentInstructions';
-import { 
-  CreditCard, 
-  Smartphone, 
-  Building2, 
-  Bitcoin, 
-  Shield, 
-  Lock, 
+import {
+  CreditCard,
+  Smartphone,
+  Building2,
+  Bitcoin,
+  Shield,
+  Lock,
   Check,
   AlertCircle,
   Loader2,
@@ -168,10 +168,10 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
     }
   });
 
-  console.log("PaymentProcessor rendered", { 
-    amount, 
-    orderId, 
-    selectedMethod, 
+  console.log("PaymentProcessor rendered", {
+    amount,
+    orderId,
+    selectedMethod,
     paymentStep,
     totalAmount: totalAmount
   });
@@ -208,20 +208,20 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 
   const processCardPayment = async (data: z.infer<typeof cardPaymentSchema>) => {
     console.log("Processing card payment", { data, orderId, amount: totalAmount });
-    
+
     setIsProcessing(true);
     setPaymentStep('processing');
 
     try {
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000));
-      
+
       // Simulate payment success (95% success rate)
       const success = Math.random() > 0.05;
-      
+
       if (success) {
         setPaymentStep('success');
-        
+
         const paymentData = {
           method: 'card',
           transactionId: `CARD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -231,14 +231,14 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
           timestamp: new Date().toISOString(),
           status: 'completed'
         };
-        
+
         console.log("Card payment successful", paymentData);
-        
+
         toast({
           title: "Thanh toán thành công! 🎉",
           description: `Giao dịch ${paymentData.transactionId} đã được xử lý`,
         });
-        
+
         setTimeout(() => {
           onSuccess(paymentData);
         }, 1500);
@@ -249,7 +249,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
       console.error("Card payment failed:", error);
       setPaymentStep('form');
       onError(error.message || "Thanh toán thất bại");
-      
+
       toast({
         title: "Thanh toán thất bại",
         description: error.message || "Có lỗi xảy ra khi xử lý thanh toán",
@@ -262,7 +262,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 
   const processBankingPayment = async (data: z.infer<typeof bankTransferSchema>) => {
     console.log("Processing banking payment", { data, orderId, amount: totalAmount });
-    
+
     setIsProcessing(true);
     setPaymentStep('processing');
 
@@ -279,7 +279,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 
       // Simulate transfer instruction display and confirmation
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       const paymentData = {
         method: 'banking',
         transactionId: `BANK_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -289,17 +289,17 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
         status: 'pending', // Banking payments start as pending
         timestamp: new Date().toISOString()
       };
-      
+
       console.log("Banking payment initiated", paymentData);
-      
+
       setPaymentResult(paymentData);
       setPaymentStep('instructions');
-      
+
       toast({
         title: "Hướng dẫn chuyển khoản",
         description: "Vui lòng thực hiện chuyển khoản theo thông tin được cung cấp",
       });
-      
+
     } catch (error: any) {
       console.error("Banking payment failed:", error);
       setPaymentStep('form');
@@ -311,19 +311,19 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 
   const processMoMoPayment = async (data: z.infer<typeof momoSchema>) => {
     console.log("Processing MoMo payment", { data, orderId, amount: totalAmount });
-    
+
     setIsProcessing(true);
     setPaymentStep('processing');
 
     try {
       // Simulate MoMo processing
       await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 1000));
-      
+
       const success = Math.random() > 0.02; // 98% success rate for MoMo
-      
+
       if (success) {
         setPaymentStep('success');
-        
+
         const paymentData = {
           method: 'momo',
           transactionId: `MOMO_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -333,14 +333,14 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
           status: 'completed',
           timestamp: new Date().toISOString()
         };
-        
+
         console.log("MoMo payment successful", paymentData);
-        
+
         toast({
           title: "Thanh toán MoMo thành công! 🎉",
           description: `Giao dịch đã được xử lý qua số ${data.phoneNumber}`,
         });
-        
+
         setTimeout(() => {
           onSuccess(paymentData);
         }, 1500);
@@ -358,7 +358,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 
   const processCryptoPayment = async (data: z.infer<typeof cryptoSchema>) => {
     console.log("Processing crypto payment", { data, orderId, amount: totalAmount });
-    
+
     setIsProcessing(true);
     setPaymentStep('processing');
 
@@ -366,16 +366,16 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
       // Generate crypto payment address and amount
       const cryptoInfo = {
         paymentAddress: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-        cryptoAmount: data.cryptoType === 'BTC' ? (totalAmount / 1000000000).toFixed(8) : 
-                     data.cryptoType === 'USDT' ? (totalAmount / 23000).toFixed(2) :
-                     (totalAmount / 50000000).toFixed(6), // ETH
+        cryptoAmount: data.cryptoType === 'BTC' ? (totalAmount / 1000000000).toFixed(8) :
+          data.cryptoType === 'USDT' ? (totalAmount / 23000).toFixed(2) :
+            (totalAmount / 50000000).toFixed(6), // ETH
         cryptoType: data.cryptoType,
         qrCode: `${data.cryptoType}:${data.walletAddress}?amount=${totalAmount}`,
         referenceCode: `CRYPTO${Date.now()}`
       };
 
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       const paymentData = {
         method: 'crypto',
         transactionId: `CRYPTO_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -385,17 +385,17 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
         status: 'pending', // Crypto payments need confirmation
         timestamp: new Date().toISOString()
       };
-      
+
       console.log("Crypto payment initiated", paymentData);
-      
+
       setPaymentResult(paymentData);
       setPaymentStep('instructions');
-      
+
       toast({
         title: "Hướng dẫn thanh toán crypto",
         description: `Chuyển ${cryptoInfo.cryptoAmount} ${data.cryptoType} đến địa chỉ được cung cấp`,
       });
-      
+
     } catch (error: any) {
       console.error("Crypto payment failed:", error);
       setPaymentStep('form');
@@ -429,10 +429,10 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
   };
 
   const handlePaymentStatusChange = (newStatus: string) => {
-    console.log("Payment status changed", { 
-      transactionId: paymentResult?.transactionId, 
-      oldStatus: paymentResult?.status, 
-      newStatus 
+    console.log("Payment status changed", {
+      transactionId: paymentResult?.transactionId,
+      oldStatus: paymentResult?.status,
+      newStatus
     });
 
     if (newStatus === 'completed' && paymentResult) {
@@ -441,9 +441,9 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
         ...paymentResult,
         status: 'completed'
       };
-      
+
       setPaymentStep('success');
-      
+
       setTimeout(() => {
         onSuccess(updatedPaymentData);
       }, 1500);
@@ -509,8 +509,8 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
               {paymentMethods.map((method) => (
                 <div key={method.id} className="flex items-center space-x-2">
                   <RadioGroupItem value={method.id} id={method.id} />
-                  <Label 
-                    htmlFor={method.id} 
+                  <Label
+                    htmlFor={method.id}
                     className="flex-1 cursor-pointer"
                   >
                     <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
@@ -558,8 +558,8 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
               </div>
             </div>
 
-            <Button 
-              onClick={handleContinue} 
+            <Button
+              onClick={handleContinue}
               className="w-full bg-blue-600 hover:bg-blue-700"
               size="lg"
             >
@@ -667,7 +667,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 
                 <div className="space-y-2">
                   <Label htmlFor="bankCode">Ngân hàng</Label>
-                  <select 
+                  <select
                     {...bankingForm.register('bankCode')}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
@@ -733,7 +733,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 
                 <div className="space-y-2">
                   <Label htmlFor="cryptoType">Loại tiền điện tử</Label>
-                  <select 
+                  <select
                     {...cryptoForm.register('cryptoType')}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
@@ -779,16 +779,16 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
             </div>
 
             <div className="flex space-x-3">
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 onClick={() => setPaymentStep('select')}
                 className="flex-1"
                 disabled={isProcessing}
               >
                 Quay lại
               </Button>
-              <Button 
+              <Button
                 onClick={handleSubmitPayment}
                 disabled={isProcessing}
                 className="flex-1 bg-blue-600 hover:bg-blue-700"

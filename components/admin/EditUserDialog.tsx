@@ -7,17 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import type { User } from '@/types/user.interface';
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  joinDate: string;
-  status: 'active' | 'inactive' | 'banned';
-  totalOrders: number;
-  totalSpent: number;
-}
 
 interface EditUserDialogProps {
   user: User | null;
@@ -27,36 +18,35 @@ interface EditUserDialogProps {
 }
 
 export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDialogProps) {
-  const [formData, setFormData] = useState<User>(
-    user || {
-      id: '',
-      name: '',
-      email: '',
-      avatar: '',
-      joinDate: new Date().toISOString(),
-      status: 'active',
-      totalOrders: 0,
-      totalSpent: 0
+  const defaultUser: User = {
+    id: '',
+    name: '',
+    email: '',
+    password: '',
+    joinDate: new Date().toISOString(),
+    status: 'active',
+    totalOrders: 0,
+    totalSpent: 0,
+    avatar: '',
+    phone: '',
+    address: '',
+    points: 0,
+    rank: 'bronze',
+    coins: 0,
+    preferences: {
+      categories: [],
+      notifications: true,
+      currency: 'VND'
     }
-  );
+  };
 
-  console.log("EditUserDialog rendered", { userId: user?.id, open });
+
+  const [formData, setFormData] = useState<User>(user || defaultUser);
 
   // Reset form data when user prop changes or dialog opens
   useEffect(() => {
     if (open) {
-      setFormData(
-        user || {
-          id: '',
-          name: '',
-          email: '',
-          avatar: '',
-          joinDate: new Date().toISOString(),
-          status: 'active',
-          totalOrders: 0,
-          totalSpent: 0
-        }
-      );
+      setFormData(user || defaultUser);
       console.log("Form data reset for user", user?.id);
     }
   }, [user, open]);
@@ -78,7 +68,7 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
             {user ? 'Cập nhật thông tin người dùng' : 'Nhập thông tin để tạo người dùng mới'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-4">
           {/* Avatar */}
           <div className="flex items-center space-x-4">
@@ -93,7 +83,7 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
               <Input
                 id="avatar"
                 value={formData.avatar}
-                onChange={(e) => setFormData({...formData, avatar: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
                 placeholder="https://example.com/avatar.jpg"
               />
             </div>
@@ -105,7 +95,7 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="col-span-3"
               placeholder="Nguyễn Văn A"
             />
@@ -118,7 +108,7 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="col-span-3"
               placeholder="user@example.com"
             />
@@ -127,10 +117,10 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
           {/* Status */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Trạng thái</Label>
-            <Select 
-              value={formData.status} 
-              onValueChange={(value: 'active' | 'inactive' | 'banned') => 
-                setFormData({...formData, status: value})
+            <Select
+              value={formData.status}
+              onValueChange={(value: 'active' | 'inactive' | 'banned') =>
+                setFormData({ ...formData, status: value })
               }
             >
               <SelectTrigger className="col-span-3">
@@ -152,7 +142,7 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
                 id="totalOrders"
                 type="number"
                 value={formData.totalOrders}
-                onChange={(e) => setFormData({...formData, totalOrders: parseInt(e.target.value) || 0})}
+                onChange={(e) => setFormData({ ...formData, totalOrders: parseInt(e.target.value) || 0 })}
               />
             </div>
             <div>
@@ -161,7 +151,7 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
                 id="totalSpent"
                 type="number"
                 value={formData.totalSpent}
-                onChange={(e) => setFormData({...formData, totalSpent: parseInt(e.target.value) || 0})}
+                onChange={(e) => setFormData({ ...formData, totalSpent: parseInt(e.target.value) || 0 })}
               />
             </div>
           </div>

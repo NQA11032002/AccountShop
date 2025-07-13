@@ -32,7 +32,7 @@ interface WalletContextType {
   balance: number;
   transactions: WalletTransaction[];
   depositMethods: DepositMethod[];
-  
+
   // Balance operations
   depositCoins: (amount: number, method: string) => Promise<boolean>;
   createDepositOrder: (amount: number, method: string) => Promise<{ orderId: string; success: boolean }>;
@@ -40,13 +40,13 @@ interface WalletContextType {
   confirmDeposit: (orderId: string) => Promise<boolean>;
   deductCoins: (amount: number, description: string, orderId?: string) => Promise<boolean>;
   refundCoins: (amount: number, description: string, orderId?: string) => void;
-  
+
   // Transaction management
   getTransactionHistory: () => WalletTransaction[];
   getTransactionsByType: (type: WalletTransaction['type']) => WalletTransaction[];
   refreshTransactions: () => void;
   syncDepositStatus: () => Promise<void>;
-  
+
   // Utility functions
   canAfford: (amount: number) => boolean;
   formatCoins: (amount: number) => string;
@@ -109,37 +109,37 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   ];
 
-  console.log("WalletProvider initialized", { 
-    user: user?.email, 
-    balance, 
-    transactionsCount: transactions.length 
-  });
+  // console.log("WalletProvider initialized", {
+  //   user: user?.email,
+  //   balance,
+  //   transactionsCount: transactions.length
+  // });
 
   // Real-time sync listener for deposit approvals/rejections
   useEffect(() => {
     if (!user) return;
 
-    console.log("🔄 Setting up real-time deposit sync for user:", user.email);
+    // console.log("🔄 Setting up real-time deposit sync for user:", user.email);
 
     const unsubscribeDeposit = DataSyncHelper.subscribeToDepositSync((depositData) => {
-      console.log("💳 Received deposit sync event:", depositData);
-      
+      // console.log("💳 Received deposit sync event:", depositData);
+
       if (depositData.userId === user.id) {
-        console.log("✅ Processing deposit sync for current user");
-        
+        // console.log("✅ Processing deposit sync for current user");
+
         // Refresh wallet data from localStorage (already updated by sync helper)
         const savedWallet = localStorage.getItem(`qai-wallet-${user.id}`);
         if (savedWallet) {
           try {
             const walletData = JSON.parse(savedWallet);
             setBalance(walletData.balance || 0);
-            
+
             const parsedTransactions = (walletData.transactions || []).map((tx: any) => ({
               ...tx,
               date: new Date(tx.date)
             }));
             setTransactions(parsedTransactions);
-            
+
             // Show notification to user
             if (depositData.status === 'approved') {
               toast({
@@ -153,14 +153,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
                 variant: "destructive",
               });
             }
-            
+
             console.log("🔄 Wallet state updated from deposit sync", {
               orderId: depositData.orderId,
               status: depositData.status,
               newBalance: walletData.balance,
               finalAmount: depositData.finalAmount
             });
-            
+
           } catch (error) {
             console.error("❌ Error parsing wallet data from sync:", error);
           }
@@ -171,7 +171,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const unsubscribeWallet = DataSyncHelper.subscribeToWalletSync(user.id, (walletData) => {
       console.log("💰 Received wallet sync event:", walletData);
       setBalance(walletData.balance || 0);
-      
+
       const parsedTransactions = (walletData.transactions || []).map((tx: any) => ({
         ...tx,
         date: new Date(tx.date)
@@ -190,15 +190,15 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const loadUserWallet = async () => {
       if (user) {
         console.log("💰 Loading wallet for user", { userId: user.id });
-        
+
         try {
           // Load wallet data from JSON API with fallback to localStorage
           const walletData = await DataSyncHelper.loadUserData(user.id, 'userWallets');
-          
+
           if (walletData.length > 0) {
             const userWallet = walletData[0]; // Should be one wallet per user
             setBalance(userWallet.balance || 0);
-            
+
             // Parse transactions with proper date objects
             const parsedTransactions = (userWallet.transactions || []).map((tx: any) => ({
               id: tx.id,
@@ -211,10 +211,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
               paymentMethod: tx.paymentMethod
             }));
             setTransactions(parsedTransactions);
-            
-            console.log("✅ Wallet loaded from API", { 
-              balance: userWallet.balance, 
-              transactionsCount: parsedTransactions.length 
+
+            console.log("✅ Wallet loaded from API", {
+              balance: userWallet.balance,
+              transactionsCount: parsedTransactions.length
             });
           } else {
             // Fallback to localStorage
@@ -223,16 +223,16 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
               try {
                 const walletData = JSON.parse(savedWallet);
                 setBalance(walletData.balance || 0);
-                
+
                 const parsedTransactions = (walletData.transactions || []).map((tx: any) => ({
                   ...tx,
                   date: new Date(tx.date)
                 }));
                 setTransactions(parsedTransactions);
-                
-                console.log("💾 Wallet loaded from localStorage", { 
-                  balance: walletData.balance, 
-                  transactionsCount: parsedTransactions.length 
+
+                console.log("💾 Wallet loaded from localStorage", {
+                  balance: walletData.balance,
+                  transactionsCount: parsedTransactions.length
                 });
               } catch (error) {
                 console.error("❌ Error loading wallet from localStorage:", error);
@@ -253,14 +253,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
                 status: 'completed'
               };
               setTransactions([welcomeTransaction]);
-              
+
               // Save to both localStorage and API
               const walletData = {
                 balance: welcomeBonus,
                 transactions: [welcomeTransaction]
               };
               localStorage.setItem(`qai-wallet-${user.id}`, JSON.stringify(walletData));
-              
+
               // Save to JSON API
               await DataSyncHelper.saveUserData(user.id, 'userWallets', {
                 id: `wallet_${user.id}`,
@@ -277,12 +277,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
                   status: welcomeTransaction.status
                 }]
               });
-              
+
               toast({
                 title: "Chào mừng bạn! 🎉",
                 description: `Bạn đã nhận được ${formatCoins(welcomeBonus)} coins chào mừng!`,
               });
-              
+
               console.log("🎁 New wallet initialized with welcome bonus", { userId: user.id });
             }
           }
@@ -312,7 +312,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           transactions
         };
         localStorage.setItem(`qai-wallet-${user.id}`, JSON.stringify(walletData));
-        
+
         try {
           // Transform transactions to API format and save to JSON API
           const apiTransactions = transactions.map((tx: WalletTransaction) => ({
@@ -325,7 +325,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             status: tx.status,
             paymentMethod: tx.paymentMethod
           }));
-          
+
           const apiWalletData = {
             id: `wallet_${user.id}`,
             userId: user.id,
@@ -334,15 +334,15 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             lastUpdated: new Date().toISOString(),
             transactions: apiTransactions
           };
-          
+
           // Save wallet data to API
           const success = await DataSyncHelper.saveUserData(user.id, 'userWallets', apiWalletData, 'update');
-          
-          console.log("💾 Wallet synced", { 
-            userId: user.id, 
-            balance, 
+
+          console.log("💾 Wallet synced", {
+            userId: user.id,
+            balance,
             transactionsCount: transactions.length,
-            apiSynced: success 
+            apiSynced: success
           });
         } catch (error) {
           console.warn("⚠️ Failed to sync wallet to API (saved locally):", error);
@@ -355,17 +355,17 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timeoutId);
   }, [balance, transactions, user]);
 
-  const formatCoins = (amount: number): string => {
-    return new Intl.NumberFormat('vi-VN').format(amount) + ' coins';
+  const formatCoins = (value?: number) => {
+    return new Intl.NumberFormat('vi-VN').format(value ?? 0);
   };
 
   const canAfford = (amount: number): boolean => {
-    return balance >= amount;
+    return (user?.coins || 0) >= amount;
   };
 
   const createDepositOrder = async (amount: number, methodId: string): Promise<{ orderId: string; success: boolean }> => {
-    console.log("🏦 Creating deposit order", { amount, methodId, user: user?.email });
-    
+    // console.log("🏦 Creating deposit order", { amount, methodId, user: user?.email });
+
     if (!user) {
       toast({
         title: "Cần đăng nhập",
@@ -396,11 +396,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
     // Generate order ID
     const orderId = `QAI${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
-    
+
     // Calculate expected amounts for display
     const finalAmount = amount - method.fee;
     const totalReceived = finalAmount;
-    
+
     // Store pending deposit details for admin approval (but don't add to transaction history yet)
     const pendingDeposits = JSON.parse(localStorage.getItem('qai-pending-deposits') || '[]');
     const depositData = {
@@ -417,26 +417,26 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       status: 'created', // Changed from 'pending' to 'created'
       confirmed: false // Track if user confirmed payment
     };
-    
+
     pendingDeposits.push(depositData);
     localStorage.setItem('qai-pending-deposits', JSON.stringify(pendingDeposits));
 
-    console.log("✅ Deposit order created successfully", { 
-      orderId, 
-      amount, 
+    console.log("✅ Deposit order created successfully", {
+      orderId,
+      amount,
       expectedTotal: totalReceived,
-      method: method.name 
+      method: method.name
     });
     return { orderId, success: true };
   };
 
   const confirmUserPayment = async (orderId: string): Promise<boolean> => {
     console.log("💰 User confirming payment", { orderId, user: user?.email });
-    
+
     // Get pending deposit details
     const pendingDeposits = JSON.parse(localStorage.getItem('qai-pending-deposits') || '[]');
     const depositIndex = pendingDeposits.findIndex((d: any) => d.orderId === orderId && d.userId === user?.id);
-    
+
     if (depositIndex === -1) {
       console.warn("❌ Deposit not found", { orderId, userId: user?.id });
       toast({
@@ -449,7 +449,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
     const depositData = pendingDeposits[depositIndex];
     const method = depositMethods.find(m => m.id === depositData.methodId);
-    
+
     if (!method) {
       console.error("❌ Payment method not found", { methodId: depositData.methodId });
       return false;
@@ -474,10 +474,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     // Add transaction to history now (when user confirms payment)
     setTransactions(prevTransactions => {
       const updatedTransactions = [transaction, ...prevTransactions];
-      console.log("📝 Transaction added to history after payment confirmation", { 
-        orderId, 
+      console.log("📝 Transaction added to history after payment confirmation", {
+        orderId,
         transactionCount: updatedTransactions.length,
-        newTransaction: transaction 
+        newTransaction: transaction
       });
       return updatedTransactions;
     });
@@ -493,7 +493,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       DataSyncHelper.syncWalletData(user.id, { balance, transactions: [transaction, ...transactions] });
     }
 
-    console.log("✅ User payment confirmed, transaction added to history", { 
+    console.log("✅ User payment confirmed, transaction added to history", {
       orderId,
       amount: totalReceived,
       method: method.name
@@ -504,11 +504,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   const confirmDeposit = async (orderId: string): Promise<boolean> => {
     console.log("🔍 Admin confirming deposit", { orderId, user: user?.email });
-    
+
     // Get pending deposit details
     const pendingDeposits = JSON.parse(localStorage.getItem('qai-pending-deposits') || '[]');
     const depositIndex = pendingDeposits.findIndex((d: any) => d.orderId === orderId && d.userId === user?.id);
-    
+
     if (depositIndex === -1) {
       console.warn("❌ Deposit not found", { orderId, userId: user?.id });
       toast({
@@ -521,7 +521,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
     const depositData = pendingDeposits[depositIndex];
     const method = depositMethods.find(m => m.id === depositData.methodId);
-    
+
     if (!method) {
       console.error("❌ Payment method not found", { methodId: depositData.methodId });
       return false;
@@ -534,11 +534,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     // Update transaction status with enhanced logging
     const updatedTransactions = transactions.map(tx => {
       if (tx.id === orderId) {
-        console.log("📝 Updating transaction status", { 
-          orderId, 
-          oldStatus: tx.status, 
+        console.log("📝 Updating transaction status", {
+          orderId,
+          oldStatus: tx.status,
           newStatus: 'completed',
-          amount: totalReceived 
+          amount: totalReceived
         });
         return {
           ...tx,
@@ -549,9 +549,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       }
       return tx;
     });
-    
+
     const newBalance = balance + totalReceived;
-    
+
     // Update state with synchronization
     setTransactions(updatedTransactions);
     setBalance(newBalance);
@@ -563,9 +563,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
     // Trigger data sync
     if (user) {
-      DataSyncHelper.syncWalletData(user.id, { 
-        balance: newBalance, 
-        transactions: updatedTransactions 
+      DataSyncHelper.syncWalletData(user.id, {
+        balance: newBalance,
+        transactions: updatedTransactions
       });
     }
 
@@ -574,9 +574,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       description: `Bạn đã nhận được ${formatCoins(totalReceived)}`,
     });
 
-    console.log("✅ Deposit confirmed successfully", { 
+    console.log("✅ Deposit confirmed successfully", {
       orderId,
-      amount: totalReceived, 
+      amount: totalReceived,
       newBalance,
       transactionCount: updatedTransactions.length
     });
@@ -592,16 +592,16 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
 
     setIsProcessingDeposit(true);
-    
+
     try {
       // Simulate admin approval delay
       await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
-      
+
       const confirmed = await confirmDeposit(orderResult.orderId);
       return confirmed;
     } catch (error) {
       console.error("Deposit failed:", error);
-      
+
       // Update transaction to failed
       const failedTransactions = transactions.map(tx =>
         tx.id === orderResult.orderId
@@ -609,7 +609,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           : tx
       );
       setTransactions(failedTransactions);
-      
+
       toast({
         title: "Nạp coins thất bại",
         description: "Có lỗi xảy ra trong quá trình nạp tiền. Vui lòng thử lại.",
@@ -623,10 +623,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deductCoins = async (amount: number, description: string, orderId?: string): Promise<boolean> => {
-    console.log("Deducting coins", { amount, description, orderId, currentBalance: balance });
-    
+    // console.log("Deducting coins", { amount, description, orderId, currentBalance: balance });
+
     if (!canAfford(amount)) {
-      console.log("Insufficient coins", { required: amount, available: balance });
+      // console.log("Insufficient coins", { required: amount, available: balance });
       toast({
         title: "Số dư không đủ",
         description: `Bạn cần thêm ${formatCoins(amount - balance)} để thực hiện giao dịch này.`,
@@ -650,18 +650,18 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     setBalance(newBalance);
     setTransactions(prevTransactions => [transaction, ...prevTransactions]);
 
-    console.log("Coins deducted successfully", { 
-      amount, 
+    console.log("Coins deducted successfully", {
+      amount,
       previousBalance: balance,
       newBalance: newBalance,
-      transactionId: transaction.id 
+      transactionId: transaction.id
     });
 
     // Trigger wallet sync if user exists
     if (user) {
-      DataSyncHelper.syncWalletData(user.id, { 
-        balance: newBalance, 
-        transactions: [transaction, ...transactions] 
+      DataSyncHelper.syncWalletData(user.id, {
+        balance: newBalance,
+        transactions: [transaction, ...transactions]
       });
     }
 
@@ -675,7 +675,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   const refundCoins = (amount: number, description: string, orderId?: string): void => {
     console.log("Refunding coins", { amount, description, orderId });
-    
+
     const transaction: WalletTransaction = {
       id: `refund-${Date.now()}`,
       type: 'refund',
@@ -707,9 +707,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   const refreshTransactions = useCallback((): void => {
     if (!user) return;
-    
+
     console.log("🔄 Refreshing transactions", { userId: user.id });
-    
+
     const savedWallet = localStorage.getItem(`qai-wallet-${user.id}`);
     if (savedWallet) {
       try {
@@ -718,13 +718,13 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           ...tx,
           date: new Date(tx.date)
         }));
-        
+
         setTransactions(parsedTransactions);
         setBalance(walletData.balance || 0);
-        
-        console.log("✅ Transactions refreshed", { 
+
+        console.log("✅ Transactions refreshed", {
           transactionCount: parsedTransactions.length,
-          balance: walletData.balance 
+          balance: walletData.balance
         });
       } catch (error) {
         console.error("❌ Error refreshing transactions:", error);
@@ -734,15 +734,15 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   const syncDepositStatus = useCallback(async (): Promise<void> => {
     if (!user) return;
-    
-    console.log("🔄 Syncing deposit status", { userId: user.id });
-    
+
+    // console.log("🔄 Syncing deposit status", { userId: user.id });
+
     try {
       const pendingDeposits = JSON.parse(localStorage.getItem('qai-pending-deposits') || '[]');
       const userPendingDeposits = pendingDeposits.filter((d: any) => d.userId === user.id && d.status === 'pending');
-      
-      console.log("📊 Found pending deposits", { count: userPendingDeposits.length, deposits: userPendingDeposits });
-      
+
+      // console.log("📊 Found pending deposits", { count: userPendingDeposits.length, deposits: userPendingDeposits });
+
       // Check if any pending deposits need status updates
       let hasUpdates = false;
       const updatedTransactions = transactions.map(tx => {
@@ -753,14 +753,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         }
         return tx;
       });
-      
+
       if (hasUpdates) {
         setTransactions(updatedTransactions);
         console.log("✅ Deposit status synchronized");
       } else {
         console.log("ℹ️ No deposit status updates needed");
       }
-      
+
     } catch (error) {
       console.error("❌ Error syncing deposit status:", error);
     }

@@ -7,48 +7,26 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Package, 
-  Calendar, 
-  CreditCard, 
-  User, 
-  Mail, 
-  CheckCircle, 
-  Clock, 
-  AlertCircle, 
-  XCircle, 
+import {
+  Package,
+  Calendar,
+  CreditCard,
+  User,
+  Mail,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  XCircle,
   ExternalLink,
   Shield,
   Gift,
   Copy,
   Eye,
-  EyeOff
-} from 'lucide-react';
+  EyeOff,
 
-interface Order {
-  id: string;
-  userId: string;
-  userEmail: string;
-  customerName: string;
-  products: any[];
-  total: number;
-  originalTotal?: number;
-  discount?: number;
-  status: string;
-  paymentMethod: string;
-  paymentStatus?: string;
-  createdAt: string;
-  completedAt?: string;
-  shippingAddress?: string;
-  notes?: string;
-  customerAccounts?: any[];
-  analytics?: {
-    totalItems: number;
-    avgItemPrice: number;
-    discountPercentage: number;
-    daysSinceOrder: number;
-  };
-}
+} from 'lucide-react';
+import { Order } from '@/types/order.interface';
+
 
 interface OrderDetailModalProps {
   order: Order | null;
@@ -57,10 +35,8 @@ interface OrderDetailModalProps {
 }
 
 export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetailModalProps) {
-  const [showAccountDetails, setShowAccountDetails] = useState<{[key: string]: boolean}>({});
+  const [showAccountDetails, setShowAccountDetails] = useState<{ [key: string]: boolean }>({});
   const [copiedField, setCopiedField] = useState<string | null>(null);
-
-  console.log("🔍 OrderDetailModal rendered", { orderId: order?.id, isOpen });
 
   if (!order) return null;
 
@@ -86,7 +62,7 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       cancelled: 'bg-red-100 text-red-800 border-red-200'
     };
-    
+
     return (
       <Badge className={`${variants[status] || 'bg-gray-100 text-gray-800'} border text-sm`}>
         {getStatusIcon(status)}
@@ -138,7 +114,7 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
               <span className="text-xl font-bold">Đơn hàng #{order.id}</span>
               <p className="text-sm text-gray-600 font-normal flex items-center mt-1">
                 <Calendar className="w-3 h-3 mr-1" />
-                {formatDate(order.createdAt)}
+                {formatDate(order.created_at)}
               </p>
             </div>
             <div className="ml-auto">
@@ -166,7 +142,7 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Phương thức thanh toán</p>
-                  <p className="font-semibold">{order.paymentMethod}</p>
+                  <p className="font-semibold">{order.payment_method}</p>
                   <p className="text-sm text-green-600 mt-1">✓ Đã thanh toán</p>
                 </div>
               </div>
@@ -178,17 +154,17 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Package className="w-5 h-5 text-brand-blue" />
-                <span>Sản phẩm đã mua ({order.products.length})</span>
+                <span>Sản phẩm đã mua ({order.order_products?.length})</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {order.products.map((product, index) => (
+                {order.order_products?.map((product, index) => (
                   <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
                     <div className="flex items-center space-x-3">
                       <div className="text-2xl">{product.image || '📦'}</div>
                       <div>
-                        <p className="font-medium text-gray-900">{product.name}</p>
+                        <p className="font-medium text-gray-900">{product.product_name}</p>
                         <p className="text-sm text-gray-600">
                           {product.quantity || 1}x • {product.duration || 'N/A'} • {(product.price || 0).toLocaleString('vi-VN')}đ
                         </p>
@@ -205,10 +181,10 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
 
               {/* Pricing Details */}
               <div className="space-y-2">
-                {order.originalTotal && order.originalTotal > order.total && (
+                {order.original_total && order.original_total > order.total && (
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Tạm tính:</span>
-                    <span className="line-through">{order.originalTotal.toLocaleString('vi-VN')}đ</span>
+                    <span className="line-through">{order.original_total.toLocaleString('vi-VN')}đ</span>
                   </div>
                 )}
                 {order.discount && order.discount > 0 && (
@@ -265,17 +241,17 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
                             )}
                           </Button>
                         </div>
-                        
+
                         {showAccountDetails[account.id] && (
                           <div className="space-y-3 mt-4 pt-4 border-t border-green-200">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="space-y-2">
                                 <label className="text-sm font-medium text-green-800">Email tài khoản:</label>
                                 <div className="flex items-center space-x-2">
-                                  <input 
-                                    type="text" 
-                                    value={account.accountEmail} 
-                                    readOnly 
+                                  <input
+                                    type="text"
+                                    value={account.accountEmail}
+                                    readOnly
                                     className="flex-1 px-3 py-2 bg-white border border-green-200 rounded text-sm"
                                   />
                                   <Button
@@ -288,14 +264,14 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
                                   </Button>
                                 </div>
                               </div>
-                              
+
                               <div className="space-y-2">
                                 <label className="text-sm font-medium text-green-800">Mật khẩu:</label>
                                 <div className="flex items-center space-x-2">
-                                  <input 
-                                    type="password" 
-                                    value={account.accountPassword} 
-                                    readOnly 
+                                  <input
+                                    type="password"
+                                    value={account.accountPassword}
+                                    readOnly
                                     className="flex-1 px-3 py-2 bg-white border border-green-200 rounded text-sm"
                                   />
                                   <Button
@@ -309,7 +285,7 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
                                 </div>
                               </div>
                             </div>
-                            
+
                             {account.link && (
                               <div className="mt-3">
                                 <Button
@@ -321,7 +297,7 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
                                 </Button>
                               </div>
                             )}
-                            
+
                             <Alert className="bg-green-50 border-green-200">
                               <Shield className="h-4 w-4 text-green-600" />
                               <AlertDescription className="text-green-800">
@@ -347,29 +323,39 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
                   <span>Thông tin khách hàng</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 overflow-hidden">
                 <div className="flex items-center space-x-3">
                   <User className="w-4 h-4 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Tên khách hàng</p>
-                    <p className="font-medium">{order.customerName}</p>
+                    <p className="font-medium">{order.customer_name}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <Mail className="w-4 h-4 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{order.userEmail}</p>
+                    <p className="font-medium">{order.user_email}</p>
                   </div>
                 </div>
 
-                {order.shippingAddress && (
+                {order.customer_phone && (
                   <div className="flex items-start space-x-3">
                     <Package className="w-4 h-4 text-gray-500 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-500">Địa chỉ</p>
-                      <p className="font-medium">{order.shippingAddress}</p>
+                      <p className="text-sm text-gray-500">Số điện thoại</p>
+                      <p className="font-medium">{order.customer_phone}</p>
+                    </div>
+                  </div>
+                )}
+
+                {order.shipping_address && (
+                  <div className="flex items-start space-x-3">
+                    <CreditCard className="w-4 h-4 text-gray-500 mt-1" />
+                    <div>
+                      <p className="text-sm text-gray-500">Zalo - Social</p>
+                      <p className="font-medium">{order.shipping_address}</p>
                     </div>
                   </div>
                 )}
@@ -388,24 +374,24 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
                   <CreditCard className="w-4 h-4 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Phương thức thanh toán</p>
-                    <p className="font-medium">{order.paymentMethod}</p>
+                    <p className="font-medium">{order.payment_method}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <CheckCircle className="w-4 h-4 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Trạng thái thanh toán</p>
-                    <p className="font-medium text-green-600">{order.paymentStatus || 'Đã thanh toán'}</p>
+                    <p className="font-medium text-green-600">{order.payment_status || 'Đã thanh toán'}</p>
                   </div>
                 </div>
 
-                {order.completedAt && (
+                {order.completed_at && (
                   <div className="flex items-center space-x-3">
                     <Calendar className="w-4 h-4 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">Hoàn thành lúc</p>
-                      <p className="font-medium">{formatDate(order.completedAt)}</p>
+                      <p className="font-medium">{formatDate(order.completed_at)}</p>
                     </div>
                   </div>
                 )}

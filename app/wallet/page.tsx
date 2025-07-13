@@ -19,29 +19,28 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export default function WalletPage() {
-  const { 
-    balance, 
-    transactions, 
-    depositMethods, 
+  const {
+    balance,
+    transactions,
+    depositMethods,
     createDepositOrder,
     confirmUserPayment,
     getTransactionHistory,
     refreshTransactions,
     syncDepositStatus,
     formatCoins,
-    isProcessingDeposit 
+    isProcessingDeposit
   } = useWallet();
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
-  
+
   const [selectedMethod, setSelectedMethod] = useState(depositMethods[0]?.id || '');
   const [depositAmount, setDepositAmount] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string>('');
 
-  console.log("WalletPage rendered", { user: user?.email, balance, transactionsCount: transactions.length });
 
   // Auto-sync when history tab is active
   React.useEffect(() => {
@@ -100,7 +99,7 @@ export default function WalletPage() {
     }
 
     console.log("Deposit order created successfully", { orderId: orderResult.orderId });
-    
+
     // Store the orderId and show deposit modal with QR code
     setCurrentOrderId(orderResult.orderId);
     setShowDepositModal(true);
@@ -136,7 +135,7 @@ export default function WalletPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
@@ -166,14 +165,14 @@ export default function WalletPage() {
                     <Wallet className="w-6 h-6" />
                     <span className="text-blue-100">Số dư hiện tại</span>
                   </div>
-                  <div className="text-4xl font-bold mb-2">{formatCoins(balance)}</div>
-                  <div className="text-blue-100">≈ {new Intl.NumberFormat('vi-VN').format(balance)}đ</div>
+                  <div className="text-4xl font-bold mb-2">{formatCoins(user.coins)}</div>
+                  <div className="text-blue-100">≈ {new Intl.NumberFormat('vi-VN').format(user.coins)}đ</div>
                 </div>
                 <div className="text-right">
                   <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4">
                     <TrendingUp className="w-10 h-10" />
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => setActiveTab('deposit')}
                     className="bg-white text-brand-blue hover:bg-blue-50"
                   >
@@ -285,7 +284,7 @@ export default function WalletPage() {
                             </div>
                             <Badge className={getStatusColor(transaction.status)}>
                               {transaction.status === 'completed' ? 'Hoàn thành' :
-                               transaction.status === 'pending' ? 'Đang xử lý' : 'Thất bại'}
+                                transaction.status === 'pending' ? 'Đang xử lý' : 'Thất bại'}
                             </Badge>
                           </div>
                         </div>
@@ -351,7 +350,7 @@ export default function WalletPage() {
                         className="mt-1 text-lg"
                       />
                       <p className="text-sm text-gray-600 mt-1">
-                        Tối thiểu: {formatCoins(selectedDepositMethod?.minAmount || 0)} - 
+                        Tối thiểu: {formatCoins(selectedDepositMethod?.minAmount || 0)} -
                         Tối đa: {formatCoins(selectedDepositMethod?.maxAmount || 0)}
                       </p>
                     </div>
@@ -405,7 +404,7 @@ export default function WalletPage() {
                           <div className="flex justify-between font-medium text-blue-900">
                             <span>Tổng nhận:</span>
                             <span>{formatCoins(
-                              (parseInt(depositAmount.replace(/\D/g, '')) || 0) - 
+                              (parseInt(depositAmount.replace(/\D/g, '')) || 0) -
                               selectedDepositMethod.fee
                             )}</span>
                           </div>
@@ -500,9 +499,9 @@ export default function WalletPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>Lịch sử giao dịch</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => {
                         console.log("🔄 Manual refresh triggered");
                         refreshTransactions();
@@ -542,7 +541,7 @@ export default function WalletPage() {
                             </div>
                             <Badge className={getStatusColor(transaction.status)}>
                               {transaction.status === 'completed' ? 'Hoàn thành' :
-                               transaction.status === 'pending' ? 'Đang xử lý' : 'Thất bại'}
+                                transaction.status === 'pending' ? 'Đang xử lý' : 'Thất bại'}
                             </Badge>
                           </div>
                         </div>

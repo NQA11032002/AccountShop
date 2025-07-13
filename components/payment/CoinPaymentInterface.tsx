@@ -23,6 +23,11 @@ import {
   Loader2
 } from 'lucide-react';
 import Link from 'next/link';
+import { addToCart } from '@/lib/api'; // đường dẫn đến file api.ts
+import { useCart } from '@/contexts/CartContext';
+import { createOrder, updateUserCoins } from '@/lib/api'; // đường dẫn bạn đặt
+import { useRouter } from 'next/navigation';
+import { toast } from "@/hooks/use-toast";
 
 interface CoinPaymentInterfaceProps {
   amount: number;
@@ -40,9 +45,11 @@ export default function CoinPaymentInterface({
   appliedDiscount
 }: CoinPaymentInterfaceProps) {
   const { balance, canAfford, formatCoins } = useWallet();
-  const { user } = useAuth();
   const [animationStep, setAnimationStep] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+  const { items, clearAllCart } = useCart();
+  const router = useRouter();
+  const { user, sessionId, setUser } = useAuth(); // ⚠️ cần sửa AuthContext để expose `setUser`
 
   // Animation progression
   useEffect(() => {
@@ -55,19 +62,66 @@ export default function CoinPaymentInterface({
   const balancePercentage = Math.min((balance / amount) * 100, 100);
   const isAffordable = canAfford(amount);
   const shortfall = Math.max(0, amount - balance);
-
+  // nếu đang dùng custom toast
   const handlePayment = async () => {
-    console.log("CoinPaymentInterface: Starting payment", { amount });
     setShowConfetti(true);
+
     try {
+      const orderData = {
+        customer_name: user?.name || 'Không tên',
+        customer_phone: user?.phone || '0123456789',
+        shipping_address: 'Mặc định',
+        notes: '',
+        total: amount,
+        original_total: amount,
+        discount: 0,
+        payment_method: 'coin',
+        payment_status: 'paid',
+        products: items.map((item) => ({
+          product_id: item.id,
+          product_name: item.product_name,
+          quantity: item.quantity,
+          price: item.price,
+          duration: item.duration,
+        })),
+      };
+
+      // ✅ 1. Tạo đơn hàng (hàm đã xử lý lỗi)
+      const orderRes = await createOrder(orderData, sessionId!);
+
+      // ✅ 2. Trừ coins
       await onPayment();
-      console.log("CoinPaymentInterface: Payment completed successfully");
-    } catch (error) {
-      console.error("CoinPaymentInterface: Payment failed", error);
+
+      const remainingCoins = (user?.coins ?? 0) - amount;
+      const coinRes = await updateUserCoins(remainingCoins, sessionId!);
+
+      const updatedUser = {
+        ...user!,
+        coins: coinRes.total_coins ?? remainingCoins,
+      };
+
+      localStorage.setItem('qai_user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+
+      // ✅ 3. Xóa giỏ hàng
+      clearAllCart();
+
+      toast({
+        title: "Thanh toán thành công",
+        description: `Đơn hàng của bạn đã được tạo! Mã: ${orderRes.order_id}`,
+      });
+
+      // ✅ 4. Hiển thị confetti và chuyển hướng nếu muốn
+      setTimeout(() => setShowConfetti(false), 3000);
+
+    } catch (error: any) {
       setShowConfetti(false);
-      throw error;
+      toast({
+        title: "Thanh toán thất bại",
+        description: error?.message || "Có lỗi xảy ra khi tạo đơn hàng",
+        variant: "destructive",
+      });
     }
-    setTimeout(() => setShowConfetti(false), 3000);
   };
 
   return (
@@ -78,34 +132,34 @@ export default function CoinPaymentInterface({
           <CardHeader className="pb-4 bg-gradient-to-r from-brand-blue to-brand-emerald text-white">
             <div className="flex items-center space-x-3">
               <div className={`
-                w-16 h-16 rounded-lg flex items-center justify-center 
-                bg-white/20 shadow-sm
-                transform transition-all duration-700 ease-out
+                w - 16 h - 16 rounded - lg flex items - center justify - center 
+                bg - white / 20 shadow - sm
+                transform transition - all duration - 700 ease - out
                 ${animationStep >= 1 ? 'scale-100 rotate-0' : 'scale-0 rotate-180'}
               `}>
                 <Coins className="w-8 h-8 text-white" />
               </div>
               <div className="flex-1">
                 <CardTitle className={`
-                  text-2xl font-bold text-white
-                  transform transition-all duration-700 ease-out delay-200
+    text - 2xl font - bold text - white
+                  transform transition - all duration - 700 ease - out delay - 200
                   ${animationStep >= 1 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}
-                `}>
+    `}>
                   Thanh toán bằng Coins
                 </CardTitle>
                 <p className={`
-                  text-blue-100 mt-1
-                  transform transition-all duration-700 ease-out delay-300
+    text - blue - 100 mt - 1
+                  transform transition - all duration - 700 ease - out delay - 300
                   ${animationStep >= 1 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}
-                `}>
+    `}>
                   Nhanh chóng, an toàn và không phí giao dịch
                 </p>
               </div>
               <div className={`
-                flex items-center space-x-2
-                transform transition-all duration-700 ease-out delay-400
+                flex items - center space - x - 2
+                transform transition - all duration - 700 ease - out delay - 400
                 ${animationStep >= 1 ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}
-              `}>
+    `}>
                 <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
                   <Zap className="w-3 h-3 mr-1" />
                   Tức thì
@@ -126,18 +180,18 @@ export default function CoinPaymentInterface({
 
       {/* Wallet Status */}
       <Card className={`
-        transform transition-all duration-700 ease-out delay-500 bg-white border border-gray-200 shadow-lg
+        transform transition - all duration - 700 ease - out delay - 500 bg - white border border - gray - 200 shadow - lg
         ${animationStep >= 2 ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}
         ${isAffordable ? 'border-green-200 bg-green-50/30' : 'border-orange-200 bg-orange-50/30'}
-      `}>
+    `}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className={`
-                w-12 h-12 rounded-lg flex items-center justify-center
+    w - 12 h - 12 rounded - lg flex items - center justify - center
                 ${isAffordable ? 'bg-gradient-to-r from-brand-blue to-brand-emerald' : 'bg-orange-100'}
-              `}>
-                <Wallet className={`w-6 h-6 ${isAffordable ? 'text-white' : 'text-orange-600'}`} />
+    `}>
+                <Wallet className={`w - 6 h - 6 ${isAffordable ? 'text-white' : 'text-orange-600'} `} />
               </div>
               <div>
                 <h3 className="font-semibold text-lg text-gray-800">Ví Coins của bạn</h3>
@@ -158,7 +212,7 @@ export default function CoinPaymentInterface({
           <div className="space-y-3">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Số dư hiện tại</span>
-              <span className="font-medium">{formatCoins(balance)}</span>
+              <span className="font-medium">{formatCoins(user?.coins ?? 0)}</span>
             </div>
             <Progress
               value={balancePercentage}
@@ -194,9 +248,9 @@ export default function CoinPaymentInterface({
 
       {/* Order Summary */}
       <Card className={`
-        transform transition-all duration-700 ease-out delay-700 bg-white border border-gray-200 shadow-lg
+        transform transition - all duration - 700 ease - out delay - 700 bg - white border border - gray - 200 shadow - lg
         ${animationStep >= 3 ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}
-      `}>
+    `}>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2 text-gray-800">
             <Sparkles className="w-5 h-5 text-brand-blue" />
@@ -290,13 +344,13 @@ export default function CoinPaymentInterface({
               disabled={!isAffordable || isProcessing}
               size="lg"
               className={`
-                px-8 py-4 text-lg font-semibold min-w-[200px] rounded-lg
+    px - 8 py - 4 text - lg font - semibold min - w - [200px] rounded - lg
                 ${isAffordable
                   ? 'bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white shadow-md'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }
-                transform transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95
-              `}
+                transform transition - all duration - 200 hover: scale - 105 hover: shadow - lg active: scale - 95
+      `}
             >
               {isProcessing ? (
                 <>
@@ -327,11 +381,11 @@ export default function CoinPaymentInterface({
           { icon: Gift, title: "Miễn phí", desc: "Không phí giao dịch", color: "text-green-600" }
         ].map((benefit, index) => (
           <Card key={index} className={`
-            text-center p-4 bg-white border border-gray-200 shadow-sm hover:shadow-md
-            transform transition-all duration-700 ease-out hover:scale-105
+    text - center p - 4 bg - white border border - gray - 200 shadow - sm hover: shadow - md
+            transform transition - all duration - 700 ease - out hover: scale - 105
             ${animationStep >= 3 ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}
-          `} style={{ transitionDelay: `${800 + index * 100}ms` }}>
-            <benefit.icon className={`w-8 h-8 mx-auto mb-2 ${benefit.color}`} />
+    `} style={{ transitionDelay: `${800 + index * 100} ms` }}>
+            <benefit.icon className={`w - 8 h - 8 mx - auto mb - 2 ${benefit.color} `} />
             <h4 className="font-semibold text-sm text-gray-800">{benefit.title}</h4>
             <p className="text-xs text-gray-500">{benefit.desc}</p>
           </Card>
@@ -347,10 +401,10 @@ export default function CoinPaymentInterface({
               key={i}
               className="absolute w-3 h-3 bg-brand-blue rounded-full animate-bounce"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${1 + Math.random()}s`
+                left: `${Math.random() * 100}% `,
+                top: `${Math.random() * 100}% `,
+                animationDelay: `${Math.random() * 2} s`,
+                animationDuration: `${1 + Math.random()} s`
               }}
             ></div>
           ))}

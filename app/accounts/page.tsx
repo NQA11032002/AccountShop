@@ -126,7 +126,6 @@ export default function AccountsPage() {
     });
 
     setAccounts(extractedAccounts);
-    console.log("Extracted accounts:", extractedAccounts);
   }, [orders]);
 
   useEffect(() => {

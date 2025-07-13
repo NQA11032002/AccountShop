@@ -8,12 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Calendar, 
-  Package, 
-  CreditCard, 
-  Star, 
-  TrendingUp, 
+import {
+  Calendar,
+  Package,
+  CreditCard,
+  Star,
+  TrendingUp,
   Eye,
   Download,
   ExternalLink,
@@ -23,45 +23,10 @@ import {
   XCircle
 } from 'lucide-react';
 import OrderDetailModal from './OrderDetailModal';
+import { Order, OrdersData } from '@/types/order.interface';
+import { toast } from '@/hooks/use-toast';
+import { fetchOrders } from '@/lib/api';
 
-interface Order {
-  id: string;
-  userId: string;
-  userEmail: string;
-  customerName: string;
-  products: any[];
-  total: number;
-  originalTotal?: number;
-  discount?: number;
-  status: string;
-  paymentMethod: string;
-  paymentStatus: string;
-  createdAt: string;
-  completedAt?: string;
-  deliveryInfo?: any;
-  customerAccounts?: any[];
-  analytics?: {
-    totalItems: number;
-    avgItemPrice: number;
-    discountPercentage: number;
-    daysSinceOrder: number;
-  };
-}
-
-interface OrdersData {
-  orders: Order[];
-  statistics: {
-    totalOrders: number;
-    completedOrders: number;
-    totalSpent: number;
-    totalSaved: number;
-    averageOrderValue: number;
-    lastOrderDate: string;
-    favoriteProducts: any[];
-    customerAccounts: number;
-  };
-  metadata: any;
-}
 
 export default function AccountOrdersDisplay() {
   const { user } = useAuth();
@@ -71,161 +36,41 @@ export default function AccountOrdersDisplay() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-
-  console.log("🖥️ AccountOrdersDisplay rendered", { user: user?.email });
+  const { sessionId } = useAuth();
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const loadAccountOrders = async () => {
-      if (!user) {
+    const loadOrders = async () => {
+      if (!user || !sessionId) {
         setLoading(false);
         return;
       }
 
-      console.log("📥 Loading account orders for user", { userId: user.id, email: user.email });
-      setLoading(true);
-      setError(null);
-
       try {
-        // Enhanced data loading: Get data from both APIs for comprehensive display
-        console.log("🔄 Loading orders from multiple sources for complete data...");
-        
-        // Primary source: Account orders API with enhanced data
-        const params = new URLSearchParams({
-          userId: user.id,
-          includeProducts: 'true',
-          includeAccounts: 'true'
+        const response = await fetchOrders(sessionId); // API trả về { orders, statistics }
+
+        setOrders(response.orders); // danh sách đơn hàng
+        setOrdersData({
+          orders: response.orders,
+          statistics: {
+            totalOrders: response.statistics.totalOrders,
+            totalSpent: response.statistics.totalSpent,
+            totalOrderCompledted: response.statistics.totalOrderCompleted,
+            averageOrderValue: response.statistics.averageOrderValue,
+            lastOrderDate: response.statistics.lastOrderDate,
+            totalOrderProducts: response.statistics.totalOrderProducts,
+          },
         });
-
-        const accountOrdersResponse = await fetch(`/api/accounts/orders?${params}`);
-        const accountOrdersResult = await accountOrdersResponse.json();
-
-        // Secondary source: Direct JSON API for all orders (including recent ones)
-        const allOrdersResponse = await fetch('/api/data?type=orders');
-        const allOrdersResult = await allOrdersResponse.json();
-
-        console.log("📊 Data loading results:", { 
-          accountOrders: accountOrdersResult.success ? accountOrdersResult.data?.orders?.length || 0 : 'failed',
-          allOrders: allOrdersResult.success ? allOrdersResult.data?.length || 0 : 'failed'
-        });
-
-        if (accountOrdersResult.success) {
-          let finalData = accountOrdersResult.data;
-          
-          // Merge with recent orders from JSON API that might not be in account orders yet
-          if (allOrdersResult.success && allOrdersResult.data) {
-            const userOrdersFromJson = allOrdersResult.data.filter((order: any) => 
-              order.userId === user.id
-            );
-            
-            // Find orders that are in JSON but not in account orders
-            const existingOrderIds = finalData.orders.map((o: any) => o.id);
-            const missingOrders = userOrdersFromJson.filter((order: any) => 
-              !existingOrderIds.includes(order.id)
-            );
-            
-            // Add missing orders with enhanced data
-            if (missingOrders.length > 0) {
-              console.log("🔄 Adding", missingOrders.length, "recent orders from JSON API");
-              
-              const enhancedMissingOrders = missingOrders.map((order: any) => ({
-                ...order,
-                customerAccounts: [],
-                analytics: {
-                  totalItems: order.products?.length || 0,
-                  avgItemPrice: order.products?.length > 0 ? order.total / order.products.length : 0,
-                  discountPercentage: order.originalTotal && order.originalTotal > 0 
-                    ? Math.round(((order.originalTotal - order.total) / order.originalTotal) * 100)
-                    : 0,
-                  daysSinceOrder: Math.floor(
-                    (Date.now() - new Date(order.createdAt || order.date).getTime()) / (1000 * 60 * 60 * 24)
-                  )
-                }
-              }));
-              
-              // Merge orders and sort by date
-              finalData.orders = [...finalData.orders, ...enhancedMissingOrders]
-                .sort((a: any, b: any) => 
-                  new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime()
-                );
-              
-              // Update statistics to include all orders
-              const allUserOrders = finalData.orders;
-              finalData.statistics = {
-                ...finalData.statistics,
-                totalOrders: allUserOrders.length,
-                completedOrders: allUserOrders.filter((o: any) => o.status === 'completed').length,
-                totalSpent: allUserOrders
-                  .filter((o: any) => o.status === 'completed')
-                  .reduce((sum: number, o: any) => sum + (o.total || 0), 0),
-                totalSaved: allUserOrders
-                  .filter((o: any) => o.status === 'completed')
-                  .reduce((sum: number, o: any) => sum + (o.discount || 0), 0),
-                averageOrderValue: allUserOrders.length > 0 
-                  ? allUserOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0) / allUserOrders.length
-                  : 0,
-                lastOrderDate: allUserOrders.length > 0 
-                  ? allUserOrders[0].createdAt || allUserOrders[0].date
-                  : null
-              };
-            }
-          }
-          
-          console.log("✅ Final orders data prepared:", { 
-            totalOrders: finalData.orders.length,
-            recentOrder: finalData.orders[0]?.id || 'none'
-          });
-          
-          setOrdersData(finalData);
-        } else {
-          setError(accountOrdersResult.error || 'Failed to load orders');
-        }
-      } catch (error) {
-        console.error("❌ Error loading account orders:", error);
-        setError('Network error while loading orders');
+      } catch (err) {
+        console.error('❌ Lỗi tải đơn hàng:', err);
+        setError('Không thể tải dữ liệu đơn hàng');
       } finally {
         setLoading(false);
       }
     };
 
-    loadAccountOrders();
-
-    // Listen for order updates with enhanced event handling
-    const handleOrderUpdate = (event: Event) => {
-      console.log("🔄 Order update detected, reloading...", { 
-        eventType: event.type, 
-        eventDetail: (event as CustomEvent)?.detail 
-      });
-      
-      // Add a small delay to ensure the API has processed the data
-      setTimeout(() => {
-        loadAccountOrders();
-      }, 500);
-    };
-
-    const handleUserOrdersSync = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      console.log("👤 User orders sync event received", { 
-        eventDetail: customEvent?.detail,
-        userId: customEvent?.detail?.userId,
-        orderData: customEvent?.detail?.orderData 
-      });
-      
-      // Immediate reload for user-specific order syncs
-      setTimeout(() => {
-        loadAccountOrders();
-      }, 200);
-    };
-
-    window.addEventListener('order-completed', handleOrderUpdate);
-    window.addEventListener('user-orders-sync', handleUserOrdersSync);
-    window.addEventListener('admin-order-sync', handleOrderUpdate);
-
-    return () => {
-      window.removeEventListener('order-completed', handleOrderUpdate);
-      window.removeEventListener('user-orders-sync', handleUserOrdersSync);
-      window.removeEventListener('admin-order-sync', handleOrderUpdate);
-    };
-  }, [user]);
+    loadOrders();
+  }, [user, sessionId]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -249,7 +94,7 @@ export default function AccountOrdersDisplay() {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       cancelled: 'bg-red-100 text-red-800 border-red-200'
     };
-    
+
     return (
       <Badge className={`${variants[status] || 'bg-gray-100 text-gray-800'} border`}>
         {getStatusIcon(status)}
@@ -268,7 +113,7 @@ export default function AccountOrdersDisplay() {
     });
   };
 
-  const filteredOrders = ordersData?.orders.filter(order => 
+  const filteredOrders = ordersData?.orders.filter(order =>
     selectedStatus === 'all' || order.status === selectedStatus
   ) || [];
 
@@ -339,7 +184,7 @@ export default function AccountOrdersDisplay() {
   return (
     <div className="space-y-6">
       {/* Order Detail Modal */}
-      <OrderDetailModal 
+      <OrderDetailModal
         order={selectedOrder}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
@@ -352,7 +197,7 @@ export default function AccountOrdersDisplay() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100">Tổng đơn hàng</p>
-                <p className="text-3xl font-bold">{ordersData.statistics.totalOrders}</p>
+                <p className="text-3xl font-bold">{orders.length}</p>
               </div>
               <Package className="w-8 h-8 text-blue-200" />
             </div>
@@ -375,8 +220,8 @@ export default function AccountOrdersDisplay() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100">Tiết kiệm</p>
-                <p className="text-3xl font-bold">{ordersData.statistics.totalSaved.toLocaleString('vi-VN')}đ</p>
+                <p className="text-purple-100">Tổng đơn hoàn thành</p>
+                <p className="text-3xl font-bold">{ordersData.statistics.totalOrderCompledted}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-200" />
             </div>
@@ -388,7 +233,7 @@ export default function AccountOrdersDisplay() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-100">Tài khoản</p>
-                <p className="text-3xl font-bold">{ordersData.statistics.customerAccounts || 0}</p>
+                <p className="text-3xl font-bold">{ordersData.statistics.totalOrderProducts || 0}</p>
               </div>
               <Star className="w-8 h-8 text-orange-200" />
             </div>
@@ -432,11 +277,11 @@ export default function AccountOrdersDisplay() {
                         </div>
                         <p className="text-sm text-gray-600 flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
-                          {formatDate(order.createdAt)}
+                          {formatDate(order.created_at)}
                         </p>
-                        {order.paymentMethod && (
+                        {order.payment_method && (
                           <p className="text-xs text-gray-500">
-                            💳 {order.paymentMethod}
+                            💳 {order.payment_method}
                           </p>
                         )}
                       </div>
@@ -460,17 +305,14 @@ export default function AccountOrdersDisplay() {
                   <div className="space-y-3">
                     <h4 className="font-medium text-gray-900">Sản phẩm đã mua:</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {order.products.map((product, index) => (
+                      {order.order_products?.map((product, index) => (
                         <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                           <div className="text-2xl">{product.image || '📦'}</div>
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900">{product.name}</p>
+                            <p className="font-medium text-gray-900">{product.product_name}</p>
                             <p className="text-sm text-gray-600">
                               {product.quantity || 1}x • {product.duration || 'N/A'} • {(product.price || 0).toLocaleString('vi-VN')}đ
                             </p>
-                            {product.category && (
-                              <p className="text-xs text-gray-500 capitalize">{product.category}</p>
-                            )}
                           </div>
                         </div>
                       ))}
@@ -518,12 +360,11 @@ export default function AccountOrdersDisplay() {
                       <Package className="w-4 h-4" />
                       <span>Đơn hàng #{order.id}</span>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="flex items-center space-x-2 hover:bg-brand-blue hover:text-white transition-all"
                       onClick={() => {
-                        console.log("👁️ Opening order detail modal for:", order.id);
                         setSelectedOrder(order);
                         setIsDetailModalOpen(true);
                       }}

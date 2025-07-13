@@ -10,12 +10,11 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export default function OrdersPage() {
-  console.log("📄 Orders page rendered");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8 mt-20">
         {/* Page Header */}
         <div className="text-center mb-8">
@@ -24,15 +23,15 @@ export default function OrdersPage() {
               <Package className="w-8 h-8 text-white" />
             </div>
           </div>
-          
+
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
             Đơn hàng của tôi
           </h1>
-          
+
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Theo dõi và quản lý tất cả đơn hàng của bạn. Xem chi tiết sản phẩm đã mua và tài khoản đã nhận.
           </p>
-          
+
           <div className="flex items-center justify-center mt-6 space-x-4">
             <Link href="/">
               <Button variant="outline" className="flex items-center space-x-2">
@@ -40,7 +39,7 @@ export default function OrdersPage() {
                 <span>Về trang chủ</span>
               </Button>
             </Link>
-            
+
             <Link href="/products">
               <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                 Mua thêm sản phẩm
@@ -56,7 +55,7 @@ export default function OrdersPage() {
           </Suspense>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

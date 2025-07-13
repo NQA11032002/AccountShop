@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 // import { getFeaturedDuration, formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
 import { ProductBase } from '@/lib/products';
 import { getFeaturedDuration, formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
+import { FavoriteItem } from '@/types/favorite.interface';
 
 interface ProductCardProps {
   product: ProductBase;
@@ -88,14 +89,13 @@ export default function ProductCard({
       const newQuantity = getItemQuantity(product.id, standardDurationId);
       toast({
         title: currentQuantity > 0 ? 'Đã tăng số lượng!' : 'Đã thêm vào giỏ hàng!',
-        description: `${product.name} (${featuredDuration.name}) - Số lượng: ${newQuantity}`,
+        description: `${product.name} (${featuredDuration.name})`,
       });
       setIsProcessing(false);
     }, 100);
   };
 
   const handleToggleFavorite = () => {
-    // console.log("Toggling favorite", { productId: product.id, user: user?.email });
 
     if (!user) {
       toast({
@@ -106,27 +106,14 @@ export default function ProductCard({
       return;
     }
 
-    const favoriteItem = {
-      id: product.id,
-      name: product.name,
-      price: featuredDuration.price,
-      originalPrice: featuredDuration.original_price || featuredDuration.price,
-      image: product.image,
-      color: product.color || 'bg-gray-500',
-      description: product.description,
-      rating: product.rating,
-      reviews: product.reviews,
-      addedDate: new Date().toISOString()
-    };
-
     if (isFavorite(product.id)) {
-      removeFromFavorites(product.id);
+      removeFromFavorites(product.id, product.name);
       toast({
         title: "Đã xóa khỏi yêu thích",
         description: `${product.name} đã được xóa khỏi danh sách yêu thích.`,
       });
     } else {
-      addToFavorites(favoriteItem);
+      addToFavorites(product.id, product.name);
       toast({
         title: "Đã thêm vào yêu thích!",
         description: `${product.name} đã được thêm vào danh sách yêu thích.`,
@@ -288,9 +275,13 @@ export default function ProductCard({
       {/* Product Icon */}
       <div className="absolute top-5 left-5 z-10">
         <div
-          className={`${config.iconSize} rounded-2xl flex items-center justify-center text-2xl shadow-lg transform group-hover:scale-110 transition-transform duration-300 ${product.color || 'bg-gray-500'}`}
+          className={`${config.iconSize} rounded-2xl flex items-center justify-center text-2xl transform group-hover:scale-110 transition-transform duration-300 bg-transparent`}
         >
-          <span className="filter drop-shadow-sm">{product.image}</span>
+          <img
+            className="filter drop-shadow-sm"
+            src={`/images/products/${product.image}`}
+            alt={product.name}
+          />
         </div>
       </div>
 
@@ -307,7 +298,7 @@ export default function ProductCard({
       {showFavoriteButton && (
         <button
           onClick={handleToggleFavorite}
-          className={`absolute top-14 right-5 z-10 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 shadow-md opacity-0 group-hover:opacity-100 ${isFavorite(product.id)
+          className={`absolute z-50 cursor-grab top-14 right-5 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 shadow-md  ${isFavorite(product.id)
             ? 'bg-red-500 text-white hover:bg-red-600'
             : 'bg-white/90 text-gray-600 hover:text-red-500 hover:bg-white'
             }`}
