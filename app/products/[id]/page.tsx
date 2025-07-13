@@ -149,7 +149,9 @@ export default function ProductDetailPage() {
       const addedItem = await addToCart(cartItem, sessionId);
 
       // 🟢 Cập nhật state context giỏ hàng
+      // sessionStorage.setItem('qai-store-buy-now-item', JSON.stringify(cartItem));
       addItem(addedItem);
+
 
       toast({
         title: "Chuyển đến thanh toán",
@@ -167,6 +169,7 @@ export default function ProductDetailPage() {
       console.error(error);
     };
   }
+
 
   const handleToggleFavorite = () => {
     if (!user) {

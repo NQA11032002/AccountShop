@@ -83,35 +83,33 @@ function CheckoutPageContent() {
   const [agreeTOS, setAgreeTOS] = useState(false);
 
   // Check for buy now mode and load product data
-  useEffect(() => {
-    const mode = searchParams.get('mode');
-    if (mode === 'buynow') {
-      const buyNowData = sessionStorage.getItem('qai-store-buy-now-item');
-      if (buyNowData) {
-        try {
-          const parsedData = JSON.parse(buyNowData);
-          setBuyNowItem(parsedData);
-          setIsBuyNowMode(true);
-          console.log("Buy now mode activated", { product: parsedData });
-        } catch (error) {
-          console.error("Failed to parse buy now data:", error);
-          toast({
-            title: "Lỗi dữ liệu",
-            description: "Không thể tải thông tin sản phẩm. Vui lòng thử lại.",
-            variant: "destructive"
-          });
-          router.push('/products');
-        }
-      } else {
-        toast({
-          title: "Không tìm thấy sản phẩm",
-          description: "Vui lòng chọn sản phẩm để mua.",
-          variant: "destructive"
-        });
-        router.push('/products');
-      }
-    }
-  }, [searchParams, router, toast]);
+  // useEffect(() => {
+  //   const mode = searchParams.get('mode');
+  //   if (mode === 'buynow') {
+  //     const buyNowData = sessionStorage.getItem('qai-store-buy-now-item');
+  //     if (buyNowData) {
+  //       try {
+  //         const parsedData = JSON.parse(buyNowData);
+  //         setBuyNowItem(parsedData);
+  //         setIsBuyNowMode(true);
+  //       } catch (error) {
+  //         toast({
+  //           title: "Lỗi dữ liệu",
+  //           description: "Không thể tải thông tin sản phẩm. Vui lòng thử lại.",
+  //           variant: "destructive"
+  //         });
+  //         router.push('/products');
+  //       }
+  //     } else {
+  //       toast({
+  //         title: "Không tìm thấy sản phẩm",
+  //         description: "Vui lòng chọn sản phẩm để mua.",
+  //         variant: "destructive"
+  //       });
+  //       router.push('/products');
+  //     }
+  //   }
+  // }, [searchParams, router, toast]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
@@ -160,18 +158,6 @@ function CheckoutPageContent() {
   };
 
   const { itemsCount: effectiveItemsCount, totalAmount: effectiveTotalAmount } = getEffectiveTotals();
-
-  console.log("CheckoutPage rendered", {
-    currentStep,
-    mode: isBuyNowMode ? 'buynow' : 'cart',
-    buyNowItem: buyNowItem?.name,
-    effectiveItemsCount,
-    effectiveTotalAmount,
-    finalTotal: calculateFinalTotal(),
-    appliedDiscount: appliedDiscount?.code,
-    paymentMode,
-    user: user?.email
-  });
 
   // Rest of the component logic...
   if (!user) {
@@ -343,13 +329,13 @@ function CheckoutPageContent() {
       if (success) {
 
         // Clear cart if not in buy now mode
-        if (!isBuyNowMode) {
-          clearAllCart();
-        } else {
-          // Clear buy now data
-          sessionStorage.removeItem('qai-store-buy-now-item');
-        }
-
+        // if (!isBuyNowMode) {
+        //   clearAllCart();
+        // } else {
+        //   // Clear buy now data
+        //   sessionStorage.removeItem('qai-store-buy-now-item');
+        // }
+        clearAllCart();
         setOrderPlaced(true);
         setCurrentStep(3);
 

@@ -121,47 +121,47 @@ export default function ProductCard({
     }
   };
 
-  const handleBuyNow = () => {
-    // console.log("Buy now clicked - direct checkout", { productId: product.id });
+  // const handleBuyNow = () => {
+  //   // console.log("Buy now clicked - direct checkout", { productId: product.id });
 
-    if (!user) {
-      toast({
-        title: "Cần đăng nhập",
-        description: "Vui lòng đăng nhập để mua hàng.",
-        variant: "destructive",
-      });
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
-      return;
-    }
+  //   if (!user) {
+  //     toast({
+  //       title: "Cần đăng nhập",
+  //       description: "Vui lòng đăng nhập để mua hàng.",
+  //       variant: "destructive",
+  //     });
+  //     if (typeof window !== 'undefined') {
+  //       window.location.href = '/login';
+  //     }
+  //     return;
+  //   }
 
-    // Create buy now item data with featured duration
-    const buyNowItem = {
-      id: product.id,
-      name: product.name,
-      price: featuredDuration.price,
-      originalPrice: featuredDuration.original_price || featuredDuration.price,
-      duration: featuredDuration.name,
-      durationId: standardDurationId,
-      image: product.image,
-      color: product.color || '#3B82F6',
-      description: product.description,
-      warranty: product.warranty || '30 ngày',
-      quantity: 1
-    };
+  //   // Create buy now item data with featured duration
+  //   const buyNowItem = {
+  //     id: product.id,
+  //     name: product.name,
+  //     price: featuredDuration.price,
+  //     originalPrice: featuredDuration.original_price || featuredDuration.price,
+  //     duration: featuredDuration.name,
+  //     durationId: standardDurationId,
+  //     image: product.image,
+  //     color: product.color || '#3B82F6',
+  //     description: product.description,
+  //     warranty: product.warranty || '30 ngày',
+  //     quantity: 1
+  //   };
 
-    // Store buy now data and redirect to checkout
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('qai-store-buy-now-item', JSON.stringify(buyNowItem));
-      window.location.href = '/checkout?mode=buynow';
-    }
+  //   // Store buy now data and redirect to checkout
+  //   if (typeof window !== 'undefined') {
+  //     sessionStorage.setItem('qai-store-buy-now-item', JSON.stringify(buyNowItem));
+  //     window.location.href = '/checkout?mode=buynow';
+  //   }
 
-    toast({
-      title: "Chuyển đến thanh toán",
-      description: `Đang xử lý ${product.name} - ${featuredDuration.name}`,
-    });
-  };
+  //   toast({
+  //     title: "Chuyển đến thanh toán",
+  //     description: `Đang xử lý ${product.name} - ${featuredDuration.name}`,
+  //   });
+  // };
 
   // Size configurations
   const sizeConfig = {
