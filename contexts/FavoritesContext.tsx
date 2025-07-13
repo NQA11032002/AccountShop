@@ -24,7 +24,6 @@ interface FavoritesContextType {
   isFavorite: (id: number) => boolean;
   clearFavorites: () => void;
 }
-
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
@@ -37,11 +36,11 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     const loadUserFavorites = async () => {
       if (user) {
         console.log("💖 Loading favorites for user", { userId: user.id });
-        
+
         try {
           // Load favorites from JSON API with fallback to localStorage
           const favoritesData = await DataSyncHelper.loadUserData(user.id, 'userFavorites');
-          
+
           if (favoritesData.length > 0) {
             // Transform API favorites data to local format
             const favoriteItems: (FavoriteItem | null)[] = await Promise.all(
@@ -49,7 +48,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                 // Get product details for each favorite
                 const products = await DataSyncHelper.loadUserProducts();
                 const product = products.find((p: any) => p.id === fav.productId);
-                
+
                 if (product) {
                   return {
                     id: product.id,
@@ -67,7 +66,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                 return null;
               })
             );
-            
+
             const validFavorites = favoriteItems.filter((item): item is FavoriteItem => item !== null);
             setFavorites(validFavorites);
             console.log("✅ Favorites loaded from API", { count: validFavorites.length });
@@ -107,7 +106,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     if (user) {
       // Save to localStorage immediately
       localStorage.setItem(`qai_favorites_${user.id}`, JSON.stringify(newFavorites));
-      
+
       try {
         // Transform to API format and sync to JSON API
         const apiFavoritesData = newFavorites.map((fav: FavoriteItem) => ({
@@ -115,14 +114,14 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
           productId: fav.id,
           addedAt: fav.addedDate
         }));
-        
+
         // Save to API
         const success = await DataSyncHelper.saveToAPI('userFavorites', apiFavoritesData, 'bulk_update');
-        
-        console.log("💾 Favorites synced", { 
-          userId: user.id, 
-          count: newFavorites.length, 
-          apiSynced: success 
+
+        console.log("💾 Favorites synced", {
+          userId: user.id,
+          count: newFavorites.length,
+          apiSynced: success
         });
       } catch (error) {
         console.warn("⚠️ Failed to sync favorites to API (saved locally):", error);
