@@ -96,6 +96,7 @@ import AdminOrderDetailModal from '@/components/admin/AdminOrderDetailModal';
 import DepositApprovals from '@/components/admin/DepositApprovals';
 import { exportUsersToExcel, exportProductsToExcel, exportOrdersToExcel, exportDetailedOrdersToExcel } from '@/lib/excelExport';
 import DataSyncHelper from '@/lib/syncHelper';
+import { CustomerRank } from '@/types/RankingData.interface';
 import {
   AreaChart,
   Area,
@@ -112,24 +113,21 @@ import {
   Cell
 } from 'recharts';
 import {
-  calculateCustomerRank,
-  calculateNextRankProgress,
   CustomerRankDisplay,
-  customerRanks,
-  type CustomerRank
 } from '@/components/CustomerRankingSystem';
+import { User } from '@/types/user.interface';
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  joinDate: string;
-  status: 'active' | 'inactive' | 'banned';
-  totalOrders: number;
-  totalSpent: number;
-  coins?: number;
-}
+// interface User {
+//   id: string;
+//   name: string;
+//   email: string;
+//   avatar?: string;
+//   joinDate: string;
+//   status: 'active' | 'inactive' | 'banned';
+//   totalOrders: number;
+//   totalSpent: number;
+//   coins?: number;
+// }
 
 interface Product {
   id: number;
@@ -456,7 +454,6 @@ QAI Store - Tài khoản premium uy tín #1
   }, []);
 
   const loadDashboardData = async (forceAPI = false) => {
-    console.log("Loading dashboard data with JSON API sync", { forceAPI });
 
     try {
       // Load user wallets first using direct API call
@@ -504,7 +501,6 @@ QAI Store - Tài khoản premium uy tín #1
 
       // Load orders with enhanced JSON API support using dedicated Orders API
       try {
-        console.log("📊 Loading orders from enhanced Orders API");
         const ordersResponse = await fetch('/api/orders?includeProducts=true');
         const ordersResult = await ordersResponse.json();
 
@@ -3350,7 +3346,11 @@ QAI Store - Tài khoản premium uy tín #1
         />
 
         <EditUserDialog
-          user={editUserDialog.user}
+          user={
+            editUserDialog.user
+              ? { ...editUserDialog.user, status: editUserDialog.user.status as 'active' | 'inactive' | 'banned' }
+              : null
+          }
           open={editUserDialog.open}
           onOpenChange={(open) => setEditUserDialog({ ...editUserDialog, open })}
           onSave={handleSaveUser}
@@ -3382,14 +3382,14 @@ QAI Store - Tài khoản premium uy tín #1
           onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
           onConfirm={deleteDialog.onConfirm}
           title={`Xóa ${deleteDialog.type === 'user' ? 'người dùng' :
-              deleteDialog.type === 'product' ? 'sản phẩm' :
-                deleteDialog.type === 'order' ? 'đơn hàng' :
-                  'tài khoản khách hàng'
+            deleteDialog.type === 'product' ? 'sản phẩm' :
+              deleteDialog.type === 'order' ? 'đơn hàng' :
+                'tài khoản khách hàng'
             }`}
           description={`Bạn có chắc chắn muốn xóa ${deleteDialog.type === 'user' ? 'người dùng' :
-              deleteDialog.type === 'product' ? 'sản phẩm' :
-                deleteDialog.type === 'order' ? 'đơn hàng' :
-                  'tài khoản khách hàng'
+            deleteDialog.type === 'product' ? 'sản phẩm' :
+              deleteDialog.type === 'order' ? 'đơn hàng' :
+                'tài khoản khách hàng'
             } này không?`}
           itemName={
             deleteDialog.item?.name ||

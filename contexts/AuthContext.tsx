@@ -9,6 +9,8 @@ interface User {
   name: string;
   avatar?: string;
   joinDate: string;
+  coins: number;
+  phone: string;
 }
 
 interface AuthContextType {
@@ -17,6 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<boolean>;
   logout: () => void;
+  setUser: (user: User | null) => void;
   isLoading: boolean;
 }
 
@@ -102,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!res.ok) return false;
 
       const data = await res.json();
+      console.log("login roif" + data.coins);
 
       const userData: User = {
         id: data.user.id,
@@ -109,7 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: data.user.name,
         avatar: data.user.avatar,
         joinDate: data.user.join_date,
+        coins: data.user.coins,
+        phone: data.user.phone
       };
+
 
       setUser(userData);
       setSessionId(data.session_id); // ✅ Set sessionId vào state
@@ -144,6 +151,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: data.user.name,
         avatar: data.user.avatar,
         joinDate: data.user.join_date,
+        coins: data.user.coins,
+        phone: data.user.phone
       };
 
       setUser(userData);
@@ -166,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, sessionId, login, logout, register, isLoading }}>
+    <AuthContext.Provider value={{ user, setUser, sessionId, login, logout, register, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

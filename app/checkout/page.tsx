@@ -43,7 +43,7 @@ function CheckoutPageSkeleton() {
 
 // Main checkout component that uses useSearchParams
 function CheckoutPageContent() {
-  const { items, itemsCount, totalAmount, totalSavings, clearCart, addItem } = useCart();
+  const { items, itemsCount, totalAmount, totalSavings, clearAllCart, addItem } = useCart();
   const { user } = useAuth();
   const {
     paymentMethods,
@@ -344,7 +344,7 @@ function CheckoutPageContent() {
 
         // Clear cart if not in buy now mode
         if (!isBuyNowMode) {
-          clearCart();
+          clearAllCart();
         } else {
           // Clear buy now data
           sessionStorage.removeItem('qai-store-buy-now-item');
@@ -746,7 +746,7 @@ function CheckoutPageContent() {
                           <Wallet className="w-4 h-4 mr-1" />
                           Số dư coins:
                         </span>
-                        <span className="font-bold text-amber-800 text-lg">{formatCoins(balance)}</span>
+                        <span className="font-bold text-amber-800 text-lg">{formatCoins(user.coins)}</span>
                       </div>
                       {!canAfford(calculateFinalTotal()) ? (
                         <div className="text-xs text-amber-600 mt-2 flex items-center justify-between">

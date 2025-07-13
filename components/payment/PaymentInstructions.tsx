@@ -7,12 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Copy, 
-  Check, 
-  Clock, 
-  Building2, 
-  Bitcoin, 
+import {
+  Copy,
+  Check,
+  Clock,
+  Building2,
+  Bitcoin,
   QrCode,
   RefreshCw,
   AlertCircle,
@@ -54,7 +54,7 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
         title: "Đã sao chép!",
         description: `${fieldName} đã được sao chép vào clipboard.`,
       });
-      
+
       setTimeout(() => {
         setCopiedField('');
       }, 2000);
@@ -70,22 +70,22 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
 
   const checkPaymentStatus = async () => {
     setIsCheckingStatus(true);
-    console.log("Checking payment status", { transactionId: paymentData.transactionId, method: paymentData.method });
+    // console.log("Checking payment status", { transactionId: paymentData.transactionId, method: paymentData.method });
 
     try {
       const response = await fetch(`/api/payments?transactionId=${paymentData.transactionId}&method=${paymentData.method}`);
       const result = await response.json();
-      
+
       if (result.success) {
         const newStatus = result.data.status;
-        console.log("Payment status updated", { oldStatus: currentStatus, newStatus });
-        
+        // console.log("Payment status updated", { oldStatus: currentStatus, newStatus });
+
         setCurrentStatus(newStatus);
-        
+
         if (onStatusChange) {
           onStatusChange(newStatus);
         }
-        
+
         if (newStatus === 'completed' && currentStatus !== 'completed') {
           toast({
             title: "Thanh toán đã xác nhận! 🎉",
@@ -94,7 +94,7 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
         }
       }
     } catch (error) {
-      console.error("Error checking payment status:", error);
+      // console.error("Error checking payment status:", error);
       toast({
         title: "Lỗi kiểm tra trạng thái",
         description: "Không thể kiểm tra trạng thái thanh toán.",
@@ -137,7 +137,7 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
       {/* Status Header */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -172,10 +172,10 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
             </div>
           </div>
         </CardHeader>
-      </Card>
+      </Card> */}
 
       {/* Banking Instructions */}
-      {paymentData.method === 'banking' && paymentData.transferInfo && (
+      {/* {paymentData.method === 'banking' && paymentData.transferInfo && (
         <Card>
           <CardHeader>
             <CardTitle>Thông tin chuyển khoản</CardTitle>
@@ -237,7 +237,7 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(
-                        paymentData.transferInfo.transferAmount.toString(), 
+                        paymentData.transferInfo.transferAmount.toString(),
                         'Số tiền'
                       )}
                     >
@@ -260,7 +260,7 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(
-                        paymentData.transferInfo.transferContent, 
+                        paymentData.transferInfo.transferContent,
                         'Nội dung'
                       )}
                     >
@@ -295,10 +295,10 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Crypto Instructions */}
-      {paymentData.method === 'crypto' && paymentData.cryptoInfo && (
+      {/* {paymentData.method === 'crypto' && paymentData.cryptoInfo && (
         <Card>
           <CardHeader>
             <CardTitle>Thông tin thanh toán Crypto</CardTitle>
@@ -326,7 +326,7 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(
-                        paymentData.cryptoInfo.paymentAddress, 
+                        paymentData.cryptoInfo.paymentAddress,
                         'Địa chỉ ví'
                       )}
                     >
@@ -349,7 +349,7 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(
-                        paymentData.cryptoInfo.cryptoAmount, 
+                        paymentData.cryptoInfo.cryptoAmount,
                         'Số lượng'
                       )}
                     >
@@ -397,7 +397,7 @@ const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Status and Next Steps */}
       <Card>

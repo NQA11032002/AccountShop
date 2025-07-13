@@ -33,6 +33,11 @@ import { addToCart } from '@/lib/api';
 //   date: string;
 //   helpful: number;
 // }
+// export async function generateStaticParams() {
+//   const productIds = ["1", "2", "3", "4", "5", "6"]; // hoặc lấy từ DB/API trong build-time
+
+//   return productIds.map((id) => ({ id }));
+// }
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -49,7 +54,6 @@ export default function ProductDetailPage() {
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const { sessionId } = useAuth();
-  console.log("sessionID" + sessionId);
   const productId = parseInt(params.id as string);
 
   // Get product from centralized data
@@ -125,43 +129,44 @@ export default function ProductDetailPage() {
       console.error(error);
     }
   };
-  const handleBuyNow = () => {
-    if (!user) {
+  const handleBuyNow = async () => {
+
+    if (!sessionId || !user) {
       toast({
-        title: "Cần đăng nhập",
-        description: "Vui lòng đăng nhập để mua hàng.",
-        variant: "destructive",
+        title: 'Phiên hết hạn',
+        description: 'Vui lòng đăng nhập lại.',
+        variant: 'destructive',
       });
-      router.push('/login');
-      return;
+      return
     }
 
     if (!product || !selectedPrice) return;
 
-    const buyNowItem = createCartItem(product, selectedPrice, parseInt(user.id));
+    try {
+      const cartItem = createCartItem(product, selectedPrice, parseInt(user.id));
 
-    const buyNowData = {
-      id: buyNowItem.id,
-      name: buyNowItem.product_name,
-      price: buyNowItem.price,
-      originalPrice: buyNowItem.original_price,
-      duration: buyNowItem.duration,
-      durationId: buyNowItem.selected_duration,
-      image: buyNowItem.image,
-      color: buyNowItem.color,
-      description: buyNowItem.description,
-      warranty: buyNowItem.warranty,
-      quantity: 1
+      // 🟢 Gọi API thêm vào giỏ
+      const addedItem = await addToCart(cartItem, sessionId);
+
+      // 🟢 Cập nhật state context giỏ hàng
+      addItem(addedItem);
+
+      toast({
+        title: "Chuyển đến thanh toán",
+        description: `Đang xử lý ${product.name} - ${selectedPrice.name}`,
+      });
+
+      router.push('/checkout?mode=buynow');
+
+    } catch (error) {
+      toast({
+        title: "Lỗi khi thêm vào giỏ hàng",
+        description: "Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+      console.error(error);
     };
-
-    sessionStorage.setItem('qai-store-buy-now-item', JSON.stringify(buyNowData));
-    router.push('/checkout?mode=buynow');
-
-    toast({
-      title: "Chuyển đến thanh toán",
-      description: `Đang xử lý ${product.name} - ${selectedPrice.name}`,
-    });
-  };
+  }
 
   const handleToggleFavorite = () => {
     if (!user) {
@@ -175,27 +180,14 @@ export default function ProductDetailPage() {
 
     if (!product || !selectedPrice) return;
 
-    const favoriteItem = {
-      id: product.id,
-      name: product.name,
-      price: selectedPrice.price,
-      originalPrice: selectedPrice.originalPrice || selectedPrice.price,
-      image: product.image,
-      color: product.color || '#3B82F6',
-      description: product.description,
-      rating: product.rating,
-      reviews: product.reviews,
-      addedDate: new Date().toISOString()
-    };
-
     if (isFavorite(product.id)) {
-      removeFromFavorites(product.id);
+      removeFromFavorites(product.id, product.name);
       toast({
         title: "Đã xóa khỏi yêu thích",
         description: `${product.name} đã được xóa khỏi danh sách yêu thích.`,
       });
     } else {
-      addToFavorites(favoriteItem);
+      addToFavorites(product.id, product.name);
       toast({
         title: "Đã thêm vào yêu thích!",
         description: `${product.name} đã được thêm vào danh sách yêu thích.`,
@@ -461,20 +453,8 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             </div>
-
-
-
-
-
-
-
-
-
-
           </div>
         </div>
-
-
 
         {/* Tabs */}
         <Tabs defaultValue="features" className="w-full">

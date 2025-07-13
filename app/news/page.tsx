@@ -11,8 +11,6 @@ import { Calendar, Clock, Eye, Share2, Heart, MessageCircle } from 'lucide-react
 
 export default function NewsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  
-  console.log("News page rendered", { selectedCategory });
 
   const newsCategories = [
     { id: 'all', name: 'Tất cả', count: 24 },
@@ -98,8 +96,10 @@ export default function NewsPage() {
     }
   ];
 
-  const filteredArticles = selectedCategory === 'all' 
-    ? newsArticles 
+
+
+  const filteredArticles = selectedCategory === 'all'
+    ? newsArticles
     : newsArticles.filter(article => article.category === selectedCategory);
 
   const featuredArticles = newsArticles.filter(article => article.featured);
@@ -107,7 +107,7 @@ export default function NewsPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       <main className="bg-white">
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
@@ -142,8 +142,8 @@ export default function NewsPage() {
               {featuredArticles.map((article) => (
                 <Card key={article.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                   <div className="relative">
-                    <img 
-                      src={article.image} 
+                    <img
+                      src={article.image}
                       alt={article.title}
                       className="w-full h-48 object-cover"
                     />
@@ -200,7 +200,7 @@ export default function NewsPage() {
         <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row gap-8">
-              
+
               {/* Sidebar */}
               <div className="lg:w-1/4">
                 <Card className="sticky top-8">
@@ -213,11 +213,10 @@ export default function NewsPage() {
                         <button
                           key={category.id}
                           onClick={() => setSelectedCategory(category.id)}
-                          className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-between ${
-                            selectedCategory === category.id
-                              ? 'bg-blue-600 text-white'
-                              : 'hover:bg-gray-100 text-gray-700'
-                          }`}
+                          className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-between ${selectedCategory === category.id
+                            ? 'bg-blue-600 text-white'
+                            : 'hover:bg-gray-100 text-gray-700'
+                            }`}
                         >
                           <span>{category.name}</span>
                           <Badge variant={selectedCategory === category.id ? "secondary" : "outline"}>
@@ -244,8 +243,8 @@ export default function NewsPage() {
                     <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
                       <div className="flex flex-col md:flex-row">
                         <div className="md:w-1/3">
-                          <img 
-                            src={article.image} 
+                          <img
+                            src={article.image}
                             alt={article.title}
                             className="w-full h-48 md:h-full object-cover"
                           />
@@ -266,17 +265,17 @@ export default function NewsPage() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <Link href={`/news/${article.id}`}>
                             <h3 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors cursor-pointer">
                               {article.title}
                             </h3>
                           </Link>
-                          
+
                           <p className="text-gray-600 mb-4 line-clamp-2">
                             {article.excerpt}
                           </p>
-                          
+
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
                               <span>Bởi {article.author}</span>
@@ -289,7 +288,7 @@ export default function NewsPage() {
                                 {article.readTime}
                               </div>
                             </div>
-                            
+
                             <div className="flex items-center space-x-2">
                               <Button variant="ghost" size="sm">
                                 <Heart className="w-4 h-4 mr-1" />

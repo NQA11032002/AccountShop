@@ -44,7 +44,6 @@ export default function Header() {
 
     // Subscribe to cart sync events
     const unsubscribe = DataSyncHelper.subscribeToCartSync((eventData) => {
-      console.log("🔄 Header: Cart sync event received", eventData);
 
       if (eventData.userId === user.id) {
         if (eventData.type === 'delete') {
@@ -76,6 +75,7 @@ export default function Header() {
     { name: 'Chính sách mua hàng', href: '/how-to-buy' },
     { name: 'Tin tức công nghệ', href: '/news' },
     { name: 'Liên hệ', href: '/contact' },
+    { name: 'Prompt GPT', href: '/prompt' },
   ];
 
   const productCategories = [
@@ -254,7 +254,7 @@ export default function Header() {
                       <Wallet className="mr-3 h-4 w-4 text-green-600" />
                       <div>
                         <span>Ví của tôi</span>
-                        <div className="text-xs text-green-600 font-medium">{formatCoins(balance)}</div>
+                        <div className="text-xs text-green-600 font-medium">{formatCoins(user.coins)}</div>
                       </div>
                     </Link>
                   </DropdownMenuItem>
