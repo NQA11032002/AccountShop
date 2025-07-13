@@ -29,7 +29,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       try {
         const data = await getFavorites(sessionId);
 
-        if (data) {
+        if (data.lenght > 0) {
           const mappedFavorites: FavoriteItem[] = data.map((item: any) => ({
             id: item.id,
             product_id: item.product_id,
