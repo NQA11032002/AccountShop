@@ -62,6 +62,7 @@ export default function CoinPaymentInterface({
   const balancePercentage = Math.min((balance / amount) * 100, 100);
   const isAffordable = canAfford(amount);
   const shortfall = Math.max(0, amount - balance);
+
   // nếu đang dùng custom toast
   const handlePayment = async () => {
     setShowConfetti(true);
@@ -90,7 +91,7 @@ export default function CoinPaymentInterface({
       const orderRes = await createOrder(orderData, sessionId!);
 
       // ✅ 2. Trừ coins
-      await onPayment();
+      // await onPayment();
 
       const remainingCoins = (user?.coins ?? 0) - amount;
       const coinRes = await updateUserCoins(remainingCoins, sessionId!);
@@ -103,16 +104,21 @@ export default function CoinPaymentInterface({
       localStorage.setItem('qai_user', JSON.stringify(updatedUser));
       setUser(updatedUser);
 
-      // ✅ 3. Xóa giỏ hàng
-      clearAllCart();
 
       toast({
         title: "Thanh toán thành công",
         description: `Đơn hàng của bạn đã được tạo! Mã: ${orderRes.order_id}`,
+        variant: "default",
       });
 
+      // ✅ 3. Xóa giỏ hàng
+      setTimeout(() => {
+        clearAllCart();
+      }, 1500);
+
+
       // ✅ 4. Hiển thị confetti và chuyển hướng nếu muốn
-      setTimeout(() => setShowConfetti(false), 3000);
+      // setTimeout(() => setShowConfetti(false), 3000);
 
     } catch (error: any) {
       setShowConfetti(false);

@@ -99,8 +99,6 @@ function ProductsContent() {
     }
   }, [searchParams]);
 
-
-
   // console.log("ProductsPage rendered", { searchQuery, selectedCategory, sortBy, viewMode, productsCount: products.length });
 
   const categories = [
@@ -149,6 +147,7 @@ function ProductsContent() {
     }
     return list;
   }, [products, searchQuery, selectedCategory, sortBy]);
+
   const handleBuyNow = (productId: number) => {
     console.log(`Buy now clicked for product ${productId}`);
     if (typeof window !== 'undefined') {

@@ -23,7 +23,6 @@ export default function Header() {
   const { user, logout } = useAuth();
   const { favorites } = useFavorites();
   const { balance, formatCoins } = useWallet();
-
   // console.log("ENHANCED Header component rendered", {
   //   isMenuOpen,
   //   itemsCount,
@@ -39,6 +38,8 @@ export default function Header() {
       return;
     }
 
+    console.log("coinszxc" + user.coins);
+
     // Sync realtime count with context
     setRealtimeCartCount(itemsCount);
 
@@ -49,13 +50,10 @@ export default function Header() {
         if (eventData.type === 'delete') {
           const newCount = eventData.updatedCart?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
           setRealtimeCartCount(newCount);
-          console.log("✅ Header: Cart count updated after deletion", { newCount });
         } else if (eventData.type === 'clear') {
           setRealtimeCartCount(0);
-          console.log("✅ Header: Cart cleared");
         } else if (eventData.type === 'update') {
           setRealtimeCartCount(eventData.newCount || 0);
-          console.log("✅ Header: Cart count updated", { newCount: eventData.newCount });
         }
       }
     });
@@ -155,17 +153,14 @@ export default function Header() {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-    console.log("Menu toggled", !isMenuOpen);
   };
 
   const handleCartClick = () => {
-    console.log("Cart clicked");
     window.location.href = '/cart';
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Search submitted");
     // Future: Handle search functionality
   };
 

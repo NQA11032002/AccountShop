@@ -32,59 +32,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initializeAuth = async () => {
+      setIsLoading(true);
+
       try {
-        const apiUsers = await DataSyncHelper.fetchFromAPI('users');
-
-        if (Array.isArray(apiUsers) && apiUsers.length > 0) {
-          localStorage.setItem('qai_users', JSON.stringify(apiUsers));
-        } else {
-          const storedUsers = localStorage.getItem('qai_users');
-          if (!storedUsers) {
-            const demoUsers = [{
-              id: "demo",
-              email: "demo@qaistore.com",
-              password: "123456",
-              name: "Demo User",
-              avatar: "https://ui-avatars.com/api/?name=Demo+User&background=6366f1&color=fff",
-              joinDate: "2024-01-01T00:00:00.000Z"
-            }];
-            localStorage.setItem('qai_users', JSON.stringify(demoUsers));
-          }
-        }
-
-        // ✅ Restore user from localStorage
+        // ✅ Restore user from localStorage (đã login trước đó)
         const storedUser = localStorage.getItem('qai_user');
-        if (storedUser) {
-          try {
-            const userData = JSON.parse(storedUser);
-            setUser(userData);
-            console.log("👤 User restored from session", userData);
-          } catch (error) {
-            console.error("❌ Error parsing stored user data:", error);
-            localStorage.removeItem('qai_user');
-          }
-        }
-
-        // ✅ Restore sessionId
         const storedSession = localStorage.getItem('qai_session');
-        if (storedSession) {
+
+        if (storedUser && storedSession) {
+          const parsed = JSON.parse(storedUser);
+
+          const userData: User = {
+            id: parsed.id || '',
+            email: parsed.email || '',
+            name: parsed.name || '',
+            avatar: parsed.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(parsed.name || 'User')}&background=6366f1&color=fff`,
+            joinDate: parsed.joinDate || new Date().toISOString(),
+            coins: parsed.coins ?? 0,
+            phone: parsed.phone || ''
+          };
+
+          setUser(userData);
           setSessionId(storedSession);
         }
       } catch (error) {
-        console.warn("⚠️ Auth initialization error, using fallback:", error);
-        // Fallback
-        const storedUsers = localStorage.getItem('qai_users');
-        if (!storedUsers) {
-          const demoUsers = [{
-            id: "demo",
-            email: "demo@qaistore.com",
-            password: "123456",
-            name: "Demo User",
-            avatar: "https://ui-avatars.com/api/?name=Demo+User&background=6366f1&color=fff",
-            joinDate: "2024-01-01T00:00:00.000Z"
-          }];
-          localStorage.setItem('qai_users', JSON.stringify(demoUsers));
-        }
+        console.error("❌ Lỗi khi khôi phục user từ localStorage:", error);
+        localStorage.removeItem('qai_user');
+        localStorage.removeItem('qai_session');
       } finally {
         setIsLoading(false);
       }
@@ -92,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initializeAuth();
   }, []);
+
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -116,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         coins: data.user.coins,
         phone: data.user.phone
       };
-
 
       setUser(userData);
       setSessionId(data.session_id); // ✅ Set sessionId vào state
