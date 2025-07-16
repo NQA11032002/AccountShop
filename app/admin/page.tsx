@@ -85,7 +85,7 @@ import {
   ChartLegend,
   ChartLegendContent
 } from '@/components/ui/chart';
-import { useAdmin } from '@/contexts/AdminContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { EditUserDialog } from '@/components/admin/EditUserDialog';
 import { EditProductDialog } from '@/components/admin/EditProductDialog';
@@ -116,6 +116,7 @@ import {
   CustomerRankDisplay,
 } from '@/components/CustomerRankingSystem';
 import { User } from '@/types/user.interface';
+import { fetchAdminUsers } from '@/lib/api';
 
 // interface User {
 //   id: string;
@@ -178,6 +179,7 @@ interface CustomerAccount {
   totalOrders?: number;
   customerRank?: CustomerRank;
 }
+import { deleteAdminUser } from '@/lib/api'; // Import hàm xóa người dùng từ api.ts
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -250,7 +252,7 @@ QAI Store - Tài khoản premium uy tín #1
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const { adminUser, logout, hasPermission } = useAdmin();
+  const { user, logout, role, sessionId, isLoading, setRole, setSessionId } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -258,6 +260,19 @@ QAI Store - Tài khoản premium uy tín #1
   const [analyticsData, setAnalyticsData] = useState<any[]>([]);
   const [trafficData, setTrafficData] = useState<any[]>([]);
   const [revenueComparisonData, setRevenueComparisonData] = useState<any[]>([]);
+
+
+  const handleLogout = async () => {
+    await logout();
+    toast({
+      title: "Đã đăng xuất",
+      description: "Bạn đã đăng xuất khỏi Admin Panel.",
+    });
+    localStorage.clear();
+    setRole('');
+    setSessionId('');
+    router.push('/admin/login');
+  };
 
   useEffect(() => {
     // Generate analytics data
@@ -319,15 +334,13 @@ QAI Store - Tài khoản premium uy tín #1
     setRevenueComparisonData(generateRevenueComparisonData());
   }, [orders, users, products]);
 
-  console.log("AdminDashboard rendered", { adminUser: adminUser?.email, activeTab });
-
   // Redirect if not logged in
   useEffect(() => {
-    if (!adminUser) {
-      router.push('/admin/login');
+    if (!user || role !== 'admin') {
+      // router.push('/admin/login');
       return;
     }
-  }, [adminUser, router]);
+  }, [user, router]);
 
   // Load data
   useEffect(() => {
@@ -347,7 +360,6 @@ QAI Store - Tài khoản premium uy tín #1
   // Subscribe to data synchronization changes
   useEffect(() => {
     const unsubscribe = DataSyncHelper.subscribeToAdminChanges((type, data) => {
-      console.log(`🔄 Admin data sync received for ${type}`, { count: data.length });
 
       switch (type) {
         case 'users':
@@ -367,7 +379,6 @@ QAI Store - Tài khoản premium uy tín #1
 
     // Subscribe to order completion events for real-time updates
     const unsubscribeOrderCompletion = DataSyncHelper.subscribeToOrderCompletion(async (orderData) => {
-      console.log(`🛒 Real-time order completion received:`, orderData);
 
       // Force reload orders from enhanced Orders API to get the latest data immediately
       try {
@@ -382,7 +393,6 @@ QAI Store - Tài khoản premium uy tín #1
           const syncedOrders = await DataSyncHelper.loadAdminData('orders', true);
           if (syncedOrders.length > 0) {
             setOrders(syncedOrders);
-            console.log("📊 Orders refreshed from legacy API after completion");
           }
         }
       } catch (error) {
@@ -453,49 +463,47 @@ QAI Store - Tài khoản premium uy tín #1
     };
   }, []);
 
+  useEffect(() => {
+    if (isLoading) return; // Nếu đang loading thì không làm gì
+
+    // Nếu không có sessionId, redirect về trang đăng nhập
+    if (!sessionId) {
+      console.error("Session ID is missing.");
+      router.push('/admin/login'); // Điều hướng về trang đăng nhập
+      return;
+    }
+
+    // Khi có sessionId, tiếp tục gọi API
+    loadDashboardData();
+  }, [sessionId, isLoading]); // Hook này sẽ được gọi lại mỗi khi sessionId thay đổi
+
+
   const loadDashboardData = async (forceAPI = false) => {
 
     try {
       // Load user wallets first using direct API call
       const syncedWallets = await DataSyncHelper.fetchFromAPI('userWallets') || [];
       setUserWallets(syncedWallets);
-
       // Load users with JSON API support
-      const syncedUsers = await DataSyncHelper.loadAdminData('users', forceAPI);
-      if (syncedUsers.length > 0) {
-        const usersWithStats = syncedUsers.map((user: any) => {
-          // Find user's wallet data
-          const userWallet = syncedWallets.find((wallet: any) => wallet.userId === user.id);
+      if (sessionId) {
+        const syncedUsers = await fetchAdminUsers(sessionId);
 
-          return {
-            ...user,
-            status: user.status || 'active',
-            totalOrders: user.totalOrders || Math.floor(Math.random() * 20),
-            totalSpent: user.totalSpent || Math.floor(Math.random() * 5000000),
-            coins: userWallet?.balance || 0
-          };
-        });
-        setUsers(usersWithStats);
-      } else {
-        // Fallback to localStorage
-        const storedUsers = localStorage.getItem('qai_users');
-        if (storedUsers) {
-          const parsedUsers = JSON.parse(storedUsers);
-          const usersWithStats = parsedUsers.map((user: any) => {
+        if (syncedUsers.data.length > 0) {
+          const usersWithStats = syncedUsers.data.map((user: any) => {
             // Find user's wallet data
-            const userWallet = syncedWallets.find((wallet: any) => wallet.userId === user.id);
-
+            // const userWallet = syncedWallets.find((wallet: any) => wallet.userId === user.id);
+            console.log("Loaded users", user);
             return {
               ...user,
-              status: 'active',
-              totalOrders: Math.floor(Math.random() * 20),
-              totalSpent: Math.floor(Math.random() * 5000000),
-              coins: userWallet?.balance || 0
+              status: user.status || 'active',
+              totalOrders: user.total_orders,
+              totalSpent: user.total_spent,
+              coins: user.coins,
+              joinDate: user.join_date
             };
           });
+
           setUsers(usersWithStats);
-          // Sync to new system
-          await DataSyncHelper.syncAdminData('users', usersWithStats);
         }
       }
 
@@ -710,15 +718,6 @@ QAI Store - Tài khoản premium uy tín #1
     await DataSyncHelper.syncAdminData('accounts', sampleAccounts);
   };
 
-  const handleLogout = () => {
-    console.log("Admin logout clicked");
-    logout();
-    toast({
-      title: "Đã đăng xuất",
-      description: "Bạn đã đăng xuất khỏi Admin Panel.",
-    });
-    router.push('/admin/login');
-  };
 
   const getStatusBadge = (status: string, type: 'user' | 'product' | 'order') => {
     const variants: { [key: string]: string } = {
@@ -805,32 +804,43 @@ QAI Store - Tài khoản premium uy tín #1
     DataSyncHelper.syncAdminData('users', updatedUsers);
   };
 
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const handleDeleteUser = (user: User) => {
-    console.log("Delete user clicked", { userId: user.id });
+
+    if (!sessionId) {
+      setError('Session ID is missing.');
+      setLoading(false);
+      return;
+    }
+
     setDeleteDialog({
       open: true,
       type: 'user',
       item: user,
-      onConfirm: () => {
-        const updatedUsers = users.filter(u => u.id !== user.id);
-        setUsers(updatedUsers);
+      onConfirm: async () => {
+        try {
+          // Gọi API xóa người dùng
+          const response = await deleteAdminUser(sessionId, user.id);
 
-        // Remove from localStorage
-        const storedUsers = localStorage.getItem('qai_users');
-        if (storedUsers) {
-          const legacyUsers = JSON.parse(storedUsers);
-          const updatedLegacyUsers = legacyUsers.filter((u: any) => u.id !== user.id);
-          localStorage.setItem('qai_users', JSON.stringify(updatedLegacyUsers));
+          // Nếu xóa thành công, cập nhật lại danh sách người dùng
+          const updatedUsers = users.filter(u => u.id !== user.id);
+          setUsers(updatedUsers);
+
+          toast({
+            title: "Xóa thành công",
+            description: `Người dùng ${user.name} đã được xóa.`,
+            variant: "destructive",
+          });
+
+        } catch (error) {
+          toast({
+            title: "Lỗi xóa người dùng",
+            description: `Không thể xóa người dùng ${user.name}. Lỗi: ${error}`,
+            variant: "destructive",
+          });
+          console.error('Error deleting user:', error);
         }
-
-        toast({
-          title: "Xóa thành công",
-          description: `Người dùng ${user.name} đã được xóa.`,
-          variant: "destructive",
-        });
-
-        // Sync changes across all admin tabs
-        DataSyncHelper.syncAdminData('users', updatedUsers);
       }
     });
   };
@@ -1556,7 +1566,7 @@ QAI Store - Tài khoản premium uy tín #1
   const handleTestEmail = async () => {
     console.log("🧪 Testing email configuration");
 
-    if (!adminUser?.email) {
+    if (!user?.email) {
       toast({
         title: "❌ Lỗi test email",
         description: "Không tìm thấy email admin để gửi test.",
@@ -1569,9 +1579,9 @@ QAI Store - Tài khoản premium uy tín #1
       // Create a test order for demonstration
       const testOrder: Order = {
         id: `TEST_${Date.now()}`,
-        userId: adminUser.id || 'admin',
-        userEmail: adminUser.email,
-        customerName: adminUser.name,
+        userId: user.id || 'admin',
+        userEmail: user.email,
+        customerName: user.name,
         products: [{ name: 'Netflix Premium (Test)', quantity: 1, price: 50000 }],
         total: 50000,
         status: 'completed' as const,
@@ -1588,7 +1598,7 @@ QAI Store - Tài khoản premium uy tín #1
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          to: adminUser.email,
+          to: user.email,
           subject: `[TEST] ${emailSubject}`,
           content: testEmailContent,
           credentials: testCredentials,
@@ -1606,7 +1616,7 @@ QAI Store - Tài khoản premium uy tín #1
       if (result.success) {
         toast({
           title: "✅ Test email thành công!",
-          description: `Email test đã được gửi đến ${adminUser.email}. Kiểm tra hộp thư của bạn.`,
+          description: `Email test đã được gửi đến ${user.email}. Kiểm tra hộp thư của bạn.`,
         });
         console.log("✅ Test email sent successfully:", result);
       } else {
@@ -1745,7 +1755,7 @@ QAI Store - Tài khoản premium uy tín #1
 
   const filteredOrders = getFilteredAndSortedOrders();
 
-  if (!adminUser) {
+  if (!user) {
     return null; // Will redirect in useEffect
   }
 
@@ -1791,10 +1801,10 @@ QAI Store - Tài khoản premium uy tín #1
             {/* Enhanced User Section */}
             <div className="flex items-center space-x-6">
               <div className="text-right">
-                <p className="text-lg font-bold text-white drop-shadow-lg">{adminUser.name}</p>
+                <p className="text-lg font-bold text-white drop-shadow-lg">{user.name}</p>
                 <div className="flex items-center space-x-2">
                   <div className="px-2 py-1 bg-gradient-to-r from-yellow-400/80 to-orange-400/80 rounded-md text-xs font-bold text-white shadow-lg">
-                    {adminUser.role.replace('_', ' ').toUpperCase()}
+                    {user.role.replace('_', ' ').toUpperCase()}
                   </div>
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 </div>
@@ -1803,7 +1813,7 @@ QAI Store - Tài khoản premium uy tín #1
               <div className="relative group">
                 <Avatar className="w-12 h-12 ring-4 ring-white/30 shadow-2xl group-hover:ring-white/50 transition-all duration-300">
                   <AvatarFallback className="bg-gradient-to-br from-white/90 to-white/70 text-purple-600 font-black text-lg">
-                    {adminUser.name.charAt(0)}
+                    {user.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -1841,7 +1851,7 @@ QAI Store - Tài khoản premium uy tín #1
 
               <TabsTrigger
                 value="users"
-                disabled={!hasPermission('users_manage') && !hasPermission('users_view')}
+                disabled={role != 'admin'}
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
                 <div className="relative">
@@ -1853,19 +1863,19 @@ QAI Store - Tài khoản premium uy tín #1
 
               <TabsTrigger
                 value="inventory-accounts"
-                disabled={!hasPermission('products_manage')}
+                disabled={role != 'admin'}
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
                 <div className="relative">
                   <Package className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full blur-lg opacity-0 group-data-[state=active]:opacity-60 transition-opacity duration-300"></div>
                 </div>
-                <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Kho & Tài khoản</span>
+                <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Kho & Tài khoản {user.role}</span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="orders"
-                disabled={!hasPermission('orders_manage')}
+                disabled={role != 'admin'}
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-pink-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
                 <div className="relative">
@@ -1888,7 +1898,7 @@ QAI Store - Tài khoản premium uy tín #1
             </TabsList>
           </div>
         </Tabs>
-      </div>
+      </div >
 
       <div className="p-8 pt-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -2268,9 +2278,11 @@ QAI Store - Tài khoản premium uy tín #1
                     <TableRow>
                       <TableHead>Người dùng</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
                       <TableHead>Ngày tham gia</TableHead>
                       <TableHead>Đơn hàng</TableHead>
                       <TableHead>Tổng chi tiêu</TableHead>
+                      <TableHead>Points</TableHead>
                       <TableHead className="text-center">
                         <span className="font-semibold text-gray-700">Coins</span>
                       </TableHead>
@@ -2283,6 +2295,7 @@ QAI Store - Tài khoản premium uy tín #1
                       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       user.email.toLowerCase().includes(searchTerm.toLowerCase())
                     ).map((user) => (
+
                       <TableRow key={user.id}>
                         <TableCell>
                           <div className="flex items-center space-x-3">
@@ -2294,24 +2307,30 @@ QAI Store - Tài khoản premium uy tín #1
                           </div>
                         </TableCell>
                         <TableCell>{user.email}</TableCell>
-                        <TableCell>{new Date(user.joinDate).toLocaleDateString('vi-VN')}</TableCell>
+                        <TableCell>{user.phone}</TableCell>
+                        <TableCell>{user.joinDate}</TableCell>
                         <TableCell>{user.totalOrders}</TableCell>
-                        <TableCell>{user.totalSpent.toLocaleString('vi-VN')}đ</TableCell>
+                        <TableCell>{user.totalSpent?.toLocaleString('vi-VN')}đ</TableCell>
                         <TableCell className="text-center">
                           <span className="font-semibold text-gray-800">
-                            {(user.coins || 0).toLocaleString('vi-VN')}
+                            {(user.points || 0)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="font-semibold text-gray-800">
+                            {(user.coins || 0).toLocaleString('vi-VN')}đ
                           </span>
                         </TableCell>
                         <TableCell>{getStatusBadge(user.status, 'user')}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Button variant="ghost" size="sm" title="Xem chi tiết">
+                            {/* <Button variant="ghost" size="sm" title="Xem chi tiết">
                               <Eye className="w-4 h-4" />
-                            </Button>
+                            </Button> */}
                             <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)} title="Chỉnh sửa">
                               <Edit className="w-4 h-4" />
                             </Button>
-                            {hasPermission('users_manage') && (
+                            {role == 'admin' && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -3596,6 +3615,6 @@ QAI Store - Tài khoản premium uy tín #1
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </div >
   );
 }

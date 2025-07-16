@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import DataSyncHelper from '@/lib/syncHelper';
+import { loginUser, logoutUser } from '@/lib/api';  // Import các hàm API từ api.ts
 
 interface User {
   id: string;
@@ -11,6 +11,7 @@ interface User {
   joinDate: string;
   coins: number;
   phone: string;
+  role: string;
 }
 
 interface AuthContextType {
@@ -19,16 +20,20 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<boolean>;
   logout: () => void;
+  setRole: (role: string) => void; // ✅ thêm dòng này
   setUser: (user: User | null) => void;
   isLoading: boolean;
+  setSessionId: (sessionId: string | null) => void; // ✅ thêm dòng này
+  role: string; // role luôn phải là string
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null); // Khởi tạo sessionId là null hoặc giá trị hợp lệ
   const [isLoading, setIsLoading] = useState(true);
+  const [role, setRole] = useState<string>('user');  // Khởi tạo role với giá trị mặc định 'user'
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -49,14 +54,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             avatar: parsed.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(parsed.name || 'User')}&background=6366f1&color=fff`,
             joinDate: parsed.joinDate || new Date().toISOString(),
             coins: parsed.coins ?? 0,
-            phone: parsed.phone || ''
+            phone: parsed.phone || '',
+            role: parsed.role || 'user',  // Đảm bảo role có giá trị hợp lệ
           };
 
           setUser(userData);
           setSessionId(storedSession);
+          setRole(userData.role); // Đảm bảo role có giá trị hợp lệ từ localStorage
         }
       } catch (error) {
-        console.error("❌ Lỗi khi khôi phục user từ localStorage:", error);
         localStorage.removeItem('qai_user');
         localStorage.removeItem('qai_session');
       } finally {
@@ -67,39 +73,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
   }, []);
 
-
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
 
-      if (!res.ok) return false;
+      const res = await loginUser({ email, password });
 
-      const data = await res.json();
-      console.log("login roif" + data.coins);
-
+      // const data = await res.json();
       const userData: User = {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        avatar: data.user.avatar,
-        joinDate: data.user.join_date,
-        coins: data.user.coins,
-        phone: data.user.phone
+        id: res.user.id,
+        email: res.user.email,
+        name: res.user.name,
+        avatar: res.user.avatar,
+        joinDate: res.user.join_date,
+        coins: res.user.coins,
+        phone: res.user.phone,
+        role: res.user.role || 'user',
       };
 
+      setRole(userData.role);
+
       setUser(userData);
-      setSessionId(data.session_id); // ✅ Set sessionId vào state
+      setSessionId(res.session_id);
+
       localStorage.setItem('qai_user', JSON.stringify(userData));
-      localStorage.setItem('qai_session', data.session_id);
+
+      localStorage.setItem('qai_session', res.session_id);
 
       return true;
     } catch (error) {
-      console.error("❌ Login error:", error);
       return false;
     } finally {
       setIsLoading(false);
@@ -126,10 +128,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar: data.user.avatar,
         joinDate: data.user.join_date,
         coins: data.user.coins,
-        phone: data.user.phone
+        phone: data.user.phone,
+        role: data.user.role || 'user',  // Đảm bảo role có giá trị hợp lệ
       };
 
       setUser(userData);
+      setRole(userData.role); // Set role từ dữ liệu đăng ký
       localStorage.setItem('qai_user', JSON.stringify(userData));
 
       return true;
@@ -141,15 +145,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setSessionId(null);
-    localStorage.removeItem('qai_user');
-    localStorage.removeItem('qai_session');
+  const logout = async () => {
+    if (sessionId) {
+      try {
+        await logoutUser(sessionId);
+        setUser(null);
+        setSessionId(null);
+        setRole('user');
+
+        localStorage.removeItem('qai_user');
+        localStorage.removeItem('qai_session');
+      } catch (error) {
+        console.error("Logout error:", error);
+      }
+    } else {
+      console.error("Token is null, cannot logout");
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, sessionId, login, logout, register, isLoading }}>
+    <AuthContext.Provider value={{
+      user,
+      setUser,
+      sessionId,
+      setSessionId, // ✅ thêm dòng này
+      login,
+      logout,
+      register,
+      isLoading,
+      role,
+      setRole,
+    }}>
       {children}
     </AuthContext.Provider>
   );

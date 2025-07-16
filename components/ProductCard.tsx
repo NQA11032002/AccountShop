@@ -78,7 +78,7 @@ export default function ProductCard({
     }
 
     const cartItem = {
-      ...createCartItem(product, featuredDuration, parseInt(user.id)),
+      ...createCartItem(product, featuredDuration, user.id),
       durationId: standardDurationId
     };
 

@@ -7,12 +7,11 @@ import { CartProvider } from '@/contexts/CartContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { PaymentProvider } from '@/contexts/PaymentContext';
 import { WalletProvider } from '@/contexts/WalletContext';
-import { AdminProvider } from '@/contexts/AdminContext';
 import DataSyncManager from '@/components/DataSyncManager';
 import NavigationManager from '@/components/NavigationManager';
 import './globals.css';
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
 });
@@ -58,19 +57,19 @@ export default function RootLayout({
               <FavoritesProvider>
                 <PaymentProvider>
                   <WalletProvider>
-                    <AdminProvider>
-                      <DataSyncManager />
-                      <NavigationManager />
-                      {children}
-                      <Toaster />
-                    </AdminProvider>
+                    {/* <AdminProvider> */}
+                    <DataSyncManager />
+                    <NavigationManager />
+                    {children}
+                    <Toaster />
+                    {/* </AdminProvider> */}
                   </WalletProvider>
                 </PaymentProvider>
               </FavoritesProvider>
             </CartProvider>
           </AuthProvider>
         </ThemeProvider>
-        
+
         {/* Global error handling script */}
         <script
           dangerouslySetInnerHTML={{
@@ -89,6 +88,6 @@ export default function RootLayout({
           }}
         />
       </body>
-    </html>
+    </html >
   );
 }

@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { User } from '@/types/user.interface';
-
+import { updateAdminUser } from '@/lib/api'; // Import hàm updateUser
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EditUserDialogProps {
   user: User | null;
@@ -37,24 +38,52 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
       categories: [],
       notifications: true,
       currency: 'VND'
-    }
+    },
+    role: ''
   };
 
-
   const [formData, setFormData] = useState<User>(user || defaultUser);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const { sessionId } = useAuth();
 
   // Reset form data when user prop changes or dialog opens
   useEffect(() => {
     if (open) {
       setFormData(user || defaultUser);
-      console.log("Form data reset for user", user?.id);
     }
   }, [user, open]);
 
-  const handleSave = () => {
-    console.log("Saving user", formData);
-    onSave(formData);
-    onOpenChange(false);
+  const handleSave = async () => {
+    setLoading(true);
+    setError('');
+
+    if (!sessionId) {
+      setError('Session ID is missing.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Call updateAdminUser API to update user
+      const updatedUser = await updateAdminUser(sessionId, formData.id, formData);
+
+      // Normalize the response data if necessary
+      const normalizedUser = {
+        ...updatedUser.user,
+        totalOrders: updatedUser.user.total_orders,
+        totalSpent: updatedUser.user.total_spent,
+        joinDate: updatedUser.user.join_date
+      };
+
+      onSave(normalizedUser); // Call onSave to update the user in the parent component
+
+      onOpenChange(false); // Close the dialog after update
+    } catch (err: any) {
+      setError(err.message || 'Error saving user');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,25 +99,6 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          {/* Avatar */}
-          <div className="flex items-center space-x-4">
-            <Avatar className="w-16 h-16">
-              <AvatarImage src={formData.avatar} alt={formData.name} />
-              <AvatarFallback className="text-lg">
-                {formData.name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <Label htmlFor="avatar">Avatar URL</Label>
-              <Input
-                id="avatar"
-                value={formData.avatar}
-                onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                placeholder="https://example.com/avatar.jpg"
-              />
-            </div>
-          </div>
-
           {/* Name */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Họ tên</Label>
@@ -101,16 +111,65 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
             />
           </div>
 
-          {/* Email */}
+          {/* Points */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">Email</Label>
+            <Label htmlFor="points" className="text-right">Points</Label>
             <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              id="points"
+              type="number"
+              value={formData.points}
+              onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) })}
               className="col-span-3"
-              placeholder="user@example.com"
+              placeholder="500"
+            />
+          </div>
+
+          {/* Coins */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="coins" className="text-right">Coins</Label>
+            <Input
+              id="coins"
+              type="number"
+              value={formData.coins}
+              onChange={(e) => setFormData({ ...formData, coins: parseInt(e.target.value) })}
+              className="col-span-3"
+              placeholder="500"
+            />
+          </div>
+
+          {/* Rank */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Rank</Label>
+            <Select
+              value={formData.rank}
+              onValueChange={(value: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Elite') =>
+                setFormData({ ...formData, rank: value })
+              }
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Bronze">Bronze</SelectItem>
+                <SelectItem value="Silver">Silver</SelectItem>
+                <SelectItem value="Gold">Gold</SelectItem>
+                <SelectItem value="Platinum">Platinum</SelectItem>
+                <SelectItem value="Diamond">Diamond</SelectItem>
+                <SelectItem value="Elite">Elite</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Phone */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="phone" className="text-right">Phone - Zalo</Label>
+            <Input
+              id="phone"
+              type="text"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="col-span-3"
+              placeholder="0389*******"
             />
           </div>
 
@@ -134,7 +193,26 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
             </Select>
           </div>
 
-          {/* Stats */}
+          {/* Role */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Role</Label>
+            <Select
+              value={formData.role}
+              onValueChange={(value: 'user' | 'admin') =>
+                setFormData({ ...formData, role: value })
+              }
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Total Orders */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="totalOrders">Tổng đơn hàng</Label>

@@ -53,12 +53,12 @@ interface PaymentContextType {
   paymentMethods: PaymentMethod[];
   selectedPaymentMethod: string | null;
   setSelectedPaymentMethod: (id: string) => void;
-  
+
   // Discount Codes
   appliedDiscount: DiscountCode | null;
   applyDiscountCode: (code: string, orderTotal: number) => Promise<boolean>;
   removeDiscountCode: () => void;
-  
+
   // Orders
   orders: Order[];
   currentOrder: Order | null;
@@ -66,11 +66,11 @@ interface PaymentContextType {
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   processPayment: (orderId: string, paymentData: any) => Promise<boolean>;
   deliverDigitalProducts: (orderId: string) => Promise<boolean>;
-  
+
   // Payment Processing
   isProcessingPayment: boolean;
   paymentError: string | null;
-  
+
   // Analytics
   getOrderStats: () => {
     totalOrders: number;
@@ -85,7 +85,7 @@ const PaymentContext = createContext<PaymentContextType | undefined>(undefined);
 export function PaymentProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [paymentMethods] = useState<PaymentMethod[]>([
     {
       id: 'momo',
@@ -120,7 +120,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       isActive: true
     }
   ]);
-  
+
   const [discountCodes] = useState<DiscountCode[]>([
     {
       code: 'WELCOME10',
@@ -158,7 +158,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       isActive: true
     }
   ]);
-  
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>('momo');
@@ -166,21 +166,21 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  console.log("PaymentProvider initialized", { 
-    user: user?.email, 
+  console.log("PaymentProvider initialized", {
+    user: user?.email,
     ordersCount: orders.length,
-    appliedDiscount: appliedDiscount?.code 
+    appliedDiscount: appliedDiscount?.code
   });
 
   useEffect(() => {
     const loadUserOrders = async () => {
       if (user && user.id) {
         console.log("📦 Loading orders for user", { userId: user.id });
-        
+
         try {
           // Load orders from JSON API with fallback to localStorage
           const ordersData = await DataSyncHelper.loadUserData(user.id, 'orders');
-          
+
           if (ordersData.length > 0) {
             // Transform API orders data to local format
             const transformedOrders = ordersData.map((order: any) => ({
@@ -202,7 +202,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
               discountCode: order.discountCode,
               transactionId: order.transactionId || order.id
             }));
-            
+
             setOrders(transformedOrders);
             console.log("✅ Orders loaded from API", { count: transformedOrders.length });
           } else {
@@ -244,14 +244,14 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
   const saveOrders = async (newOrders: Order[]) => {
     if (user && user.id) {
-      console.log("💾 Saving orders to JSON API and localStorage", { 
-        userId: user.id, 
-        orderCount: newOrders.length 
+      console.log("💾 Saving orders to JSON API and localStorage", {
+        userId: user.id,
+        orderCount: newOrders.length
       });
-      
+
       // Save to localStorage immediately for offline access
       localStorage.setItem(`qai_orders_${user.id}`, JSON.stringify(newOrders));
-      
+
       try {
         // Transform orders to standardized API format for admin synchronization
         const apiOrdersData = newOrders.map((order: Order) => ({
@@ -282,46 +282,46 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
           transactionId: order.transactionId,
           deliveryInfo: order.deliveryInfo
         }));
-        
+
         // CRITICAL: Primary save directly to JSON data file with immediate persistence
         console.log("🔥 CRITICAL: Primary order save - adding order to JSON data file...");
-        
+
         const primarySaveResponse = await fetch('/api/data', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type: 'orders',
-            action: 'bulk_update', 
+            action: 'bulk_update',
             items: apiOrdersData
           })
         });
-        
+
         const primarySaveResult = await primarySaveResponse.json();
-        console.log("🔥 CRITICAL: Primary save result:", { 
-          success: primarySaveResult.success, 
+        console.log("🔥 CRITICAL: Primary save result:", {
+          success: primarySaveResult.success,
           orderCount: apiOrdersData.length,
           orderIds: apiOrdersData.map(o => o.id)
         });
-        
+
         // Backup save using DataSyncHelper
         const success = await DataSyncHelper.saveToAPI('orders', apiOrdersData, 'bulk_update');
         console.log("📊 Backup save result:", { success });
-        
+
         // Trigger real-time admin updates for order data
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('orders-json-saved', {
-            detail: { 
-              orders: apiOrdersData, 
+            detail: {
+              orders: apiOrdersData,
               userId: user.id,
               timestamp: Date.now(),
               apiSynced: success
             }
           }));
         }
-        
-        console.log("✅ Orders synchronized to JSON API", { 
-          userId: user.id, 
-          count: newOrders.length, 
+
+        console.log("✅ Orders synchronized to JSON API", {
+          userId: user.id,
+          count: newOrders.length,
           apiSynced: success,
           completedOrders: newOrders.filter(o => o.status === 'completed').length
         });
@@ -330,14 +330,14 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
         const completedOrders = newOrders.filter(o => o.status === 'completed');
         if (completedOrders.length > 0 && typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('orders-updated', {
-            detail: { 
-              orders: apiOrdersData, 
+            detail: {
+              orders: apiOrdersData,
               completedOrders: completedOrders.length,
               userId: user.id
             }
           }));
         }
-        
+
       } catch (error) {
         console.error("❌ CRITICAL: Failed to save orders to JSON API:", error);
         // Even on error, ensure localStorage save as absolute fallback
@@ -355,9 +355,9 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
   const applyDiscountCode = async (code: string, orderTotal: number): Promise<boolean> => {
     console.log("Applying discount code", { code, orderTotal });
-    
-    const discount = discountCodes.find(d => 
-      d.code.toUpperCase() === code.toUpperCase() && 
+
+    const discount = discountCodes.find(d =>
+      d.code.toUpperCase() === code.toUpperCase() &&
       d.isActive &&
       new Date(d.expiryDate) > new Date() &&
       (!d.usageLimit || d.usedCount < d.usageLimit) &&
@@ -402,14 +402,14 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
   const createOrder = async (orderData: any): Promise<string> => {
     console.log("📦 PaymentContext: Creating order with enhanced synchronization", orderData);
-    
+
     if (!user) {
       throw new Error("User must be logged in to create order");
     }
 
     const orderId = `ORD_${Date.now()}`;
     const discount = appliedDiscount ? calculateDiscount(orderData.total, appliedDiscount) : 0;
-    
+
     const newOrder: Order = {
       id: orderId,
       date: new Date(),
@@ -429,14 +429,14 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
     const updatedOrders = [newOrder, ...orders];
     setOrders(updatedOrders);
     setCurrentOrder(newOrder);
-    
+
     // Step 2: Save order to JSON API via OrderHistoryManager with enhanced retry logic
     try {
       const { OrderHistoryManager } = await import('@/lib/orderHistory');
       const historyItem = OrderHistoryManager.createOrderFromPayment(newOrder, user, orderData.customerInfo);
-      
+
       console.log("💾 PaymentContext: Saving order to JSON file with retry mechanism", { orderId });
-      
+
       // Enhanced save with retry mechanism
       let saveSuccess = false;
       let retryCount = 0;
@@ -445,7 +445,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       while (!saveSuccess && retryCount < maxRetries) {
         try {
           saveSuccess = await OrderHistoryManager.saveOrderToHistory(historyItem);
-          
+
           if (saveSuccess) {
             console.log(`✅ PaymentContext: Order saved to JSON file successfully on attempt ${retryCount + 1}`, { orderId });
             break;
@@ -467,11 +467,11 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
       if (!saveSuccess) {
         console.error("❌ PaymentContext: Failed to save order to JSON file after all retries");
-        
+
         // Critical fallback: Use direct API call to /api/data
         try {
           console.log("🔥 PaymentContext: Using critical fallback - direct API save");
-          
+
           const fallbackResponse = await fetch('/api/data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -502,7 +502,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
           });
 
           const fallbackResult = await fallbackResponse.json();
-          
+
           if (fallbackResult.success) {
             console.log("✅ PaymentContext: Critical fallback save successful", { orderId });
             saveSuccess = true;
@@ -513,10 +513,10 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
           console.error("❌ PaymentContext: Critical fallback API call failed:", fallbackError);
         }
       }
-      
+
       // Step 3: Always save to localStorage as additional backup
       await saveOrders(updatedOrders);
-      
+
     } catch (error) {
       console.error("❌ PaymentContext: Error in order creation flow:", error);
       // Emergency fallback to old save method
@@ -526,7 +526,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
     // Step 4: Trigger real-time events for UI synchronization
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('order-created', {
-        detail: { 
+        detail: {
           orderId,
           orderData: newOrder,
           timestamp: Date.now()
@@ -534,7 +534,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       }));
 
       window.dispatchEvent(new CustomEvent('admin-order-created', {
-        detail: { 
+        detail: {
           orderId,
           userId: user.id,
           userEmail: user.email,
@@ -550,17 +550,17 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
     console.log("📝 PaymentContext: Updating order status via OrderHistoryManager", { orderId, status });
-    
+
     // Ensure order exists in local state before updating
     let targetOrder = orders.find(order => order.id === orderId);
-    
+
     if (!targetOrder) {
       console.log("⚠️ PaymentContext: Order not found in local state for status update, fetching...");
-      
+
       try {
         const { OrderHistoryManager } = await import('@/lib/orderHistory');
         const apiOrder = await OrderHistoryManager.getOrderById(orderId);
-        
+
         if (apiOrder && apiOrder.userId === user?.id) {
           // Convert and add to local state
           targetOrder = {
@@ -590,7 +590,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
             discountCode: apiOrder.discountCode,
             transactionId: apiOrder.transactionId
           };
-          
+
           // Add to local state first
           setOrders(prev => [targetOrder!, ...prev.filter(o => o.id !== orderId)]);
         }
@@ -598,33 +598,33 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
         console.error("❌ PaymentContext: Error fetching order for status update:", error);
       }
     }
-    
+
     // Update local state
-    const updatedOrders = orders.map(order => 
+    const updatedOrders = orders.map(order =>
       order.id === orderId ? { ...order, status } : order
     );
-    
+
     setOrders(updatedOrders);
-    
+
     if (currentOrder?.id === orderId) {
       setCurrentOrder({ ...currentOrder, status });
     }
-    
+
     // Update order status in JSON API via OrderHistoryManager
     try {
       const { OrderHistoryManager } = await import('@/lib/orderHistory');
-      
+
       const updateSuccess = await OrderHistoryManager.updateOrderStatus(orderId, status);
-      
+
       if (updateSuccess) {
         console.log("✅ PaymentContext: Order status updated in JSON file successfully", { orderId, status });
       } else {
         console.warn("⚠️ PaymentContext: Failed to update order status in JSON file");
       }
-      
+
       // Backup save to localStorage
       await saveOrders(updatedOrders);
-      
+
     } catch (error) {
       console.error("❌ PaymentContext: Error updating order status:", error);
       // Fallback to old save method
@@ -677,7 +677,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
   const deliverDigitalProducts = async (orderId: string): Promise<boolean> => {
     console.log("📦 PaymentContext: Delivering digital products with enhanced lookup", { orderId });
-    
+
     if (!user) {
       console.error("❌ PaymentContext: User not logged in for delivery");
       return false;
@@ -685,11 +685,11 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
     // Multi-step order lookup with improved error handling
     let order = orders.find(o => o.id === orderId);
-    
+
     // If not found locally, try to load from OrderHistoryManager with retry
     if (!order) {
       console.log("⚠️ PaymentContext: Order not found in local state, attempting API lookup with retries", { orderId });
-      
+
       let apiOrder: any = null;
       let retryCount = 0;
       const maxRetries = 5;
@@ -698,16 +698,16 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
         try {
           const { OrderHistoryManager } = await import('@/lib/orderHistory');
           const foundOrder = await OrderHistoryManager.getOrderById(orderId);
-          
+
           if (foundOrder && foundOrder.userId === user.id) {
             console.log(`✅ PaymentContext: Order found in API on attempt ${retryCount + 1}`, { orderId });
             apiOrder = foundOrder;
             break;
           } else if (foundOrder) {
-            console.error("❌ PaymentContext: Order found but doesn't belong to user", { 
-              orderId, 
-              orderUserId: foundOrder.userId, 
-              currentUserId: user.id 
+            console.error("❌ PaymentContext: Order found but doesn't belong to user", {
+              orderId,
+              orderUserId: foundOrder.userId,
+              currentUserId: user.id
             });
             return false;
           } else {
@@ -725,16 +725,16 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
           }
         }
       }
-      
+
       if (apiOrder) {
         console.log("✅ PaymentContext: Order found in API, converting to local format");
-        
+
         // Convert API order format to local Order format
         order = {
           id: apiOrder.id,
           date: new Date(apiOrder.createdAt),
           status: apiOrder.status as any,
-          items: apiOrder.products.map(p => ({
+          items: apiOrder.products.map((p: { id: any; name: any; price: any; quantity: any; duration: any; category: any; description: any; }) => ({
             id: p.id,
             name: p.name,
             price: p.price,
@@ -757,14 +757,14 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
           discountCode: apiOrder.discountCode,
           transactionId: apiOrder.transactionId
         };
-        
+
         // Add order to local state for future reference
         const updatedOrders = [order, ...orders.filter(o => o.id !== orderId)];
         setOrders(updatedOrders);
-        
+
       } else {
-        console.error("❌ PaymentContext: Order not found in API after retries or doesn't belong to user", { 
-          orderId, 
+        console.error("❌ PaymentContext: Order not found in API after retries or doesn't belong to user", {
+          orderId,
           userId: user.id,
           retriesAttempted: retryCount
         });
@@ -803,7 +803,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
       // Save order completion to JSON API via OrderHistoryManager
       const { OrderHistoryManager } = await import('@/lib/orderHistory');
-      
+
       const completionSuccess = await OrderHistoryManager.completeOrderWithDelivery(
         orderId,
         accountCredentials,
@@ -812,18 +812,18 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
       if (completionSuccess) {
         console.log("✅ PaymentContext: Order completion saved to JSON file successfully");
-        
+
         // Update customer ranking with error handling
         try {
           await DataSyncHelper.updateCustomerRanking(user.email, order.total, order.items.length);
         } catch (error) {
           console.warn("⚠️ Failed to update customer ranking:", error);
         }
-        
+
         // Trigger real-time updates
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('order-completed', {
-            detail: { 
+            detail: {
               orderId: order.id,
               userId: user.id,
               userEmail: user.email,
@@ -876,7 +876,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       if (paymentData.method === 'wallet') {
         // Handle coin/wallet payments via payment API
         console.log("💰 Processing wallet payment via API", { orderId, amount: paymentData.amount });
-        
+
         try {
           const response = await fetch('/api/payments', {
             method: 'POST',
@@ -906,7 +906,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       } else {
         // Handle external payments via payment API
         console.log("Processing external payment via API", { orderId, method: paymentData.method });
-        
+
         try {
           const response = await fetch('/api/payments', {
             method: 'POST',
@@ -938,14 +938,14 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       if (paymentSuccess && result) {
         // Find and update payment status
         let targetOrder = orders.find(order => order.id === orderId);
-        
+
         if (!targetOrder) {
           console.warn("⚠️ PaymentContext: Order not found in local state during payment completion, fetching...");
-          
+
           try {
             const { OrderHistoryManager } = await import('@/lib/orderHistory');
             const apiOrder = await OrderHistoryManager.getOrderById(orderId);
-            
+
             if (apiOrder && apiOrder.userId === user?.id) {
               // Convert and add to local state
               targetOrder = {
@@ -975,7 +975,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
                 discountCode: apiOrder.discountCode,
                 transactionId: apiOrder.transactionId
               };
-              
+
               // Add to local state
               setOrders(prev => [targetOrder!, ...prev.filter(o => o.id !== orderId)]);
             }
@@ -985,14 +985,14 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
         }
 
         // Update payment status and transaction info
-        const updatedOrders = orders.map(order => 
-          order.id === orderId 
-            ? { 
-                ...order, 
-                paymentStatus: 'completed' as const,
-                paymentMethod: result.method,
-                transactionId: result.transactionId
-              }
+        const updatedOrders = orders.map(order =>
+          order.id === orderId
+            ? {
+              ...order,
+              paymentStatus: 'completed' as const,
+              paymentMethod: result.method,
+              transactionId: result.transactionId
+            }
             : order
         );
         setOrders(updatedOrders);
@@ -1022,22 +1022,22 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
         if (result.status === 'completed') {
           toast({
             title: "Thanh toán thành công! 🎉",
-            description: result.method === 'wallet' 
+            description: result.method === 'wallet'
               ? "Tài khoản đã được gửi về email của bạn."
               : `Giao dịch ${result.transactionId} đã được xử lý thành công.`,
           });
         } else if (result.status === 'pending') {
           toast({
             title: "Đã tạo thanh toán! ⏳",
-            description: result.method === 'banking' 
+            description: result.method === 'banking'
               ? "Vui lòng thực hiện chuyển khoản theo hướng dẫn."
               : "Đang chờ xác nhận từ blockchain.",
           });
         }
 
-        console.log("✅ Payment completed successfully", { 
-          orderId, 
-          method: result.method, 
+        console.log("✅ Payment completed successfully", {
+          orderId,
+          method: result.method,
           status: result.status,
           transactionId: result.transactionId
         });
@@ -1046,8 +1046,8 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       } else {
         // Payment failed
         await updateOrderStatus(orderId, 'cancelled');
-        const updatedOrders = orders.map(order => 
-          order.id === orderId 
+        const updatedOrders = orders.map(order =>
+          order.id === orderId
             ? { ...order, paymentStatus: 'failed' as const }
             : order
         );
@@ -1055,7 +1055,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
         await saveOrders(updatedOrders);
 
         setPaymentError("Thanh toán thất bại. Vui lòng thử lại hoặc chọn phương thức khác.");
-        
+
         toast({
           title: "Thanh toán thất bại",
           description: "Có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại.",
@@ -1082,7 +1082,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
     const totalSaved = orders
       .filter(order => order.status === 'completed')
       .reduce((sum, order) => sum + order.discount, 0);
-    const pendingOrders = orders.filter(order => 
+    const pendingOrders = orders.filter(order =>
       order.status === 'pending' || order.status === 'processing'
     ).length;
 
@@ -1092,19 +1092,19 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
   const checkRankUpNotification = async (userEmail: string, orderTotal: number, itemCount: number) => {
     try {
       console.log("🔔 Checking for rank up notification", { userEmail, orderTotal, itemCount });
-      
+
       // Get current order stats
       const stats = getOrderStats();
       const { calculateCustomerRank } = await import('@/components/CustomerRankingSystem');
-      
+
       // Calculate rank before and after this purchase
       const previousRank = calculateCustomerRank(stats.totalSpent - orderTotal, stats.totalOrders - 1);
       const currentRank = calculateCustomerRank(stats.totalSpent, stats.totalOrders);
-      
+
       // Check if rank has increased
       if (currentRank.id !== previousRank.id) {
         console.log("🎉 RANK UP! From", previousRank.name, "to", currentRank.name);
-        
+
         // Show celebration toast
         toast({
           title: "🎉 Chúc mừng! Bạn đã lên hạng!",
@@ -1118,7 +1118,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
             title: "🎁 Phần thưởng mới đã mở khóa!",
             description: `Xem ngay các ưu đãi dành riêng cho hạng ${currentRank.name}`,
             action: (
-              <button 
+              <button
                 onClick={() => {
                   // Use event to trigger navigation
                   if (typeof window !== 'undefined') {

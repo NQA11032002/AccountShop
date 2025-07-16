@@ -108,7 +108,7 @@ export default function ProductDetailPage() {
     if (!product || !selectedPrice) return;
 
     try {
-      const cartItem = createCartItem(product, selectedPrice, parseInt(user.id));
+      const cartItem = createCartItem(product, selectedPrice, user.id);
 
       // 🟢 Gọi API thêm vào giỏ
       const addedItem = await addToCart(cartItem, sessionId);
@@ -143,7 +143,7 @@ export default function ProductDetailPage() {
     if (!product || !selectedPrice) return;
 
     try {
-      const cartItem = createCartItem(product, selectedPrice, parseInt(user.id));
+      const cartItem = createCartItem(product, selectedPrice, user.id);
 
       // 🟢 Gọi API thêm vào giỏ
       const addedItem = await addToCart(cartItem, sessionId);

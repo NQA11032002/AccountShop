@@ -161,7 +161,7 @@ export async function loginUser(data: {
         throw new Error(errorData.message || 'Đăng nhập thất bại');
     }
 
-    return res.json(); // Trả về user + session_id
+    return res.json();
 }
 
 export async function logoutUser(sessionId: string) {
@@ -331,4 +331,74 @@ export const claimUserReward = async (rewardId: number, sessionId: string) => {
     }
 
     return res.json();
+};
+
+export const fetchAdminUsers = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to fetch admin users');
+    }
+
+    return res.json();  // trả về dữ liệu users từ API
+};
+
+export const addAdminUser = async (sessionId: string, userData: any) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to add user');
+    }
+
+    return res.json(); // trả về dữ liệu người dùng vừa tạo
+};
+
+export const updateAdminUser = async (sessionId: string, userId: string, updatedData: any) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to update user');
+    }
+
+    return res.json(); // trả về thông tin người dùng sau khi sửa
+};
+
+export const deleteAdminUser = async (sessionId: string, userId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to delete user');
+    }
+
+    return res.json(); // trả về thông báo xóa thành công
 };

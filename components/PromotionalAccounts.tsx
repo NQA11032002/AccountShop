@@ -81,8 +81,6 @@ export default function PromotionalAccounts() {
   ];
 
   const handleAddToCart = (item: PromotionalItem) => {
-    console.log("Adding promotional item to cart", { item });
-
     if (!user) {
       toast({
         title: "Cần đăng nhập",
@@ -94,12 +92,13 @@ export default function PromotionalAccounts() {
     }
 
     const cartItem = {
-      id: item.id,
+      user_id: user.id,
+      product_id: item.id,
       name: item.name,
       price: item.discountedPrice,
       originalPrice: item.originalPrice,
       duration: "1 tháng",
-      durationId: "1m",
+      durationId: 1,
       image: item.image,
       color: "#6366f1",
       description: item.description,

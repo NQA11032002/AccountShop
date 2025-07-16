@@ -20,4 +20,5 @@ export interface User {
     rank: string; // Thêm các cấp bậc nếu cần
     coins: number;
     preferences: UserPreferences;
+    role: string;
 }

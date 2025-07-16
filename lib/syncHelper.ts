@@ -346,7 +346,7 @@ export class DataSyncHelper {
       const apiSuccess = await this.saveToAPI(dataType, data);
 
       // Continue with localStorage sync for immediate reactivity
-      const adminKey = `qai_admin_${dataType}`;
+      const adminKey = `qai_user_${dataType}`;
       const timestamp = Date.now();
 
       const syncData = {
@@ -480,7 +480,7 @@ export class DataSyncHelper {
 
     try {
       // Try API first if forced or localStorage is stale/empty
-      const adminKey = `qai_admin_${dataType}`;
+      const adminKey = `qai_user_${dataType}`;
       const stored = localStorage.getItem(adminKey);
       let shouldFetchFromAPI = forceAPI;
 
@@ -549,7 +549,7 @@ export class DataSyncHelper {
    */
   static isAdminDataStale(dataType: 'users' | 'products' | 'orders' | 'accounts', maxAgeMinutes: number = 30): boolean {
     try {
-      const adminKey = `qai_admin_${dataType}`;
+      const adminKey = `qai_user_${dataType}`;
       const stored = localStorage.getItem(adminKey);
 
       if (!stored) return true;
@@ -801,8 +801,8 @@ export class DataSyncHelper {
    */
   static subscribeToAdminChanges(callback: (type: string, data: any[]) => void) {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key && e.key.startsWith('qai_admin_')) {
-        const dataType = e.key.replace('qai_admin_', '');
+      if (e.key && e.key.startsWith('qai_user_')) {
+        const dataType = e.key.replace('qai_user_', '');
         try {
           if (e.newValue) {
             const parsedData = JSON.parse(e.newValue);
@@ -1497,7 +1497,7 @@ export class DataSyncHelper {
         }));
 
         // Trigger immediate admin data refresh
-        localStorage.setItem('qai_admin_refresh', JSON.stringify({
+        localStorage.setItem('qai_user_refresh', JSON.stringify({
           type: 'order_completion',
           orderId: completionData.orderId,
           timestamp: Date.now()

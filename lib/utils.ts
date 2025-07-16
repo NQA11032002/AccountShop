@@ -87,7 +87,7 @@ export function calculateCartSavings(items: any[]): number {
   return items.reduce((total, item) => total + ((item.originalPrice - item.price) * item.quantity), 0);
 }
 
-export function createCartItem(product: ProductBase, duration: ProductDuration, userId: number): CartItem {
+export function createCartItem(product: ProductBase, duration: ProductDuration, userId: string): CartItem {
   return {
     id: 0,
     user_id: userId,

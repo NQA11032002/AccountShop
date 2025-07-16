@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAdmin } from '@/contexts/AdminContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminLoginPage() {
@@ -17,24 +17,24 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
-  const { login, adminUser } = useAdmin();
+
+  const { login, role, sessionId } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
-  console.log("AdminLoginPage rendered", { email: email ? "provided" : "empty" });
-
   // Redirect if already logged in
   useEffect(() => {
-    if (adminUser) {
-      router.push('/admin');
+    if (!sessionId || role !== 'admin') {  // Nếu không có session hoặc không phải admin, chuyển hướng đến login
+      router.push('/admin/login');
+    } else if (sessionId && role === 'admin') {
+      router.push('/admin');  // Nếu đã login và có role là admin, chuyển hướng đến trang admin
     }
-  }, [adminUser, router]);
+  }, [role, sessionId, router]); // Cập nhật thêm sessionId vào dependencies
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Admin login form submitted", { email });
-    
+
     if (!email || !password) {
       toast({
         title: "Lỗi đăng nhập",
@@ -45,22 +45,25 @@ export default function AdminLoginPage() {
     }
 
     setIsLoading(true);
+
     const success = await login(email, password);
-    
+
     if (success) {
-      toast({
-        title: "Đăng nhập thành công!",
-        description: "Chào mừng bạn đến với Admin Panel.",
-      });
-      router.push('/admin');
+      if (role === 'admin') {
+        router.push('/admin');
+        toast({
+          title: "Đăng nhập thành công!",
+          description: "Chào mừng bạn đến với Admin Panel.",
+        });
+      }
     } else {
       toast({
         title: "Đăng nhập thất bại",
-        description: "Email hoặc mật khẩu không đúng.",
+        description: "Bạn không có quyền truy cập trang này.",
         variant: "destructive",
       });
     }
-    
+
     setIsLoading(false);
   };
 
@@ -92,7 +95,7 @@ export default function AdminLoginPage() {
               Nhập thông tin để truy cập hệ thống quản lý
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
@@ -175,8 +178,8 @@ export default function AdminLoginPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="text-gray-300 hover:text-white transition-colors text-sm"
           >
             ← Quay về trang chủ
