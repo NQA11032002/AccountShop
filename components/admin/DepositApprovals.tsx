@@ -14,17 +14,17 @@ import DataSyncHelper from '@/lib/syncHelper';
 // import data from '@/lib/data.json';
 // import { User } from '@/types/user.interface';
 import { useAuth } from '@/contexts/AuthContext';
+import { fetchAllTransactions, updateTransactionStatus } from '@/lib/api';
 
 interface PendingDeposit {
   orderId: string;
+  transaction_id: string;
   userId: string;
   userEmail: string;
   amount: number;
-  methodId: string;
-  methodName: string;
+  type: string;
   fee: number;
-  bonusPercentage: number;
-  createdAt: string;
+  created_at: string;
   status: 'pending' | 'approved' | 'rejected';
 }
 
@@ -36,35 +36,55 @@ export default function DepositApprovals() {
   const [selectedDeposit, setSelectedDeposit] = useState<PendingDeposit | null>(null);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const { toast } = useToast();
+  const { sessionId } = useAuth(); // Lấy sessionId từ context
+  const [isProcessingType, setIsProcessingType] = useState<string | null>(null);
 
-  // Load pending deposits
-  const loadPendingDeposits = () => {
-    const rawDeposits = JSON.parse(localStorage.getItem('qai-pending-deposits') || '[]');
+  /// Load pending deposits from API
+  const loadPendingDeposits = async () => {
+    try {
 
-    // Ensure all deposits have required fields with defaults
-    const deposits = rawDeposits.map((deposit: any) => ({
-      orderId: deposit.orderId || '',
-      userId: deposit.userId || '',
-      userEmail: deposit.userEmail || '',
-      amount: deposit.amount || 0,
-      methodId: deposit.methodId || '',
-      methodName: deposit.methodName || '',
-      fee: deposit.fee || 0,
-      bonusPercentage: deposit.bonusPercentage || 0, // Default bonus to 0
-      createdAt: deposit.createdAt || new Date().toISOString(),
-      status: deposit.status || 'pending'
-    })) as PendingDeposit[];
+      if (!sessionId) return;
+      // Thay vì lấy từ localStorage, gọi API để lấy danh sách giao dịch
+      const response = await fetchAllTransactions(sessionId);
 
-    setPendingDeposits(deposits);
-    setFilteredDeposits(deposits);
-    // console.log("Loaded pending deposits", { count: deposits.length, deposits });
+      if (response.data.length > 0) {
+        // Assuming response is an array of pending deposits
+        const deposits = response.data.map((deposit: any) => ({
+          orderId: deposit.id || '',
+          transaction_id: deposit.transaction_id || '',
+          userEmail: deposit.user.email || '',
+          userId: deposit.userId || '',
+          amount: deposit.amount || 0,
+          type: deposit.type || '',
+          created_at: deposit.created_at || new Date().toISOString(),
+          status: deposit.status || 'pending',
+        })) as PendingDeposit[];
+
+        setPendingDeposits(deposits);
+        setFilteredDeposits(deposits);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Lỗi tải giao dịch',
+        description: `Có lỗi xảy ra khi tải giao dịch. ${error.message}`,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessingType(''); // Reset loại xử lý sau khi hoàn thành
+    }
   };
+
+  /// Renew load pending deposits from API
+  const renewLoadPendingDeposits = async () => {
+    setIsProcessingType('renew'); // Cập nhật loại xử lý là approve
+    loadPendingDeposits()
+  }
 
   useEffect(() => {
     loadPendingDeposits();
     // Refresh every 30 seconds
-    const interval = setInterval(loadPendingDeposits, 30000);
-    return () => clearInterval(interval);
+    // const interval = setInterval(loadPendingDeposits, 30000);
+    // return () => clearInterval(interval);
   }, []);
 
   // Filter deposits based on search term
@@ -73,77 +93,38 @@ export default function DepositApprovals() {
       setFilteredDeposits(pendingDeposits);
     } else {
       const filtered = pendingDeposits.filter(deposit =>
-        deposit.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        deposit.transaction_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         deposit.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        deposit.methodName.toLowerCase().includes(searchTerm.toLowerCase())
+        deposit.type.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredDeposits(filtered);
     }
   }, [searchTerm, pendingDeposits]);
 
-  const { user, isLoading } = useAuth();
-
   const handleApprove = async (deposit: PendingDeposit) => {
-
     setIsProcessing(deposit.orderId);
+    setIsProcessingType('approve'); // Cập nhật loại xử lý là approve
 
-    // console.log("🟢 Approving deposit", { orderId: deposit.orderId, userEmail: deposit.userEmail });
-    // const users: User[] = data.users;
-
-    // const getUserByEmail = (email: string): User | undefined => {
-    //   return users.find(user => user.email === email);
-    // };
-
-    // const currentUser = user?.email;
+    if (!sessionId) return;
 
     try {
-      // Calculate final amounts
-      const finalAmount = deposit.amount - deposit.fee;
-      const bonusAmount = Math.floor((finalAmount * deposit.bonusPercentage) / 100);
-      const totalReceived = finalAmount + bonusAmount;
+      // Cập nhật trạng thái giao dịch là 'approved'
+      const updatedTransaction = await updateTransactionStatus(sessionId, deposit.orderId, 'approved');
 
-      // Remove from pending deposits first
-      const updatedDeposits = pendingDeposits.filter(d => d.orderId !== deposit.orderId);
-      localStorage.setItem('qai-pending-deposits', JSON.stringify(updatedDeposits));
+      // Cập nhật trạng thái trong danh sách local (giữ lại tất cả thông tin về order, chỉ thay đổi trạng thái)
+      const updatedDeposits = pendingDeposits.map(d =>
+        d.orderId === deposit.orderId ? {
+          ...d, status: 'approved' as 'pending' | 'approved' | 'rejected' // Đảm bảo status có giá trị hợp lệ
+        } : d
+      );
       setPendingDeposits(updatedDeposits);
-
-      // Trigger synchronized deposit approval
-      DataSyncHelper.syncDepositApproval({
-        orderId: deposit.orderId,
-        userId: deposit.userId,
-        userEmail: deposit.userEmail,
-        amount: deposit.amount,
-        finalAmount: totalReceived,
-        status: 'approved',
-        methodName: deposit.methodName,
-        bonusAmount: bonusAmount > 0 ? bonusAmount : undefined
-      });
-
-      // 🔄 Cập nhật xu cho user đang login (nếu là người đó)
-      if (user?.email === deposit.userEmail) {
-        const storedUser = localStorage.getItem('qai_user');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          userData.coins = (userData.coins || 0) + totalReceived;
-          localStorage.setItem('qai_user', JSON.stringify(userData));
-          // setUser(userData); 
-        }
-      }
 
       toast({
         title: "✅ Đã phê duyệt",
-        description: `Giao dịch ${deposit.orderId} đã được phê duyệt. Người dùng ${deposit.userEmail} nhận được ${formatCoins(totalReceived)}.`,
+        description: `Giao dịch ${deposit.amount} coins của người dùng ${deposit.userEmail} đã được phê duyệt.`
       });
 
-      // console.log("✅ Deposit approved and synced successfully", {
-      //   orderId: deposit.orderId,
-      //   totalReceived,
-      //   userEmail: deposit.userEmail,
-      //   bonusAmount
-      // });
-
     } catch (error) {
-      console.error("❌ Error approving deposit:", error);
       toast({
         title: "Lỗi phê duyệt",
         description: "Có lỗi xảy ra khi phê duyệt giao dịch.",
@@ -151,43 +132,39 @@ export default function DepositApprovals() {
       });
     } finally {
       setIsProcessing(null);
+      setIsProcessingType(''); // Reset loại xử lý sau khi hoàn thành
     }
   };
 
   const handleReject = async (deposit: PendingDeposit) => {
     setIsProcessing(deposit.orderId);
-    // console.log("🔴 Rejecting deposit", { orderId: deposit.orderId, userEmail: deposit.userEmail });
+    setIsProcessingType('reject'); // Cập nhật loại xử lý là reject
+
+    if (!sessionId) return;
 
     try {
-      // Remove from pending deposits
-      const updatedDeposits = pendingDeposits.filter(d => d.orderId !== deposit.orderId);
-      localStorage.setItem('qai-pending-deposits', JSON.stringify(updatedDeposits));
+      // Cập nhật trạng thái giao dịch là 'rejected'
+      const updatedTransaction = await updateTransactionStatus(sessionId, deposit.orderId, 'rejected');
+
+      // Cập nhật trạng thái trong danh sách giao dịch local (giữ lại thông tin nhưng thay đổi trạng thái)
+      const updatedDeposits = pendingDeposits.map(d =>
+        d.orderId === deposit.orderId ? {
+          ...d,
+          status: 'rejected' as 'pending' | 'approved' | 'rejected' // Đảm bảo status có giá trị hợp lệ
+        } : d
+      );
+
+      // Cập nhật lại danh sách giao dịch
       setPendingDeposits(updatedDeposits);
 
-      // Trigger synchronized deposit rejection
-      DataSyncHelper.syncDepositApproval({
-        orderId: deposit.orderId,
-        userId: deposit.userId,
-        userEmail: deposit.userEmail,
-        amount: deposit.amount,
-        finalAmount: 0, // No money added for rejection
-        status: 'rejected',
-        methodName: deposit.methodName
-      });
-
+      // Hiển thị thông báo phê duyệt
       toast({
         title: "❌ Đã từ chối",
-        description: `Giao dịch ${deposit.orderId} của ${deposit.userEmail} đã bị từ chối.`,
+        description: `Giao dịch ${deposit.amount} coins của người dùng ${deposit.userEmail} đã bị từ chối.`,
         variant: "destructive",
       });
 
-      console.log("✅ Deposit rejected and synced", {
-        orderId: deposit.orderId,
-        userEmail: deposit.userEmail
-      });
-
     } catch (error) {
-      console.error("❌ Error rejecting deposit:", error);
       toast({
         title: "Lỗi từ chối",
         description: "Có lỗi xảy ra khi từ chối giao dịch.",
@@ -195,8 +172,10 @@ export default function DepositApprovals() {
       });
     } finally {
       setIsProcessing(null);
+      setIsProcessingType(''); // Reset loại xử lý sau khi hoàn thành
     }
   };
+
 
   const formatCoins = (amount: number): string => {
     return new Intl.NumberFormat('vi-VN').format(amount) + ' coins';
@@ -223,7 +202,7 @@ export default function DepositApprovals() {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -239,10 +218,12 @@ export default function DepositApprovals() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <RefreshCw className="w-5 h-5 text-blue-600" />
+              <XCircle className="w-5 h-5 text-red-600" />
               <div>
-                <div className="text-2xl font-bold text-blue-600">{formatCurrency(totalPendingAmount)}</div>
-                <div className="text-sm text-gray-600">Tổng tiền chờ</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {pendingDeposits.filter(d => d.status === 'rejected').length}
+                </div>
+                <div className="text-sm text-gray-600">Đã từ chối hôm nay</div>
               </div>
             </div>
           </CardContent>
@@ -261,6 +242,20 @@ export default function DepositApprovals() {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <RefreshCw className="w-5 h-5 text-blue-600" />
+              <div>
+                <div className="text-2xl font-bold text-blue-600">{formatCurrency(totalPendingAmount)}</div>
+                <div className="text-sm text-gray-600">Tổng tiền chờ</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+
       </div>
 
       {/* Search and Controls */}
@@ -268,8 +263,13 @@ export default function DepositApprovals() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Quản lý nạp tiền</span>
-            <Button onClick={loadPendingDeposits} variant="outline" size="sm">
-              <RefreshCw className="w-4 h-4 mr-2" />
+            <Button onClick={renewLoadPendingDeposits} variant="outline" size="sm" disabled={isProcessingType == 'renew'}
+            >
+              {isProcessingType === 'renew' ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4" />
+              )}
               Làm mới
             </Button>
           </CardTitle>
@@ -290,6 +290,7 @@ export default function DepositApprovals() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>ID</TableHead>
                   <TableHead>Mã đơn hàng</TableHead>
                   <TableHead>Người dùng</TableHead>
                   <TableHead>Phương thức</TableHead>
@@ -308,27 +309,29 @@ export default function DepositApprovals() {
                   </TableRow>
                 ) : (
                   filteredDeposits.map((deposit) => {
-                    const finalAmount = deposit.amount - deposit.fee;
-                    const bonusAmount = Math.floor((finalAmount * deposit.bonusPercentage) / 100);
-                    const totalReceived = finalAmount + bonusAmount;
+                    // const finalAmount = deposit.amount - deposit.fee;
+                    // const bonusAmount = Math.floor((finalAmount * deposit.bonusPercentage) / 100);
+                    // const totalReceived = finalAmount + bonusAmount;
 
                     return (
                       <TableRow key={deposit.orderId}>
                         <TableCell className="font-mono text-sm">
                           {deposit.orderId}
                         </TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {deposit.transaction_id}
+                        </TableCell>
                         <TableCell>{deposit.userEmail}</TableCell>
-                        <TableCell>{deposit.methodName}</TableCell>
+                        <TableCell>{deposit.type}</TableCell>
                         <TableCell>
                           <div className="text-sm">
                             <div>{formatCurrency(deposit.amount)}</div>
-                            <div className="text-green-600 text-xs">
-                              → {formatCoins(totalReceived)}
-                            </div>
+                            {/* <div className="text-green-600 text-xs"> → {formatCoins(totalReceived)}
+                            </div> */}
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">
-                          {new Date(deposit.createdAt).toLocaleString('vi-VN')}
+                          {new Date(deposit.created_at).toLocaleString('vi-VN')}
                         </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(deposit.status)}>
@@ -365,11 +368,11 @@ export default function DepositApprovals() {
                                       </div>
                                       <div>
                                         <Label>Phương thức</Label>
-                                        <div>{selectedDeposit.methodName}</div>
+                                        <div>{selectedDeposit.type}</div>
                                       </div>
                                       <div>
                                         <Label>Thời gian tạo</Label>
-                                        <div>{new Date(selectedDeposit.createdAt).toLocaleString('vi-VN')}</div>
+                                        <div>{new Date(selectedDeposit.created_at).toLocaleString('vi-VN')}</div>
                                       </div>
                                     </div>
                                     <div className="p-4 bg-gray-50 rounded-lg space-y-2 text-sm">
@@ -383,15 +386,15 @@ export default function DepositApprovals() {
                                           <span>-{formatCurrency(selectedDeposit.fee)}</span>
                                         </div>
                                       )}
-                                      {selectedDeposit.bonusPercentage > 0 && (
+                                      {/* {selectedDeposit.bonusPercentage > 0 && (
                                         <div className="flex justify-between text-green-600">
                                           <span>Bonus ({selectedDeposit.bonusPercentage}%):</span>
                                           <span>+{formatCoins(Math.floor(((selectedDeposit.amount - selectedDeposit.fee) * selectedDeposit.bonusPercentage) / 100))}</span>
                                         </div>
-                                      )}
+                                      )} */}
                                       <div className="border-t pt-2 flex justify-between font-semibold">
                                         <span>Tổng nhận:</span>
-                                        <span>{formatCoins(selectedDeposit.amount - selectedDeposit.fee + Math.floor(((selectedDeposit.amount - selectedDeposit.fee) * selectedDeposit.bonusPercentage) / 100))}</span>
+                                        <span>{formatCoins(deposit.amount)}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -401,28 +404,36 @@ export default function DepositApprovals() {
 
                             {deposit.status === 'pending' && (
                               <>
+                                {/* Approve Button */}
                                 <Button
                                   onClick={() => handleApprove(deposit)}
                                   disabled={isProcessing === deposit.orderId}
                                   size="sm"
                                   className="bg-green-600 hover:bg-green-700 text-white"
                                 >
-                                  {isProcessing === deposit.orderId ? (
+                                  {isProcessing === deposit.orderId && isProcessingType === 'approve' ? (
                                     <RefreshCw className="w-4 h-4 animate-spin" />
                                   ) : (
                                     <CheckCircle className="w-4 h-4" />
                                   )}
                                 </Button>
+
+                                {/* Reject Button */}
                                 <Button
                                   onClick={() => handleReject(deposit)}
                                   disabled={isProcessing === deposit.orderId}
                                   size="sm"
                                   variant="destructive"
                                 >
-                                  <XCircle className="w-4 h-4" />
+                                  {isProcessing === deposit.orderId && isProcessingType === 'reject' ? (
+                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4" />
+                                  )}
                                 </Button>
                               </>
                             )}
+
                           </div>
                         </TableCell>
                       </TableRow>

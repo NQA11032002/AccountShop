@@ -402,3 +402,90 @@ export const deleteAdminUser = async (sessionId: string, userId: string) => {
 
     return res.json(); // trả về thông báo xóa thành công
 };
+
+export const fetchAllTransactions = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/wallet/transactions`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to fetch transactions');
+    }
+
+    return res.json(); // Trả về danh sách giao dịch ví
+};
+
+export const fetchTransactionById = async (sessionId: string, transactionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/wallet/transactions/${transactionId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to fetch transaction');
+    }
+
+    return res.json(); // Trả về thông tin giao dịch ví
+};
+
+export const createTransaction = async (sessionId: string, transactionData: any) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/wallet/transactions`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transactionData),
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to create transaction');
+    }
+
+    return res.json(); // Trả về thông báo thành công và thông tin giao dịch đã tạo
+};
+
+export const updateTransactionStatus = async (sessionId: string, transactionId: string, status: 'pending' | 'approved' | 'rejected') => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/wallet/transactions/${transactionId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }) // Chỉ gửi status cập nhật
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to update transaction status');
+    }
+
+    return res.json();  // Trả về thông tin giao dịch đã được cập nhật
+};
+
+export const deleteTransaction = async (sessionId: string, transactionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/wallet/transactions/${transactionId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to delete transaction');
+    }
+
+    return res.json(); // Trả về thông báo xóa thành công
+};
