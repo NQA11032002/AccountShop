@@ -489,3 +489,105 @@ export const deleteTransaction = async (sessionId: string, transactionId: string
 
     return res.json(); // Trả về thông báo xóa thành công
 };
+
+
+export const getProductsAdmin = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/products`, {
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+        },
+    });
+
+    if (!res.ok) {
+        throw new Error('Failed to fetch products');
+    }
+
+    return res.json();
+};
+
+
+export const getProduct = async (sessionId: string, productId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/products/${productId}`, {
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+        },
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to fetch product');
+    }
+
+    return res.json();
+};
+
+export const createProduct = async (sessionId: string, productData: any) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/products`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData),
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to create product');
+    }
+
+    return res.json();
+};
+
+
+export const updateProduct = async (sessionId: string, productId: number, updatedData: any) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to update product');
+    }
+
+    return res.json();
+};
+
+export const deleteProduct = async (sessionId: string, productId: number) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/products/${productId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to delete product');
+    }
+
+    return res.json();
+};
+
+export const fetchCategories = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch categories');
+    }
+
+    return res.json(); // API Laravel trả về mảng Category[]
+};

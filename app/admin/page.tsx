@@ -116,7 +116,8 @@ import {
   CustomerRankDisplay,
 } from '@/components/CustomerRankingSystem';
 import { User } from '@/types/user.interface';
-import { fetchAdminUsers } from '@/lib/api';
+import { fetchAdminUsers, getProductsAdmin, deleteProduct } from '@/lib/api';
+import { Product } from '@/types/product.interface';
 
 // interface User {
 //   id: string;
@@ -130,17 +131,17 @@ import { fetchAdminUsers } from '@/lib/api';
 //   coins?: number;
 // }
 
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  originalPrice: number;
-  stock: number;
-  status: 'active' | 'inactive';
-  sales: number;
-  rating: number;
-}
+// interface Product {
+//   id: number;
+//   name: string;
+//   category: string;
+//   price: number;
+//   originalPrice: number;
+//   stock: number;
+//   status: 'active' | 'inactive';
+//   sales: number;
+//   rating: number;
+// }
 
 interface Order {
   id: string;
@@ -387,7 +388,6 @@ QAI Store - Tài khoản premium uy tín #1
 
         if (ordersResult.success && ordersResult.data.length > 0) {
           setOrders(ordersResult.data);
-          console.log("📊 Orders refreshed from enhanced API after completion", { count: ordersResult.data.length });
         } else {
           // Fallback to legacy API
           const syncedOrders = await DataSyncHelper.loadAdminData('orders', true);
@@ -540,55 +540,9 @@ QAI Store - Tài khoản premium uy tín #1
         }
       }
 
-      // Load products with JSON API support
-      const syncedProducts = await DataSyncHelper.loadAdminData('products', forceAPI);
-      if (syncedProducts.length > 0) {
-        setProducts(syncedProducts);
-      } else {
-        // Fallback to sample products data from JSON
-        const apiData = await DataSyncHelper.fetchFromAPI('products');
-        if (Array.isArray(apiData) && apiData.length > 0) {
-          setProducts(apiData);
-        } else {
-          // Last resort: sample data
-          const sampleProducts: Product[] = [
-            {
-              id: 1,
-              name: "Netflix Premium",
-              category: "Streaming",
-              price: 50000,
-              originalPrice: 80000,
-              stock: 50,
-              status: 'active',
-              sales: 1250,
-              rating: 4.8
-            },
-            {
-              id: 2,
-              name: "Spotify Premium",
-              category: "Music",
-              price: 39000,
-              originalPrice: 59000,
-              stock: 100,
-              status: 'active',
-              sales: 890,
-              rating: 4.9
-            },
-            {
-              id: 3,
-              name: "ChatGPT Plus",
-              category: "AI Tools",
-              price: 120000,
-              originalPrice: 200000,
-              stock: 25,
-              status: 'active',
-              sales: 634,
-              rating: 4.9
-            }
-          ];
-          setProducts(sampleProducts);
-          await DataSyncHelper.syncAdminData('products', sampleProducts);
-        }
+      if (sessionId) {
+        const data = await getProductsAdmin(sessionId);
+        setProducts(data);
       }
 
       // Load customer accounts with JSON API support
@@ -846,17 +800,18 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const handleEditProduct = (product: Product | null) => {
-    console.log("Edit product clicked", { productId: product?.id });
+
     setEditProductDialog({ open: true, product });
   };
 
   const handleSaveProduct = (productData: Product) => {
-    console.log("Saving product with sync", productData);
     let updatedProducts: Product[];
 
     if (editProductDialog.product) {
       // Update existing product
-      updatedProducts = products.map(p => p.id === productData.id ? productData : p);
+      updatedProducts = products.map(p =>
+        p.id === productData.id ? productData : p
+      );
       setProducts(updatedProducts);
       toast({
         title: "Cập nhật thành công",
@@ -864,7 +819,8 @@ QAI Store - Tài khoản premium uy tín #1
       });
     } else {
       // Add new product
-      const newProduct = { ...productData, id: Date.now() };
+
+      const newProduct = { ...productData };
       updatedProducts = [...products, newProduct];
       setProducts(updatedProducts);
       toast({
@@ -874,26 +830,42 @@ QAI Store - Tài khoản premium uy tín #1
     }
 
     // Sync changes across all admin tabs
-    DataSyncHelper.syncAdminData('products', updatedProducts);
+    // DataSyncHelper.syncAdminData('products', updatedProducts);
   };
 
   const handleDeleteProduct = (product: Product) => {
     console.log("Delete product clicked", { productId: product.id });
+
     setDeleteDialog({
       open: true,
       type: 'product',
       item: product,
-      onConfirm: () => {
-        const updatedProducts = products.filter(p => p.id !== product.id);
-        setProducts(updatedProducts);
-        toast({
-          title: "Xóa thành công",
-          description: `Sản phẩm ${product.name} đã được xóa.`,
-          variant: "destructive",
-        });
+      onConfirm: async () => {
+        try {
+          // Gọi API deleteProduct để xóa sản phẩm
+          if (!sessionId) throw new Error('Missing session token');
 
-        // Sync changes across all admin tabs
-        DataSyncHelper.syncAdminData('products', updatedProducts);
+          await deleteProduct(sessionId, product.id);
+
+          // Nếu xóa thành công, cập nhật lại danh sách sản phẩm
+          const updatedProducts = products.filter(p => p.id !== product.id);
+          setProducts(updatedProducts);
+
+          // Hiển thị thông báo thành công
+          toast({
+            title: "Xóa thành công",
+            description: `Sản phẩm ${product.name} đã được xóa.`,
+            variant: "destructive",
+          });
+
+        } catch (error) {
+          console.error('❌ Failed to delete product:', error);
+          toast({
+            title: "Lỗi khi xóa sản phẩm",
+            description: 'Có lỗi xảy ra khi xóa sản phẩm',
+            variant: "destructive",
+          });
+        }
       }
     });
   };
@@ -2222,7 +2194,7 @@ QAI Store - Tài khoản premium uy tín #1
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">{product.name}</p>
-                              <p className="text-sm text-gray-600">{product.category}</p>
+                              <p className="text-sm text-gray-600">{product.category.name}</p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -2454,7 +2426,7 @@ QAI Store - Tài khoản premium uy tín #1
                           {products.map((product) => (
                             <TableRow key={product.id}>
                               <TableCell className="font-medium">{product.name}</TableCell>
-                              <TableCell>{product.category}</TableCell>
+                              <TableCell>{product.category.name}</TableCell>
                               <TableCell>{product.price.toLocaleString('vi-VN')}đ</TableCell>
                               <TableCell>{product.stock}</TableCell>
                               <TableCell>{product.sales}</TableCell>

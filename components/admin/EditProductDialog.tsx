@@ -7,20 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Product, Category } from '@/types/product.interface';
+import { updateProduct, fetchCategories, createProduct } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  originalPrice: number;
-  stock: number;
-  status: 'active' | 'inactive';
-  sales: number;
-  rating: number;
-  description?: string;
-  image?: string;
-}
 
 interface EditProductDialogProps {
   product: Product | null;
@@ -29,56 +19,150 @@ interface EditProductDialogProps {
   onSave: (product: Product) => void;
 }
 
-export function EditProductDialog({ product, open, onOpenChange, onSave }: EditProductDialogProps) {
-  const [formData, setFormData] = useState<Product>(
-    product || {
-      id: Date.now(),
-      name: '',
-      category: '',
-      price: 0,
-      originalPrice: 0,
-      stock: 0,
-      status: 'active',
-      sales: 0,
-      rating: 5.0,
-      description: '',
-      image: ''
-    }
-  );
+// ✅ Dữ liệu mặc định
+const defaultCategory: Category = {
+  id: 0,
+  name: '',
+  parent_id: null,
+};
 
-  console.log("EditProductDialog rendered", { productId: product?.id, open });
+const defaultProduct: Product = {
+  id: Date.now(),
+  name: '',
+  category: defaultCategory,
+  price: 0,
+  original_price: 0,
+  image: '',
+  color: '',
+  badge: '',
+  badge_color: '',
+  in_stock: true,
+  rating: 5.0,
+  reviews: 0,
+  warranty: '',
+  sales: 0,
+  stock: 0,
+  status: 'active',
+  description: '',
+};
+
+
+export function EditProductDialog({ product, open, onOpenChange, onSave }: EditProductDialogProps) {
+  const [formData, setFormData] = useState<Product>(product || defaultProduct);
+  const { sessionId } = useAuth();
+  const [categories, setCategories] = useState<Category[]>([]);
 
   // Reset form data when product prop changes or dialog opens
   useEffect(() => {
     if (open) {
       setFormData(
         product || {
-          id: Date.now(),
+          id: 0,
           name: '',
-          category: '',
+          category: defaultCategory,
           price: 0,
-          originalPrice: 0,
+          original_price: 0,
           stock: 0,
           status: 'active',
           sales: 0,
           rating: 5.0,
           description: '',
-          image: ''
+          image: '',
+          color: '',
+          badge: '',
+          badge_color: '',
+          in_stock: true,
+          reviews: 0,
+          warranty: '',
         }
       );
-      console.log("Form data reset for product", product?.id);
+
+      const loadCategories = async () => {
+        try {
+          if (!sessionId) throw new Error('Missing session');
+          else {
+            const result = await fetchCategories(sessionId);
+            setCategories(result.data);
+          }
+        } catch (error) {
+          console.error('Lỗi khi tải danh mục:', error);
+        }
+      };
+
+      loadCategories();
     }
   }, [product, open]);
 
-  const handleSave = () => {
-    console.log("Saving product", formData);
-    onSave(formData);
-    onOpenChange(false);
-  };
+  const handleSave = async () => {
+    try {
+      if (!sessionId) throw new Error('Missing session token');
 
-  const categories = [
-    'Streaming', 'Music', 'AI Tools', 'Gaming', 'Software', 'VPN', 'Cloud Storage', 'Education'
-  ];
+      const payload = {
+        ...formData,
+        category: formData.category.id, // Chỉ gửi category ID
+      };
+
+      if (!formData.id || formData.id === 0) {
+        // Tạo sản phẩm mới (chỉ khi formData.id không có giá trị)
+        const result = await createProduct(sessionId, payload);
+
+        const newCategory = categories.find(c => c.id === result.category) || defaultCategory;
+
+        const newProduct: Product = {
+          id: result.id,
+          name: result.name,
+          category: newCategory,
+          price: result.price,
+          original_price: result.original_price, // Chuyển snake_case -> camelCase
+          image: result.image,
+          color: result.color,
+          badge: result.badge,
+          badge_color: result.badge_color,
+          in_stock: result.in_stock === 1, // API trả boolean
+          rating: result.rating,
+          reviews: result.reviews,
+          warranty: result.warranty,
+          sales: result.sales,
+          stock: result.stock,
+          status: result.status,
+          description: result.description,
+        };
+
+        onSave(newProduct); // Gọi hàm onSave với sản phẩm mới
+      } else {
+        // Cập nhật sản phẩm đã có
+        const result = await updateProduct(sessionId, formData.id, payload);
+
+        const updatedCategory = categories.find(c => c.id === result.category) || defaultCategory;
+
+        const updatedProduct: Product = {
+          id: result.id,
+          name: result.name,
+          category: updatedCategory,
+          price: result.price,
+          original_price: result.original_price, // Chuyển snake_case -> camelCase
+          image: result.image,
+          color: result.color,
+          badge: result.badge,
+          badge_color: result.badge_color,
+          in_stock: result.in_stock === 1, // API trả boolean
+          rating: result.rating,
+          reviews: result.reviews,
+          warranty: result.warranty,
+          sales: result.sales,
+          stock: result.stock,
+          status: result.status,
+          description: result.description,
+        };
+
+        onSave(updatedProduct); // Gọi hàm onSave với sản phẩm đã được cập nhật
+      }
+
+      onOpenChange(false); // Đóng dialog sau khi lưu
+    } catch (err: any) {
+      console.error('❌ Failed to update product:', err.message);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -91,15 +175,15 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
             {product ? 'Cập nhật thông tin sản phẩm' : 'Nhập thông tin để tạo sản phẩm mới'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-4">
           {/* Product Image */}
-          <div>
+          {/* <div>
             <Label htmlFor="image">Ảnh sản phẩm (URL)</Label>
             <Input
               id="image"
               value={formData.image}
-              onChange={(e) => setFormData({...formData, image: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
               placeholder="https://example.com/product-image.jpg"
             />
             {formData.image && (
@@ -107,7 +191,7 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
                 <img src={formData.image} alt="Preview" className="w-20 h-20 object-cover rounded" />
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* Product Name */}
           <div>
@@ -115,7 +199,7 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Netflix Premium"
               required
             />
@@ -124,21 +208,27 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
           {/* Category */}
           <div>
             <Label>Danh mục *</Label>
-            <Select 
-              value={formData.category} 
-              onValueChange={(value) => setFormData({...formData, category: value})}
+            <Select
+              value={formData.category.id.toString()}
+              onValueChange={(value) => {
+                const selected = categories.find((c) => c.id === parseInt(value));
+                if (selected) {
+                  setFormData({ ...formData, category: selected });
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn danh mục" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+
           </div>
 
           {/* Pricing */}
@@ -149,7 +239,7 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
                 id="price"
                 type="number"
                 value={formData.price}
-                onChange={(e) => setFormData({...formData, price: parseInt(e.target.value) || 0})}
+                onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
                 placeholder="89000"
                 required
               />
@@ -159,8 +249,8 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
               <Input
                 id="originalPrice"
                 type="number"
-                value={formData.originalPrice}
-                onChange={(e) => setFormData({...formData, originalPrice: parseInt(e.target.value) || 0})}
+                value={formData.original_price}
+                onChange={(e) => setFormData({ ...formData, original_price: parseInt(e.target.value) || 0 })}
                 placeholder="260000"
                 required
               />
@@ -175,16 +265,16 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
                 id="stock"
                 type="number"
                 value={formData.stock}
-                onChange={(e) => setFormData({...formData, stock: parseInt(e.target.value) || 0})}
+                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                 placeholder="50"
               />
             </div>
             <div>
               <Label>Trạng thái</Label>
-              <Select 
-                value={formData.status} 
-                onValueChange={(value: 'active' | 'inactive') => 
-                  setFormData({...formData, status: value})
+              <Select
+                value={formData.status}
+                onValueChange={(value: 'active' | 'inactive') =>
+                  setFormData({ ...formData, status: value })
                 }
               >
                 <SelectTrigger>
@@ -206,7 +296,7 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
                 id="sales"
                 type="number"
                 value={formData.sales}
-                onChange={(e) => setFormData({...formData, sales: parseInt(e.target.value) || 0})}
+                onChange={(e) => setFormData({ ...formData, sales: parseInt(e.target.value) || 0 })}
                 placeholder="1250"
               />
             </div>
@@ -219,7 +309,7 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
                 min="1"
                 max="5"
                 value={formData.rating}
-                onChange={(e) => setFormData({...formData, rating: parseFloat(e.target.value) || 5.0})}
+                onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) || 5.0 })}
                 placeholder="4.8"
               />
             </div>
@@ -231,7 +321,7 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Mô tả chi tiết về sản phẩm..."
               rows={3}
             />
