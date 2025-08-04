@@ -196,7 +196,8 @@ export default function ProductCard({
         <CardContent className="flex-1 flex flex-row space-x-6 p-6">
           <div className="flex-shrink-0">
             <div className={`${config.iconSize} ${product.color || 'bg-gray-500'} rounded-2xl flex items-center justify-center text-2xl shadow-lg`}>
-              {product.image}
+              <img src={`/images/products/${product.image}`}
+                alt="" />
             </div>
           </div>
           <div className="flex-1 space-y-3">
@@ -222,11 +223,11 @@ export default function ProductCard({
             </div>
             <div className="flex items-baseline space-x-2">
               <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-                {formatPrice(featuredDuration.price)}
+                {formatPrice(product.price)}
               </span>
-              {featuredDuration.original_price && (
+              {product.original_price && (
                 <span className="text-sm text-gray-400 line-through">
-                  {formatPrice(featuredDuration.original_price)}
+                  {formatPrice(product.original_price)}
                 </span>
               )}
             </div>
@@ -330,7 +331,7 @@ export default function ProductCard({
         </div>
       )}
 
-      <CardContent className={`${config.padding} pt-20 lg:pt-24 flex flex-col relative z-10 min-h-[480px] justify-between`}>
+      <CardContent className={`${config.padding} pt-20 lg:pt-24 flex flex-col relative z-10 min-h-auto justify-between`}>
         <div className="flex-grow">
           {/* Product Title */}
           <h3 className={`${config.textSize} font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2`}>
@@ -339,7 +340,7 @@ export default function ProductCard({
 
           {/* Category */}
           <Badge variant="outline" className="w-fit mb-3 text-xs">
-            {product.category}
+            {product.category.name}
           </Badge>
 
           {/* Description */}

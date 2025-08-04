@@ -63,7 +63,7 @@ export default function FAQ() {
             Câu hỏi thường gặp
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold text-brand-charcoal mb-4">
-            Giải đáp mọi 
+            Giải đáp mọi
             <span className="gradient-text"> thắc mắc</span>
           </h2>
           <p className="text-lg text-gray-600 text-balance">
@@ -101,7 +101,7 @@ export default function FAQ() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://t.me/qaistore"
+              href="https://t.me/storeqai"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white text-brand-blue hover:bg-gray-100 font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg inline-flex items-center justify-center"
@@ -109,10 +109,9 @@ export default function FAQ() {
               📱 Chat Telegram
             </a>
             <a
-              href="tel:0123456789"
-              className="bg-white/20 text-white border border-white/30 hover:bg-white hover:text-brand-blue font-medium px-6 py-3 rounded-lg transition-all duration-200 backdrop-blur-sm inline-flex items-center justify-center"
+              className="bg-white/20 cursor-default text-white border border-white/30 hover:bg-white hover:text-brand-blue font-medium px-6 py-3 rounded-lg transition-all duration-200 backdrop-blur-sm inline-flex items-center justify-center"
             >
-              📞 Gọi Zalo: 0123456789
+              📞 Gọi Zalo: 038.966.0305
             </a>
           </div>
         </div>

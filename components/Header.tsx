@@ -14,15 +14,20 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useWallet } from '@/contexts/WalletContext';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { itemsCount } = useCart();
   const [realtimeCartCount, setRealtimeCartCount] = useState(itemsCount);
-  const { user, logout } = useAuth();
   const { favorites } = useFavorites();
   const { balance, formatCoins } = useWallet();
+  const { user, logout, setRole, setSessionId } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+
   // console.log("ENHANCED Header component rendered", {
   //   isMenuOpen,
   //   itemsCount,
@@ -38,7 +43,6 @@ export default function Header() {
       return;
     }
 
-    console.log("coinszxc" + user.coins);
 
     // Sync realtime count with context
     setRealtimeCartCount(itemsCount);
@@ -60,6 +64,18 @@ export default function Header() {
 
     return unsubscribe;
   }, [user, itemsCount]);
+
+  const handleLogout = async () => {
+    await logout();
+    toast({
+      title: "Đã đăng xuất",
+      description: "Bạn đã đăng xuất khỏi Admin Panel.",
+    });
+    localStorage.clear();
+    setRole('');
+    setSessionId('');
+    router.push('/login');
+  };
 
   // Sync realtime count with context changes
   useEffect(() => {
@@ -204,8 +220,8 @@ export default function Header() {
             <div className="hidden lg:flex items-center space-x-2">
               <MapPin className="w-4 h-4 text-brand-blue" />
               <div>
-                <p className="text-xs text-gray-500">Vận chuyển</p>
-                <p className="font-medium">31 Nguyễn Đình Khởi</p>
+                <p className="text-xs text-gray-500">Địa Chỉ</p>
+                <p className="font-medium">96 Ngô Tất Thành</p>
               </div>
             </div>
 
@@ -214,7 +230,7 @@ export default function Header() {
               <Phone className="w-4 h-4 text-brand-blue" />
               <div>
                 <p className="text-xs text-gray-500">Hotline</p>
-                <p className="font-medium">0987.022.876</p>
+                <p className="font-medium">038.966.0305</p>
               </div>
             </div>
 
@@ -278,7 +294,7 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-100" />
-                  <DropdownMenuItem onClick={logout} className="flex items-center px-4 py-3 cursor-grab hover:bg-red-50 text-red-600 rounded-lg">
+                  <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 cursor-grab hover:bg-red-50 text-red-600 rounded-lg">
                     <LogOut className="mr-3 h-4 w-4" />
                     <span>Đăng xuất</span>
                   </DropdownMenuItem>

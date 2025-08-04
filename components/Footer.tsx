@@ -80,11 +80,11 @@ export default function Footer() {
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-sm">
                 <Phone className="w-4 h-4 text-brand-emerald" />
-                <span>Hotline: 0123.456.789</span>
+                <span>Hotline: 038.966.0305</span>
               </div>
               <div className="flex items-center space-x-3 text-sm">
                 <Mail className="w-4 h-4 text-brand-emerald" />
-                <span>Email: support@qaistore.com</span>
+                <span>Email: qaistore.cskh@gmail.com</span>
               </div>
               <div className="flex items-center space-x-3 text-sm">
                 <MapPin className="w-4 h-4 text-brand-emerald" />
@@ -146,12 +146,12 @@ export default function Footer() {
               <div className="space-y-2 text-sm text-gray-300">
                 <div className="flex justify-between">
                   <span>Thứ 2 - Chủ nhật:</span>
-                  <span>24/7</span>
+                  <span>8h30 - 12h, 14h30 - 12h</span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span>Hỗ trợ khẩn cấp:</span>
                   <span>24/7</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -163,7 +163,7 @@ export default function Footer() {
             {/* Social Links */}
             <div className="flex space-x-4">
               <a
-                href="https://facebook.com/qaistore"
+                href="https://www.facebook.com/qaistorethegioiai/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors"
@@ -171,7 +171,7 @@ export default function Footer() {
                 <Facebook className="w-5 h-5" />
               </a>
               <a
-                href="https://t.me/qaistore"
+                href="https://t.me/storeqai"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors"
@@ -179,8 +179,7 @@ export default function Footer() {
                 <MessageCircle className="w-5 h-5" />
               </a>
               <a
-                href="tel:0123456789"
-                className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors"
+                className="w-10 h-10 cursor-default bg-green-600 rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors"
               >
                 <Phone className="w-5 h-5" />
               </a>

@@ -13,143 +13,147 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataSyncHelper } from '@/lib/syncHelper';
 import ProductCard from '@/components/ProductCard';
-import { useProducts } from '@/lib/products';
+import { ProductBase, useProducts } from '@/lib/products';
+import { fetchProducts, fetchCategories } from '@/lib/api';
+import { Product } from '@/types/product.interface';
+import { Category } from '@/types/category.interface';
 
-
+import { useAuth } from '@/contexts/AuthContext';
 
 function ProductsContent() {
-  // const searchParams = useSearchParams();
-  // const [searchQuery, setSearchQuery] = useState('');
-  // const [selectedCategory, setSelectedCategory] = useState('all');
-  // const [sortBy, setSortBy] = useState('popular');
-  // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  // const [products, setProducts] = useState<any[]>([]);
-
-  // const [products, setProducts] = useState<ProductBase[]>([]);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState<string | null>(null);
-
+  const [products, setProducts] = useState<ProductBase[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [sortBy, setSortBy] = useState('popular');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const searchParams = useSearchParams();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [allProducts, setAllProducts] = useState<ProductBase[]>([]);
 
 
-
-  //load sản phẩm lên website
-  const { products, loading, error } = useProducts();
-
-
-  // Handle URL query parameters
+  // Fetch data
   useEffect(() => {
-    const categoryParam = searchParams?.get('category');
-    const searchParam = searchParams?.get('search');
+    async function loadCategories() {
+      const sessionId = localStorage.getItem('qai_session');
+      if (sessionId) {
+        try {
+          const data = await fetchCategories(sessionId);
 
-    // console.log("URL params detected", { categoryParam, searchParam });
+          setCategories(data.data);
+        } catch (err) {
+          console.error('Failed to load categories', err);
+        } finally {
+          setLoadingCategories(false);
+        }
+      }
 
-    if (categoryParam) {
-      // Map breadcrumb category values to product page categories
-      const categoryMapping: { [key: string]: string } = {
-        // Product detail page category mappings
-        'Streaming': 'entertainment',
-        'Music': 'music',
-        'AI Tools': 'ai',
-        'Design': 'design',
-        'Productivity': 'productivity',
-        // Header category values to product page categories
-        'language': 'education',
-        'cheap-courses': 'education',
-        'programming': 'education',
-        'education': 'education',
-        'chatgpt': 'ai',
-        'piktory': 'ai',
-        'heygen': 'ai',
-        'veed': 'ai',
-        'midjourney': 'ai',
-        'ai-tools': 'ai',
-        'youtube': 'entertainment',
-        'spotify': 'music',
-        'netflix': 'entertainment',
-        'streaming': 'entertainment',
-        'apple-music': 'music',
-        'entertainment': 'entertainment',
-        'adobe': 'design',
-        'canva': 'design',
-        'capcut': 'design',
-        'design-resources': 'design',
-        'graphics': 'design',
-        'vpn': 'productivity',
-        'antivirus': 'productivity',
-        'proxy': 'productivity',
-        'google-one': 'productivity',
-        'onedrive': 'productivity',
-        'icloud': 'productivity',
-        'office': 'productivity',
-        'zoom': 'productivity',
-        'adobe-key': 'design'
-      };
-
-      const mappedCategory = categoryMapping[categoryParam] || categoryParam.toLowerCase();
-      setSelectedCategory(mappedCategory);
     }
 
-    if (searchParam) {
-      setSearchQuery(searchParam);
+    loadCategories();
+
+    async function loadData() {
+      try {
+        const data = await fetchProducts();
+        setAllProducts(data);
+        setProducts(data);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch data');
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [searchParams]);
 
-  // console.log("ProductsPage rendered", { searchQuery, selectedCategory, sortBy, viewMode, productsCount: products.length });
+    loadData();
+  }, []);
 
-  const categories = [
-    { value: 'all', label: 'Tất cả', count: products.length },
-    { value: 'entertainment', label: 'Giải trí', count: products.filter(p => p.category === 'entertainment').length },
-    { value: 'music', label: 'Âm nhạc', count: products.filter(p => p.category === 'music').length },
-    { value: 'ai', label: 'AI Tools', count: products.filter(p => p.category === 'ai').length },
-    { value: 'design', label: 'Thiết kế', count: products.filter(p => p.category === 'design').length },
-    { value: 'productivity', label: 'Năng suất', count: products.filter(p => p.category === 'productivity').length },
-    { value: 'education', label: 'Học tập', count: products.filter(p => p.category === 'education').length },
-  ];
-  const filteredProducts = useMemo(() => {
-    let list = [...products];
+  const handleSelectCategoryById = (id: number | 'all') => {
+    if (id === 'all') {
+      setProducts(allProducts);
+      setSelectedCategory('all');
+      return;
+    }
 
-    if (searchQuery)
-      list = list.filter(
-        p =>
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const filtered = allProducts.filter(p => {
+      const cat = p.category;
+      if (!cat) return false;
+
+      // Nếu category là object với id / parent_id
+      if (typeof cat === 'object') {
+        const matchesSelf = typeof cat.id === 'number' && cat.id === id;
+        const matchesParent = typeof cat.parent_id === 'number' && cat.parent_id === id;
+        return matchesSelf || matchesParent;
+      }
+
+      // Nếu category là string (nếu có khả năng)
+      const parsed = parseInt(String(cat), 10);
+      if (!isNaN(parsed) && parsed === id) return true;
+      return String(cat).toLowerCase() === String(id).toLowerCase();
+    });
+
+    setProducts(filtered);
+    setSelectedCategory(id);
+  };
+
+  function sortProducts(list: ProductBase[], sortBy: string): ProductBase[] {
+    return [...list].sort((a, b) => {
+      const getPrice = (p: ProductBase) => (p.durations?.[0]?.price ?? 0);
+      switch (sortBy) {
+        case 'price-low':
+          return getPrice(a) - getPrice(b);
+        case 'price-high':
+          return getPrice(b) - getPrice(a);
+        case 'rating':
+          return (b.rating ?? 0) - (a.rating ?? 0);
+        case 'name':
+          return (a.name || '').localeCompare(b.name || '');
+        case 'popular':
+        default:
+          return (b.reviews ?? 0) - (a.reviews ?? 0);
+      }
+    });
+  }
+
+  const filteredAndSortedProducts = useMemo(() => {
+    let list = [...allProducts];
+
+    // search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(p =>
+        (p.name?.toLowerCase().includes(q) || '')
+        || (p.description?.toLowerCase().includes(q) || '')
       );
-
-    if (selectedCategory !== 'all')
-      list = list.filter(p => p.category === selectedCategory);
-
-    switch (sortBy) {
-      case 'price-low':
-        list.sort(
-          (a, b) =>
-            (a.durations?.[0]?.price || 0) - (b.durations?.[0]?.price || 0)
-        );
-        break;
-      case 'price-high':
-        list.sort(
-          (a, b) =>
-            (b.durations?.[0]?.price || 0) - (a.durations?.[0]?.price || 0)
-        );
-        break;
-      case 'rating':
-        list.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'name':
-        list.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      default:
-        list.sort((a, b) => b.reviews - a.reviews);
     }
-    return list;
-  }, [products, searchQuery, selectedCategory, sortBy]);
+
+    // category filter
+    if (selectedCategory !== 'all') {
+      list = list.filter(p => {
+        const cat = p.category;
+        if (!cat) return false;
+
+        let categoryId: number | null = null;
+        let parentId: number | null = null;
+
+        if (typeof cat === 'object') {
+          if (typeof cat.id === 'number') categoryId = cat.id;
+          if (typeof (cat as any).parent_id === 'number') parentId = (cat as any).parent_id;
+        } else {
+          const parsed = parseInt(String(cat), 10);
+          if (!isNaN(parsed)) categoryId = parsed;
+        }
+
+        return categoryId === selectedCategory || parentId === selectedCategory;
+      });
+    }
+
+    // sort
+    return sortProducts(list, sortBy);
+  }, [allProducts, searchQuery, selectedCategory, sortBy]);
 
   const handleBuyNow = (productId: number) => {
-    console.log(`Buy now clicked for product ${productId}`);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('navigate-to-product', {
         detail: { path: `/products/${productId}` }
@@ -199,42 +203,42 @@ function ProductsContent() {
                 <div className="p-6 space-y-3">
                   {categories.map((category) => (
                     <button
-                      key={category.value}
-                      onClick={() => setSelectedCategory(category.value)}
-                      className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${selectedCategory === category.value
+                      key={category.id}
+                      onClick={() => handleSelectCategoryById(category.id)}
+                      className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${selectedCategory === category.id
                         ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow-sm'
                         : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                         }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedCategory === category.value
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedCategory === category.id
                           ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
                           : 'bg-white text-gray-600 border border-gray-200'
                           }`}>
-                          {category.value === 'all' && '🌟'}
-                          {category.value === 'entertainment' && '🎬'}
-                          {category.value === 'music' && '🎵'}
-                          {category.value === 'ai' && '🤖'}
-                          {category.value === 'design' && '🎨'}
-                          {category.value === 'productivity' && '📊'}
-                          {category.value === 'education' && '📚'}
+                          {category.name === 'all' && '🌟'}
+                          {category.name === 'entertainment' && '🎬'}
+                          {category.name === 'music' && '🎵'}
+                          {category.name === 'ai' && '🤖'}
+                          {category.name === 'design' && '🎨'}
+                          {category.name === 'productivity' && '📊'}
+                          {category.name === 'education' && '📚'}
                         </div>
                         <div className="text-left">
-                          <div className={`font-semibold ${selectedCategory === category.value ? 'text-blue-700' : 'text-gray-800'
+                          <div className={`font-semibold ${selectedCategory === category.id ? 'text-blue-700' : 'text-gray-800'
                             }`}>
-                            {category.label}
+                            {category.name}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          {/* <div className="text-xs text-gray-500">
                             {category.count} sản phẩm
-                          </div>
+                          </div> */}
                         </div>
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${selectedCategory === category.value
+                      {/* <div className={`px-3 py-1 rounded-full text-xs font-medium ${selectedCategory === category.value
                         ? 'bg-blue-100 text-blue-700'
                         : 'bg-gray-200 text-gray-600'
                         }`}>
                         {category.count}
-                      </div>
+                      </div> */}
                     </button>
                   ))}
                 </div>
@@ -299,9 +303,15 @@ function ProductsContent() {
               {/* Results Count */}
               <div className="flex items-center justify-between">
                 <p className="text-gray-600">
-                  Hiển thị {filteredProducts.length} sản phẩm
+                  Hiển thị {filteredAndSortedProducts?.length} sản phẩm
                   {searchQuery && ` cho "${searchQuery}"`}
-                  {selectedCategory !== 'all' && ` trong danh mục "${categories.find(c => c.value === selectedCategory)?.label}"`}
+                  {/* {selectedCategory !== 'all' && (
+                    <>
+                      {' trong danh mục "'}
+                      {categories.find(c => c.id === selectedCategory)?.name ?? 'Không rõ'}
+                      {'"'}
+                    </>
+                  )} */}
                 </p>
 
                 {(searchQuery || selectedCategory !== 'all') && (
@@ -320,12 +330,12 @@ function ProductsContent() {
               </div>
 
               {/* Products */}
-              {filteredProducts.length > 0 ? (
+              {filteredAndSortedProducts.length ? (
                 <div className={viewMode === 'grid'
                   ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-2 gap-4 lg:gap-6'
                   : 'space-y-4'
                 }>
-                  {filteredProducts.map((product) => (
+                  {filteredAndSortedProducts.map((product) => (
                     <ProductCard
                       key={product.id}
                       product={product}
@@ -350,7 +360,7 @@ function ProductsContent() {
                       setSearchQuery('');
                       setSelectedCategory('all');
                     }}
-                    className="btn-primary"
+                    className="border-brand-purple text-brand-purple hover:bg-gradient-to-r hover:from-brand-gray hover:to-brand-blue hover:text-white px-8 py-3 font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
                     Xem tất cả sản phẩm
                   </Button>

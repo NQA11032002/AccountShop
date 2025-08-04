@@ -62,6 +62,14 @@ export default function ProductDetailPage() {
     ? product.durations.find((d: any) => d.id === selectedDuration)
     : null;
 
+  const getCategoryLabel = (cat: any): string => {
+    if (!cat) return '';
+    if (typeof cat === 'object') return cat.name ?? '';
+    return String(cat);
+  };
+
+  const categoryLabel = getCategoryLabel(product?.category);
+
   //hiển thị chi tiết sản phẩm
   useEffect(() => {
     const loadProduct = async () => {
@@ -308,15 +316,15 @@ export default function ProductDetailPage() {
             </button>
             <span>›</span>
             <button
-              onClick={() => router.push(`/products?category=${encodeURIComponent(product.category)}`)}
+              onClick={() => router.push(`/products?category=${encodeURIComponent(categoryLabel)}`)}
               className="hover:text-brand-blue transition-colors"
             >
-              {product.category === 'Streaming' && 'Giải trí & Streaming'}
-              {product.category === 'Music' && 'Âm nhạc'}
-              {product.category === 'AI Tools' && 'Công cụ AI'}
-              {product.category === 'Design' && 'Thiết kế & Sáng tạo'}
-              {product.category === 'Productivity' && 'Năng suất & Công việc'}
-              {!['Streaming', 'Music', 'AI Tools', 'Design', 'Productivity'].includes(product.category) && 'Sản phẩm'}
+              {categoryLabel === 'Streaming' && 'Giải trí & Streaming'}
+              {categoryLabel === 'Music' && 'Âm nhạc'}
+              {categoryLabel === 'AI Tools' && 'Công cụ AI'}
+              {categoryLabel === 'Design' && 'Thiết kế & Sáng tạo'}
+              {categoryLabel === 'Productivity' && 'Năng suất & Công việc'}
+              {!['Streaming', 'Music', 'AI Tools', 'Design', 'Productivity'].includes(categoryLabel) && 'Sản phẩm'}
             </button>
             <span>›</span>
             <span className="text-gray-800 font-medium">
@@ -330,13 +338,13 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Product Images */}
           <div className="space-y-4">
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden p-10">
               <div
                 className="h-96 flex items-center justify-center relative"
                 style={{ backgroundColor: product.color }}
               >
-                <div className="text-8xl drop-shadow-2xl transform hover:scale-110 transition-transform duration-300">
-                  {product.image}
+                <div className="text-8xl">
+                  <img className='' src={`/images/products/${product.image}`}></img>
                 </div>
               </div>
             </Card>
@@ -345,7 +353,7 @@ export default function ProductDetailPage() {
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <Badge variant="secondary" className="mb-3">{product.category}</Badge>
+              <Badge variant="secondary" className="mb-3">{categoryLabel}</Badge>
               <h1 className="text-3xl font-bold text-brand-charcoal mb-2">{product.name}</h1>
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center space-x-1">

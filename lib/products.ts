@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { fetchProducts } from './api';
 import { ProductDuration } from '@/types/productDuration.interface';
+import { Category } from '@/types/product.interface';
 
 export interface ProductBase {
     id: number;
     name: string;
-    category: string;
+    category: Category;
     description: string;
     price: number;
     original_price: number;

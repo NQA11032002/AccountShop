@@ -51,7 +51,7 @@ export default function FeaturedCategories() {
             variant="outline"
             size="lg"
             onClick={() => window.location.href = '/products'}
-            className="border-brand-purple text-brand-purple hover:bg-gradient-to-r hover:from-brand-purple hover:to-brand-blue hover:text-white px-8 py-3 font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="border-brand-purple text-brand-purple hover:bg-gradient-to-r hover:from-brand-gray hover:to-brand-blue hover:text-white px-8 py-3 font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             Xem tất cả danh mục
             <ArrowRight className="w-5 h-5 ml-2" />

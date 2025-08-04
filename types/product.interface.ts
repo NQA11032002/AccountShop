@@ -7,7 +7,7 @@ export interface Category {
 export interface Product {
     id: number;
     name: string;
-    category: Category; // object thay vì string
+    category: Category;
     description: string;
     price: number;
     original_price: number;

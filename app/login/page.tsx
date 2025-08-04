@@ -169,11 +169,11 @@ export default function LoginPage() {
             </div>
 
             {/* Demo Account */}
-            <div className="mt-4 p-4 bg-brand-blue/5 rounded-lg border border-brand-blue/10">
+            {/* <div className="mt-4 p-4 bg-brand-blue/5 rounded-lg border border-brand-blue/10">
               <p className="text-xs text-gray-600 text-center">
                 <strong>Demo:</strong> Email: demo@qaistore.com | Mật khẩu: 123456
               </p>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 

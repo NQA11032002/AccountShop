@@ -278,10 +278,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
                 }]
               });
 
-              toast({
-                title: "Chào mừng bạn! 🎉",
-                description: `Bạn đã nhận được ${formatCoins(welcomeBonus)} coins chào mừng!`,
-              });
+              // toast({
+              //   title: "Chào mừng bạn! 🎉",
+              //   description: `Bạn đã nhận được ${formatCoins(welcomeBonus)} coins chào mừng!`,
+              // });
 
               console.log("🎁 New wallet initialized with welcome bonus", { userId: user.id });
             }
