@@ -40,7 +40,7 @@ function ProductsContent() {
       const sessionId = localStorage.getItem('qai_session');
       if (sessionId) {
         try {
-          const data = await fetchCategories(sessionId);
+          const data = await fetchCategories();
 
           setCategories(data.data);
         } catch (err) {

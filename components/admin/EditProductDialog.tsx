@@ -81,7 +81,7 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
         try {
           if (!sessionId) throw new Error('Missing session');
           else {
-            const result = await fetchCategories(sessionId);
+            const result = await fetchCategories();
             setCategories(result.data);
           }
         } catch (error) {

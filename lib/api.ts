@@ -594,11 +594,10 @@ export const deleteProduct = async (sessionId: string, productId: number) => {
     return res.json();
 };
 
-export const fetchCategories = async (sessionId: string) => {
+export const fetchCategories = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         method: 'GET',
         headers: {
-            Authorization: `Bearer ${sessionId}`,
             'Content-Type': 'application/json',
         },
     });
