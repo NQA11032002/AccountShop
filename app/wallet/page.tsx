@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import DepositModal from '@/components/DepositModal';
@@ -17,11 +17,12 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { Transaction } from '@/types/transaction.interface';
+import { fetchTransactionUserById } from '@/lib/api';
 
 export default function WalletPage() {
   const {
     balance,
-    transactions,
     depositMethods,
     createDepositOrder,
     confirmUserPayment,
@@ -40,16 +41,38 @@ export default function WalletPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string>('');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
 
-  // Auto-sync when history tab is active
-  React.useEffect(() => {
-    if (activeTab === 'history' && user) {
-      console.log("🔄 Auto-syncing deposits for history tab");
-      syncDepositStatus();
-      refreshTransactions();
-    }
-  }, [activeTab, user]);
+  useEffect(() => {
+    const sessionId = localStorage.getItem('qai_session') || '';
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchTransactionUserById(sessionId);
+        setTransactions(data.data);
+      } catch (err: any) {
+        setError(err.message || 'Có lỗi xảy ra khi tải giao dịch');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) return <div>Đang tải...</div>;
+
+  // // Auto-sync when history tab is active
+  // React.useEffect(() => {
+  //   if (activeTab === 'history' && user) {
+  //     console.log("🔄 Auto-syncing deposits for history tab");
+  //     syncDepositStatus();
+  //     refreshTransactions();
+  //   }
+  // }, [activeTab, user]);
 
   if (!user) {
     return (
@@ -70,7 +93,11 @@ export default function WalletPage() {
       </div>
     );
   }
-
+  function formatDateTimeUTC(isoString: string) {
+    // Cắt ra từng thành phần, không convert timezone!
+    const [date, time] = isoString.split('T');
+    return `${date.split('-').reverse().join('/')} ${time.slice(0, 8)}`; // 10/07/2025 23:07:03
+  }
   const handleDeposit = async () => {
     const amount = parseInt(depositAmount.replace(/\D/g, ''));
     if (!amount || amount <= 0) {
@@ -122,9 +149,9 @@ export default function WalletPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
+      case 'approved': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -213,9 +240,9 @@ export default function WalletPage() {
                       </div>
                       <div>
                         <div className="text-2xl font-bold text-green-600">
-                          {transactions.filter(tx => tx.type === 'deposit' && tx.status === 'completed').length}
+                          {transactions.filter(tx => tx.type === 'deposit' && tx.status === 'approved').length}
                         </div>
-                        <div className="text-sm text-gray-600">Lần nạp tiền</div>
+                        <div className="text-sm text-gray-600">Lần nạp tiền thành công</div>
                       </div>
                     </div>
                   </CardContent>
@@ -229,9 +256,9 @@ export default function WalletPage() {
                       </div>
                       <div>
                         <div className="text-2xl font-bold text-red-600">
-                          {transactions.filter(tx => tx.type === 'purchase').length}
+                          {transactions.filter(tx => tx.type === 'deposit' && tx.status === 'rejected').length}
                         </div>
-                        <div className="text-sm text-gray-600">Giao dịch mua</div>
+                        <div className="text-sm text-gray-600">Lần nạp bị từ chối</div>
                       </div>
                     </div>
                   </CardContent>
@@ -245,9 +272,9 @@ export default function WalletPage() {
                       </div>
                       <div>
                         <div className="text-2xl font-bold text-purple-600">
-                          {formatCoins(transactions.filter(tx => tx.type === 'bonus').reduce((sum, tx) => sum + tx.amount, 0))}
+                          {formatCoins(transactions.filter(tx => tx.type === 'deposit' && tx.status === 'approved').reduce((sum, tx) => sum + tx.amount, 0))} coins
                         </div>
-                        <div className="text-sm text-gray-600">Tổng bonus</div>
+                        <div className="text-sm text-gray-600">Tổng tiền nạp</div>
                       </div>
                     </div>
                   </CardContent>
@@ -265,16 +292,16 @@ export default function WalletPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {recentTransactions.length > 0 ? (
+                  {transactions.length > 0 ? (
                     <div className="space-y-4">
-                      {recentTransactions.map((transaction) => (
+                      {transactions.map((transaction) => (
                         <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                           <div className="flex items-center space-x-4">
                             {getTransactionIcon(transaction.type)}
                             <div>
                               <div className="font-medium">{transaction.description}</div>
                               <div className="text-sm text-gray-600">
-                                {transaction.date.toLocaleDateString('vi-VN')} • {transaction.date.toLocaleTimeString('vi-VN')}
+                                {formatDateTimeUTC(transaction.created_at)}
                               </div>
                             </div>
                           </div>
@@ -283,8 +310,8 @@ export default function WalletPage() {
                               {transaction.amount > 0 ? '+' : ''}{formatCoins(Math.abs(transaction.amount))}
                             </div>
                             <Badge className={getStatusColor(transaction.status)}>
-                              {transaction.status === 'completed' ? 'Hoàn thành' :
-                                transaction.status === 'pending' ? 'Đang xử lý' : 'Thất bại'}
+                              {transaction.status === 'approved' ? 'Hoàn thành' :
+                                transaction.status === 'pending' ? 'Đang xử lý' : 'Từ chối'}
                             </Badge>
                           </div>
                         </div>
@@ -521,16 +548,16 @@ export default function WalletPage() {
                 <CardContent>
                   {transactions.length > 0 ? (
                     <div className="space-y-4">
-                      {getTransactionHistory().map((transaction) => (
+                      {transactions.map((transaction) => (
                         <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                           <div className="flex items-center space-x-4">
                             {getTransactionIcon(transaction.type)}
                             <div>
                               <div className="font-medium">{transaction.description}</div>
                               <div className="text-sm text-gray-600">
-                                {transaction.date.toLocaleDateString('vi-VN')} • {transaction.date.toLocaleTimeString('vi-VN')}
-                                {transaction.orderId && (
-                                  <span className="ml-2 text-blue-600">#{transaction.orderId}</span>
+                                {formatDateTimeUTC(transaction.created_at)}
+                                {transaction.transaction_id && (
+                                  <span className="ml-2 text-blue-600">#{transaction.transaction_id}</span>
                                 )}
                               </div>
                             </div>
@@ -540,8 +567,8 @@ export default function WalletPage() {
                               {transaction.amount > 0 ? '+' : ''}{formatCoins(Math.abs(transaction.amount))}
                             </div>
                             <Badge className={getStatusColor(transaction.status)}>
-                              {transaction.status === 'completed' ? 'Hoàn thành' :
-                                transaction.status === 'pending' ? 'Đang xử lý' : 'Thất bại'}
+                              {transaction.status === 'approved' ? 'Hoàn thành' :
+                                transaction.status === 'pending' ? 'Đang xử lý' : 'Từ chối'}
                             </Badge>
                           </div>
                         </div>

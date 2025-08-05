@@ -92,37 +92,37 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-20">
+      <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
         <div className="container-max section-padding">
           <div className="text-center text-white">
             <Badge className="bg-white/20 text-white border-white/30 mb-4">
               Về chúng tôi
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              5K Shop - Nơi mua tài khoản
-              <span className="block bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent">
+              QAI STORE - Nơi mua tài khoản
+              <span className="block bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
                 Premium uy tín nhất
               </span>
             </h1>
             <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8">
-              Với hơn 5 năm kinh nghiệm trong lĩnh vực cung cấp tài khoản premium, 
+              Với hơn 5 năm kinh nghiệm trong lĩnh vực cung cấp tài khoản premium,
               chúng tôi tự hào là đối tác tin cậy của hàng chục nghìn khách hàng trên toàn quốc.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
+              <Button
                 onClick={handleProductsClick}
-                size="lg" 
+                size="lg"
                 className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-4"
               >
                 Khám phá sản phẩm
               </Button>
-              <Button 
+              <Button
                 onClick={handleContactClick}
-                variant="outline" 
-                size="lg" 
-                className="border-white text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-4"
+                variant="outline"
+                size="lg"
+                className="border-white text-black hover:bg-white hover:text-blue-600 font-semibold px-8 py-4"
               >
                 Liên hệ ngay
               </Button>
@@ -161,16 +161,16 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-4 text-gray-600">
                 <p>
-                  Khởi đầu từ năm 2019, 5K Shop được thành lập với mục tiêu giúp người dùng Việt Nam 
+                  Khởi đầu từ năm 2019, 5K Shop được thành lập với mục tiêu giúp người dùng Việt Nam
                   có thể truy cập các dịch vụ premium với chi phí hợp lý nhất.
                 </p>
                 <p>
-                  Chúng tôi hiểu rằng không phải ai cũng có điều kiện trả phí đầy đủ cho các dịch vụ 
-                  như Netflix, Spotify, Adobe Creative Suite... Vì vậy, chúng tôi đã tìm ra giải pháp 
+                  Chúng tôi hiểu rằng không phải ai cũng có điều kiện trả phí đầy đủ cho các dịch vụ
+                  như Netflix, Spotify, Adobe Creative Suite... Vì vậy, chúng tôi đã tìm ra giải pháp
                   chia sẻ tài khoản hợp pháp và an toàn.
                 </p>
                 <p>
-                  Đến nay, với hơn 10,000 khách hàng tin tưởng và 50,000+ tài khoản đã bán thành công, 
+                  Đến nay, với hơn 10,000 khách hàng tin tưởng và 50,000+ tài khoản đã bán thành công,
                   5K Shop đã trở thành thương hiệu hàng đầu trong lĩnh vực này.
                 </p>
               </div>
@@ -185,12 +185,12 @@ export default function AboutPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="relative">
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
                 <h3 className="text-2xl font-bold mb-4">Tầm nhìn của chúng tôi</h3>
                 <p className="text-white/90 mb-6">
-                  Trở thành nền tảng số 1 Việt Nam trong việc cung cấp tài khoản premium, 
+                  Trở thành nền tảng số 1 Việt Nam trong việc cung cấp tài khoản premium,
                   mang đến trải nghiệm công nghệ tốt nhất với chi phí tối ưu.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
@@ -213,7 +213,7 @@ export default function AboutPage() {
       <section className="py-16 bg-white">
         <div className="container-max section-padding">
           <div className="text-center mb-12">
-            <Badge className="bg-blue-100 text-blue-600 mb-4">
+            <Badge className="bg-blue-100 text-blue-600 mb-4 hover:text-white">
               Tại sao chọn chúng tôi
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
@@ -245,7 +245,7 @@ export default function AboutPage() {
       <section className="py-16 bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="container-max section-padding">
           <div className="text-center mb-12">
-            <Badge className="bg-white text-blue-600 mb-4">
+            <Badge className="bg-white text-blue-600 mb-4 hover:text-white">
               Giá trị cốt lõi
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
@@ -275,18 +275,18 @@ export default function AboutPage() {
               Hãy để chúng tôi giúp bạn tiết kiệm chi phí và tận hưởng những dịch vụ premium tuyệt vời nhất
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
+              <Button
                 onClick={handleProductsClick}
-                size="lg" 
+                size="lg"
                 className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-4"
               >
                 Mua ngay
               </Button>
-              <Button 
+              <Button
                 onClick={handleContactClick}
-                variant="outline" 
-                size="lg" 
-                className="border-white text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-4"
+                variant="outline"
+                size="lg"
+                className="border-white text-violet-500 hover:bg-white hover:text-blue-600 font-semibold px-8 py-4"
               >
                 Tư vấn miễn phí
               </Button>

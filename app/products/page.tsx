@@ -166,7 +166,7 @@ function ProductsContent() {
       <Header />
 
       {/* Page Header */}
-      <section className="bg-gradient-hero py-20">
+      <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
         <div className="container-max section-padding">
           <div className="text-center text-white">
             <Badge className="bg-white/20 text-white border-white/30 mb-4 text-sm px-4 py-2">
@@ -174,7 +174,7 @@ function ProductsContent() {
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
               Tài khoản Premium
-              <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent">
+              <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
                 Chất lượng cao
               </span>
             </h1>

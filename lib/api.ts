@@ -127,23 +127,25 @@ export async function createOrder(orderData: any, sessionId: string): Promise<an
     return res.json(); // trả về { order_id, message }
 }
 
-export async function registerUser(data: {
-    name: string;
-    email: string;
-    password: string;
-}) {
+export async function registerUser(
+    name: string,
+    email: string,
+    password: string
+) {
     const res = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ name, email, password }),
     });
 
+    // Đọc dữ liệu response
+    const data = await res.json();
+
     if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Đăng ký thất bại');
+        throw new Error(data.message || 'Đăng ký thất bại');
     }
 
-    return res.json();
+    return data; // Trả data gốc cho hàm gọi xử lý tiếp
 }
 
 export async function loginUser(data: {
@@ -422,6 +424,23 @@ export const fetchAllTransactions = async (sessionId: string) => {
 
 export const fetchTransactionById = async (sessionId: string, transactionId: string) => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/wallet/transactions/${transactionId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to fetch transaction');
+    }
+
+    return res.json(); // Trả về thông tin giao dịch ví
+};
+
+export const fetchTransactionUserById = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/transactions`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${sessionId}`,

@@ -36,10 +36,10 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <Header />
-      
-      <main className="pt-20 pb-16">
+
+      <main className=" pb-16">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-brand-blue to-brand-purple text-white py-16">
+        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Liên Hệ Với Chúng Tôi
@@ -52,7 +52,7 @@ export default function ContactPage() {
 
         <div className="container mx-auto px-4 py-12">
           <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            
+
             {/* Contact Information */}
             <div className="space-y-8">
               <div>
@@ -74,7 +74,7 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">Số Điện Thoại</h3>
-                        <p className="text-brand-blue font-medium text-lg">0389660305</p>
+                        <p className="text-brand-blue font-medium text-lg">038.966.0305</p>
                         <p className="text-sm text-gray-500">Hỗ trợ 24/7</p>
                       </div>
                     </div>
@@ -90,7 +90,7 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">Zalo</h3>
-                        <p className="text-green-600 font-medium text-lg">0389660305</p>
+                        <p className="text-green-600 font-medium text-lg">038.966.0305</p>
                         <p className="text-sm text-gray-500">Chat trực tiếp nhanh chóng</p>
                       </div>
                     </div>
@@ -134,7 +134,7 @@ export default function ContactPage() {
             {/* Contact Form */}
             <div>
               <Card className="shadow-xl border-0 bg-white">
-                <CardHeader className="bg-gradient-to-r from-brand-blue to-brand-purple text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white rounded-t-lg">
                   <CardTitle className="text-2xl font-bold flex items-center">
                     <Send className="w-6 h-6 mr-2" />
                     Gửi Tin Nhắn Cho Chúng Tôi
@@ -195,7 +195,7 @@ export default function ContactPage() {
                     {/* Submit Button */}
                     <Button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-brand-blue to-brand-purple hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 text-lg"
+                      className="w-full bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white hover:from-blue-700 hover:to-purple-700 t font-semibold py-3 text-lg"
                     >
                       <Send className="w-5 h-5 mr-2" />
                       Gửi Tin Nhắn
@@ -204,7 +204,7 @@ export default function ContactPage() {
 
                   <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <p className="text-sm text-blue-800">
-                      <strong>Lưu ý:</strong> Để được hỗ trợ nhanh nhất, vui lòng liên hệ trực tiếp qua Zalo hoặc điện thoại. 
+                      <strong>Lưu ý:</strong> Để được hỗ trợ nhanh nhất, vui lòng liên hệ trực tiếp qua Zalo hoặc điện thoại.
                       Chúng tôi cam kết phản hồi email trong vòng 2-4 giờ.
                     </p>
                   </div>

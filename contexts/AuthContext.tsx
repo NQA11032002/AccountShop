@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { loginUser, logoutUser } from '@/lib/api';  // Import các hàm API từ api.ts
+import { loginUser, logoutUser, registerUser } from '@/lib/api';  // Import các hàm API từ api.ts
 
 interface User {
   id: string;
@@ -18,7 +18,7 @@ interface AuthContextType {
   user: User | null;
   sessionId: string | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, name: string) => Promise<boolean>;
+  register: (email: string, password: string, name: string) => Promise<{ success: boolean; status: number; message?: string }>;
   logout: () => void;
   setRole: (role: string) => void; // ✅ thêm dòng này
   setUser: (user: User | null) => void;
@@ -108,19 +108,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string, name: string): Promise<boolean> => {
+  const register = async (
+    email: string,
+    password: string,
+    name: string
+  ): Promise<{ success: boolean; status: number; message?: string }> => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
-      });
+      const data = await registerUser(name, email, password);
 
-      if (!res.ok) return false;
-
-      const data = await res.json();
-
+      // Xử lý lưu user (nếu cần)
       const userData: User = {
         id: data.user.id,
         email: data.user.email,
@@ -129,17 +126,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         joinDate: data.user.join_date,
         coins: data.user.coins,
         phone: data.user.phone,
-        role: data.user.role || 'user',  // Đảm bảo role có giá trị hợp lệ
+        role: data.user.role || 'user',
       };
 
       setUser(userData);
-      setRole(userData.role); // Set role từ dữ liệu đăng ký
+      setRole(userData.role);
       localStorage.setItem('qai_user', JSON.stringify(userData));
 
-      return true;
-    } catch (error) {
-      console.error("❌ Registration error:", error);
-      return false;
+      return {
+        success: true,
+        status: 200,
+        message: 'Đăng ký thành công',
+      };
+    } catch (error: any) {
+      // Nếu registerUser throw error => error.message
+      return {
+        success: false,
+        status: 400, // hoặc lấy thêm status từ error nếu muốn
+        message: 'Email đã tồn tại vui lòng đổi email khác!',
+      };
     } finally {
       setIsLoading(false);
     }

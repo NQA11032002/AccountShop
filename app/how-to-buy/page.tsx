@@ -27,21 +27,19 @@ export default function HowToBuyPage() {
       description: 'Chọn phương thức thanh toán phù hợp và hoàn tất giao dịch',
       icon: CreditCard,
       details: [
-        'Momo - Chuyển khoản nhanh',
+        'Nạp coin vào tài khoản',
         'Banking - Chuyển khoản ngân hàng',
-        'Thẻ cào điện thoại',
-        'Ví điện tử khác'
       ]
     },
     {
       step: 3,
       title: 'Nhận tài khoản',
-      description: 'Nhận thông tin đăng nhập qua email hoặc Telegram trong 1-5 phút',
+      description: 'Nhận thông tin đăng nhập qua Email, Telegram, Zalo, Facebook trong 5 phút - 5 tiếng',
       icon: Download,
       details: [
         'Giao hàng tự động 24/7',
         'Thông tin được gửi qua email',
-        'Backup qua Telegram/Zalo',
+        'Liên hệ qua Telegram-Zalo-Facebook',
         'Hướng dẫn sử dụng chi tiết'
       ]
     },
@@ -51,10 +49,10 @@ export default function HowToBuyPage() {
       description: 'Nhận hỗ trợ kỹ thuật và bảo hành trong suốt thời gian sử dụng',
       icon: MessageCircle,
       details: [
-        'Hỗ trợ 24/7 qua Telegram',
-        'Zalo: 0123.456.789',
+        'Hỗ trợ 24/7 qua Zalo - Facebook - Telegram',
+        'Zalo: 038.966.0305',
         'Đổi tài khoản nếu có lỗi',
-        'Bảo hành theo gói mua'
+        'Bảo hành thời hạn theo gói mua'
       ]
     }
   ];
@@ -85,16 +83,16 @@ export default function HowToBuyPage() {
 
   const guarantees = [
     { icon: Shield, title: 'Bảo hành tài khoản', desc: 'Đổi tài khoản mới nếu có lỗi' },
-    { icon: Clock, title: 'Giao hàng tức thì', desc: 'Nhận tài khoản trong 1-5 phút' },
+    { icon: Clock, title: 'Giao hàng tức thì', desc: 'Nhận tài khoản trong 5 phút - 5 tiếng' },
     { icon: MessageCircle, title: 'Hỗ trợ 24/7', desc: 'Đội ngũ hỗ trợ luôn sẵn sàng' }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       {/* Hero Section */}
-      <section className="bg-gradient-hero py-20">
+      <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
         <div className="container-max section-padding">
           <div className="text-center text-white">
             <Badge className="bg-white/20 text-white border-white/30 mb-4">
@@ -102,7 +100,7 @@ export default function HowToBuyPage() {
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Cách mua tài khoản
-              <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text">
+              <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text p-1">
                 Đơn giản & Nhanh chóng
               </span>
             </h1>
@@ -130,7 +128,7 @@ export default function HowToBuyPage() {
                       <p className="text-gray-600">{stepItem.description}</p>
                     </div>
                   </div>
-                  
+
                   <ul className="space-y-3">
                     {stepItem.details.map((detail, idx) => (
                       <li key={idx} className="flex items-center space-x-3">
@@ -237,15 +235,15 @@ export default function HowToBuyPage() {
             Hàng nghìn tài khoản premium đang chờ bạn khám phá với giá tốt nhất thị trường
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
+            <Button
               className="btn-primary px-8 py-4 text-lg"
               onClick={() => window.location.href = '/products'}
             >
               Xem sản phẩm
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white px-8 py-4 text-lg"
               onClick={() => window.location.href = '/#contact'}
             >

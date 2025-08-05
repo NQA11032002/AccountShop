@@ -21,17 +21,15 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { register } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
-  console.log("RegisterPage rendered", { name, email: email ? "provided" : "empty" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Register form submitted", { name, email });
-    
+
     // Validation
     if (!name || !email || !password || !confirmPassword) {
       toast({
@@ -70,22 +68,32 @@ export default function RegisterPage() {
     }
 
     setIsLoading(true);
-    const success = await register(email, password, name);
-    
-    if (success) {
+    try {
+      const result = await register(email, password, name);
+
+      if (result.success) {
+        toast({
+          title: "🎉 Đăng ký thành công!",
+          description: result.message,
+        });
+        router.push('/');
+      } else {
+        toast({
+          title: "❌ Đăng ký thất bại",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
       toast({
-        title: "Đăng ký thành công!",
-        description: "Tài khoản của bạn đã được tạo và đăng nhập tự động.",
-      });
-      router.push('/');
-    } else {
-      toast({
-        title: "Đăng ký thất bại",
-        description: "Email này đã được sử dụng. Vui lòng thử email khác.",
+        title: "Lỗi không xác định",
+        description: "Vui lòng thử lại sau.",
         variant: "destructive",
       });
     }
-    
+
+
+
     setIsLoading(false);
   };
 
@@ -109,7 +117,7 @@ export default function RegisterPage() {
               Điền thông tin để tạo tài khoản QAI STORE
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Field */}
@@ -204,7 +212,7 @@ export default function RegisterPage() {
 
               {/* Terms Checkbox */}
               <div className="flex items-start space-x-2">
-                <Checkbox 
+                <Checkbox
                   id="terms"
                   checked={acceptTerms}
                   onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
@@ -246,8 +254,8 @@ export default function RegisterPage() {
             <div className="mt-6 text-center">
               <p className="text-gray-600">
                 Đã có tài khoản?{' '}
-                <Link 
-                  href="/login" 
+                <Link
+                  href="/login"
                   className="text-brand-emerald hover:text-brand-blue font-medium transition-colors"
                 >
                   Đăng nhập ngay
@@ -259,8 +267,8 @@ export default function RegisterPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="text-gray-600 hover:text-brand-emerald transition-colors text-sm"
           >
             ← Quay về trang chủ
