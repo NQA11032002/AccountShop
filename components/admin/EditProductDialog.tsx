@@ -79,11 +79,8 @@ export function EditProductDialog({ product, open, onOpenChange, onSave }: EditP
 
       const loadCategories = async () => {
         try {
-          if (!sessionId) throw new Error('Missing session');
-          else {
-            const result = await fetchCategories();
-            setCategories(result.data);
-          }
+          const result = await fetchCategories();
+          setCategories(result.data);
         } catch (error) {
           console.error('Lỗi khi tải danh mục:', error);
         }

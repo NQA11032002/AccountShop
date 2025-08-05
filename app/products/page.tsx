@@ -37,19 +37,15 @@ function ProductsContent() {
   // Fetch data
   useEffect(() => {
     async function loadCategories() {
-      const sessionId = localStorage.getItem('qai_session');
-      if (sessionId) {
-        try {
-          const data = await fetchCategories();
+      try {
+        const data = await fetchCategories();
 
-          setCategories(data.data);
-        } catch (err) {
-          console.error('Failed to load categories', err);
-        } finally {
-          setLoadingCategories(false);
-        }
+        setCategories(data.data);
+      } catch (err) {
+        console.error('Failed to load categories', err);
+      } finally {
+        setLoadingCategories(false);
       }
-
     }
 
     loadCategories();
