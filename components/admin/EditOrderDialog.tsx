@@ -40,8 +40,6 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
     }
   );
 
-  console.log("EditOrderDialog rendered", { orderId: order?.id, open });
-
   // Reset form data when order prop changes or dialog opens
   useEffect(() => {
     if (open) {
@@ -57,12 +55,10 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
           createdAt: new Date().toISOString()
         }
       );
-      console.log("Form data reset for order", order?.id);
     }
   }, [order, open]);
 
   const handleSave = () => {
-    console.log("Saving order", formData);
     onSave(formData);
     onOpenChange(false);
   };
@@ -90,14 +86,14 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800'
     };
-    
+
     const labels: { [key: string]: string } = {
       pending: 'Chờ xử lý',
       processing: 'Đang xử lý',
       completed: 'Hoàn thành',
       cancelled: 'Đã hủy'
     };
-    
+
     return (
       <Badge className={variants[status] || 'bg-gray-100 text-gray-800'}>
         {labels[status] || status}
@@ -116,7 +112,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
             {order ? `Cập nhật thông tin đơn hàng #${order.id}` : 'Nhập thông tin để tạo đơn hàng mới'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-4">
           {/* Order ID */}
           <div className="grid grid-cols-4 items-center gap-4">
@@ -124,7 +120,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
             <Input
               id="orderId"
               value={formData.id}
-              onChange={(e) => setFormData({...formData, id: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, id: e.target.value })}
               className="col-span-3"
               placeholder="ORD-123456"
               disabled={!!order}
@@ -138,7 +134,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
               id="userEmail"
               type="email"
               value={formData.userEmail}
-              onChange={(e) => setFormData({...formData, userEmail: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, userEmail: e.target.value })}
               className="col-span-3"
               placeholder="customer@example.com"
             />
@@ -147,9 +143,9 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
           {/* Payment Method */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Phương thức thanh toán</Label>
-            <Select 
-              value={formData.paymentMethod} 
-              onValueChange={(value) => setFormData({...formData, paymentMethod: value})}
+            <Select
+              value={formData.paymentMethod}
+              onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
             >
               <SelectTrigger className="col-span-3">
                 <SelectValue />
@@ -168,10 +164,10 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Trạng thái</Label>
             <div className="col-span-3 flex items-center space-x-2">
-              <Select 
-                value={formData.status} 
-                onValueChange={(value: 'pending' | 'processing' | 'completed' | 'cancelled') => 
-                  setFormData({...formData, status: value})
+              <Select
+                value={formData.status}
+                onValueChange={(value: 'pending' | 'processing' | 'completed' | 'cancelled') =>
+                  setFormData({ ...formData, status: value })
                 }
               >
                 <SelectTrigger className="flex-1">
@@ -195,7 +191,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
               id="total"
               type="number"
               value={formData.total}
-              onChange={(e) => setFormData({...formData, total: parseInt(e.target.value) || 0})}
+              onChange={(e) => setFormData({ ...formData, total: parseInt(e.target.value) || 0 })}
               className="col-span-3"
               placeholder="89000"
             />

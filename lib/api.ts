@@ -607,5 +607,26 @@ export const fetchCategories = async () => {
         throw new Error(error.message || 'Failed to fetch categories');
     }
 
-    return res.json(); // API Laravel trả về mảng Category[]
+    return res.json();
+};
+
+export const getOnetimeCode = async (emailAccount: string, emailUser: string) => {
+    const query = new URLSearchParams({
+        emailAccount,
+        emailUser
+    }).toString();
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/otp/get?${query}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch onetimecode');
+    }
+
+    return res.json();
 };

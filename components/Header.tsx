@@ -90,6 +90,7 @@ export default function Header() {
     { name: 'Tin tức công nghệ', href: '/news' },
     { name: 'Liên hệ', href: '/contact' },
     { name: 'Prompt GPT', href: '/prompt' },
+    { name: 'Lấy Code', href: '/onetimecode' },
   ];
 
   const productCategories = [
