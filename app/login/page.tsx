@@ -17,15 +17,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, role } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
-  // console.log("LoginPage rendered", { email: email ? "provided" : "empty" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // console.log("Login form submitted", { email });
 
     if (!email || !password) {
       toast({
@@ -44,7 +42,8 @@ export default function LoginPage() {
         title: "Đăng nhập thành công!",
         description: "Chào mừng bạn quay trở lại QAI STORE.",
       });
-      router.push('/');
+
+
     } else {
       toast({
         title: "Đăng nhập thất bại",

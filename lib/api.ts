@@ -457,7 +457,7 @@ export const fetchTransactionUserById = async (sessionId: string) => {
 };
 
 export const createTransaction = async (sessionId: string, transactionData: any) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/wallet/transactions`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/transactions`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${sessionId}`,
@@ -629,4 +629,57 @@ export const getOnetimeCode = async (emailAccount: string, emailUser: string) =>
     }
 
     return res.json();
+};
+
+
+export const checkRole = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/check-role`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ session_id: sessionId }),
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch role');
+    }
+
+    return res.json(); // trả về { role, is_admin, ... }
+};
+
+export const getUserCoins = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/coins`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch user coins');
+    }
+
+    return res.json(); // trả về { coins: number }
+};
+
+export const checkDepositStatus = async (orderId: string, sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/check-deposit-status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify({ order_id: orderId }),
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to check deposit status');
+    }
+
+    return res.json(); // trả về { status, coins, updated_at }
 };

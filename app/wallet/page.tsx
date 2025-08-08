@@ -47,32 +47,25 @@ export default function WalletPage() {
 
 
   useEffect(() => {
-    const sessionId = localStorage.getItem('qai_session') || '';
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await fetchTransactionUserById(sessionId);
-        setTransactions(data.data);
-      } catch (err: any) {
-        setError(err.message || 'Có lỗi xảy ra khi tải giao dịch');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    setLoading(true);
+    setError(null);
+    try {
+      getTransactions();
+    } catch (err: any) {
+      setError(err.message || 'Có lỗi xảy ra khi tải giao dịch');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) return <div>Đang tải...</div>;
+  async function getTransactions() {
+    const sessionId = localStorage.getItem('qai_session') || '';
 
-  // // Auto-sync when history tab is active
-  // React.useEffect(() => {
-  //   if (activeTab === 'history' && user) {
-  //     console.log("🔄 Auto-syncing deposits for history tab");
-  //     syncDepositStatus();
-  //     refreshTransactions();
-  //   }
-  // }, [activeTab, user]);
+    const data = await fetchTransactionUserById(sessionId);
+    setTransactions(data.data);
+  }
+
+  if (loading) return <div>Đang tải...</div>;
 
   if (!user) {
     return (
@@ -125,8 +118,6 @@ export default function WalletPage() {
       return;
     }
 
-    console.log("Deposit order created successfully", { orderId: orderResult.orderId });
-
     // Store the orderId and show deposit modal with QR code
     setCurrentOrderId(orderResult.orderId);
     setShowDepositModal(true);
@@ -156,7 +147,7 @@ export default function WalletPage() {
     }
   };
 
-  const recentTransactions = getTransactionHistory().slice(0, 5);
+  const recentTransactions = transactions.slice(0, 5);
   const selectedDepositMethod = depositMethods.find(m => m.id === selectedMethod);
 
   return (
@@ -292,9 +283,9 @@ export default function WalletPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {transactions.length > 0 ? (
+                  {recentTransactions.length > 0 ? (
                     <div className="space-y-4">
-                      {transactions.map((transaction) => (
+                      {recentTransactions.map((transaction) => (
                         <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                           <div className="flex items-center space-x-4">
                             {getTransactionIcon(transaction.type)}
@@ -530,8 +521,7 @@ export default function WalletPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        console.log("🔄 Manual refresh triggered");
-                        refreshTransactions();
+                        getTransactions();
                         syncDepositStatus();
                         toast({
                           title: "🔄 Đồng bộ thành công",
@@ -541,7 +531,7 @@ export default function WalletPage() {
                       className="flex items-center space-x-2"
                     >
                       <RefreshCw className="w-4 h-4" />
-                      <span>Đồng bộ</span>
+                      <span>Làm mới</span>
                     </Button>
                   </CardTitle>
                 </CardHeader>

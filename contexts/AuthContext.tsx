@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { loginUser, logoutUser, registerUser } from '@/lib/api';  // Import các hàm API từ api.ts
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: string;
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionId, setSessionId] = useState<string | null>(null); // Khởi tạo sessionId là null hoặc giá trị hợp lệ
   const [isLoading, setIsLoading] = useState(true);
   const [role, setRole] = useState<string>('user');  // Khởi tạo role với giá trị mặc định 'user'
+  const router = useRouter();
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -88,17 +90,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         joinDate: res.user.join_date,
         coins: res.user.coins,
         phone: res.user.phone,
-        role: res.user.role || 'user',
+        role: res.user.role,
       };
 
       setRole(userData.role);
-
       setUser(userData);
       setSessionId(res.session_id);
 
       localStorage.setItem('qai_user', JSON.stringify(userData));
-
       localStorage.setItem('qai_session', res.session_id);
+
+      if (res.user.role == 'admin')
+        router.push('/admin');
+      else
+        router.push('/');
 
       return true;
     } catch (error) {

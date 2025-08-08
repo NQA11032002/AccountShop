@@ -23,13 +23,13 @@ export default function AdminLoginPage() {
   const router = useRouter();
 
   // Redirect if already logged in
-  useEffect(() => {
-    if (!sessionId || role !== 'admin') {  // Nếu không có session hoặc không phải admin, chuyển hướng đến login
-      router.push('/admin/login');
-    } else if (sessionId && role === 'admin') {
-      router.push('/admin');  // Nếu đã login và có role là admin, chuyển hướng đến trang admin
-    }
-  }, [role, sessionId, router]); // Cập nhật thêm sessionId vào dependencies
+  // useEffect(() => {
+  //   if (!sessionId && role !== 'admin') {  // Nếu không có session hoặc không phải admin, chuyển hướng đến login
+  //     router.push('/admin/login');
+  //   } else if (sessionId && role === 'admin') {
+  //     router.push('/admin');  // Nếu đã login và có role là admin, chuyển hướng đến trang admin
+  //   }
+  // }, [role, sessionId, router]); // Cập nhật thêm sessionId vào dependencies
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,7 +50,6 @@ export default function AdminLoginPage() {
 
     if (success) {
       if (role === 'admin') {
-        router.push('/admin');
         toast({
           title: "Đăng nhập thành công!",
           description: "Chào mừng bạn đến với Admin Panel.",

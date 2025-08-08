@@ -116,7 +116,7 @@ import {
   CustomerRankDisplay,
 } from '@/components/CustomerRankingSystem';
 import { User } from '@/types/user.interface';
-import { fetchAdminUsers, getProductsAdmin, deleteProduct } from '@/lib/api';
+import { fetchAdminUsers, getProductsAdmin, deleteProduct, checkRole } from '@/lib/api';
 import { Product } from '@/types/product.interface';
 
 // interface User {
@@ -190,6 +190,8 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customerAccounts, setCustomerAccounts] = useState<CustomerAccount[]>([]);
   const [userWallets, setUserWallets] = useState<any[]>([]);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isCheckingRole, setIsCheckingRole] = useState(true); // để kiểm tra loading
 
   // Dialog states
   const [editUserDialog, setEditUserDialog] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
@@ -335,28 +337,30 @@ QAI Store - Tài khoản premium uy tín #1
     setRevenueComparisonData(generateRevenueComparisonData());
   }, [orders, users, products]);
 
-  // Redirect if not logged in
   useEffect(() => {
-    if (!user || role !== 'admin') {
-      // router.push('/admin/login');
-      return;
-    }
-  }, [user, router]);
+    const fetchRoleAndRedirect = async () => {
+      if (!sessionId) {
+        return;
+      }
 
-  // Load data
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+      try {
+        const roleData = await checkRole(sessionId);
 
-  // Auto-refresh data from JSON API every 30 seconds
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      console.log('🔄 Auto-refreshing admin data from JSON API');
-      await loadDashboardData(true); // Force API refresh
-    }, 30000);
+        if (roleData.role !== 'admin') {
+          router.push('/admin/login');
+        } else {
+          setIsAuthorized(true);
+          loadDashboardData();
+        }
+      } catch (error) {
+        router.push('/admin/login');
+      } finally {
+        setIsCheckingRole(false); // kết thúc check
+      }
+    };
 
-    return () => clearInterval(intervalId);
-  }, []);
+    fetchRoleAndRedirect();
+  }, [sessionId, router]);
 
   // Subscribe to data synchronization changes
   useEffect(() => {
@@ -463,19 +467,18 @@ QAI Store - Tài khoản premium uy tín #1
     };
   }, []);
 
-  useEffect(() => {
-    if (isLoading) return; // Nếu đang loading thì không làm gì
+  // useEffect(() => {
+  //   if (isLoading) return; // Nếu đang loading thì không làm gì
 
-    // Nếu không có sessionId, redirect về trang đăng nhập
-    if (!sessionId) {
-      console.error("Session ID is missing.");
-      router.push('/admin/login'); // Điều hướng về trang đăng nhập
-      return;
-    }
+  //   // Nếu không có sessionId, redirect về trang đăng nhập
+  //   if (!sessionId && role != 'admin') {
+  //     router.push('/admin/login'); // Điều hướng về trang đăng nhập
+  //     return;
+  //   }
 
-    // Khi có sessionId, tiếp tục gọi API
-    loadDashboardData();
-  }, [sessionId, isLoading]); // Hook này sẽ được gọi lại mỗi khi sessionId thay đổi
+  //   // Khi có sessionId, tiếp tục gọi API
+  //   loadDashboardData();
+  // }, [sessionId, isLoading]); // Hook này sẽ được gọi lại mỗi khi sessionId thay đổi
 
 
   const loadDashboardData = async (forceAPI = false) => {
@@ -492,7 +495,6 @@ QAI Store - Tài khoản premium uy tín #1
           const usersWithStats = syncedUsers.data.map((user: any) => {
             // Find user's wallet data
             // const userWallet = syncedWallets.find((wallet: any) => wallet.userId === user.id);
-            console.log("Loaded users", user);
             return {
               ...user,
               status: user.status || 'active',
@@ -514,25 +516,21 @@ QAI Store - Tài khoản premium uy tín #1
 
         if (ordersResult.success && ordersResult.data.length > 0) {
           setOrders(ordersResult.data);
-          console.log("✅ Orders loaded from enhanced API", { count: ordersResult.data.length });
         } else {
           // Fallback to legacy data API
           const syncedOrders = await DataSyncHelper.loadAdminData('orders', forceAPI);
           if (syncedOrders.length > 0) {
             setOrders(syncedOrders);
-            console.log("🔄 Orders loaded from legacy API", { count: syncedOrders.length });
           } else {
             const storedOrders = localStorage.getItem('qai_orders');
             if (storedOrders) {
               const orders = JSON.parse(storedOrders);
               setOrders(orders);
               await DataSyncHelper.syncAdminData('orders', orders);
-              console.log("💾 Orders loaded from localStorage", { count: orders.length });
             }
           }
         }
       } catch (ordersApiError) {
-        console.warn("⚠️ Enhanced Orders API failed, using fallback:", ordersApiError);
         // Fallback to legacy API
         const syncedOrders = await DataSyncHelper.loadAdminData('orders', forceAPI);
         if (syncedOrders.length > 0) {
@@ -555,8 +553,6 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const loadCustomerAccounts = async (forceAPI = false) => {
-    console.log("Loading customer accounts with JSON API sync", { forceAPI });
-
     try {
       // Load from JSON API first
       const syncedAccounts = await DataSyncHelper.loadAdminData('accounts', forceAPI);
@@ -705,12 +701,10 @@ QAI Store - Tài khoản premium uy tín #1
 
   // CRUD Operations
   const handleEditUser = (user: User | null) => {
-    console.log("Edit user clicked", { userId: user?.id });
     setEditUserDialog({ open: true, user });
   };
 
   const handleSaveUser = (userData: User) => {
-    // console.log("Saving user with sync", userData);
     let updatedUsers: User[];
 
     if (editUserDialog.user) {
@@ -725,7 +719,7 @@ QAI Store - Tài khoản premium uy tín #1
         const updatedLegacyUsers = legacyUsers.map((u: any) =>
           u.id === userData.id ? { ...u, ...userData } : u
         );
-        localStorage.setItem('qai_users', JSON.stringify(updatedLegacyUsers));
+        // localStorage.setItem('qai_users', JSON.stringify(updatedLegacyUsers));
       }
 
       toast({
@@ -751,7 +745,7 @@ QAI Store - Tài khoản premium uy tín #1
         password: 'default123', // Default password
         joinDate: new Date().toISOString()
       });
-      localStorage.setItem('qai_users', JSON.stringify(legacyUsers));
+      // localStorage.setItem('qai_users', JSON.stringify(legacyUsers));
     }
 
     // Sync changes across all admin tabs
@@ -834,7 +828,6 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const handleDeleteProduct = (product: Product) => {
-    console.log("Delete product clicked", { productId: product.id });
 
     setDeleteDialog({
       open: true,
@@ -1729,6 +1722,14 @@ QAI Store - Tài khoản premium uy tín #1
 
   if (!user) {
     return null; // Will redirect in useEffect
+  }
+
+  if (isCheckingRole) {
+    return <div className="p-4 text-center text-gray-500">Đang kiểm tra quyền truy cập...</div>;
+  }
+
+  if (!isAuthorized) {
+    return null; // Không render gì nếu chưa được cấp quyền
   }
 
   return (

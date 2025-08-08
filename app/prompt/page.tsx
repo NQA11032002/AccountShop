@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { BookOpen, MessageCircle, Sparkles, Copy, ChevronRight, Zap, Target, Lightbulb, Globe, Brain, Cpu, Bot, Filter } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function Prompt() {
     const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
@@ -242,323 +244,314 @@ export default function Prompt() {
         : vietnamesePrompts.filter(cat => cat.id === selectedCategory);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-            {/* Enhanced animated background */}
-            <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.15),transparent)] animate-pulse"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.15),transparent)] animate-pulse delay-700"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,rgba(119,198,255,0.15),transparent)] animate-pulse delay-1000"></div>
-            </div>
+        <div className="min-h-screen bg-gray-50">
+            <Header />
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+                {/* Enhanced animated background */}
+                <div className="absolute inset-0">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.15),transparent)] animate-pulse"></div>
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.15),transparent)] animate-pulse delay-700"></div>
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,rgba(119,198,255,0.15),transparent)] animate-pulse delay-1000"></div>
+                </div>
 
-            {/* Floating AI particles */}
-            <div className="absolute top-10 left-10 w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
-            <div className="absolute top-20 right-20 w-1 h-1 bg-purple-400 rounded-full animate-ping delay-500"></div>
-            <div className="absolute bottom-20 left-20 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping delay-1000"></div>
-            <div className="absolute bottom-10 right-10 w-1 h-1 bg-cyan-400 rounded-full animate-ping delay-1500"></div>
+                {/* Floating AI particles */}
+                <div className="absolute top-10 left-10 w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
+                <div className="absolute top-20 right-20 w-1 h-1 bg-purple-400 rounded-full animate-ping delay-500"></div>
+                <div className="absolute bottom-20 left-20 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping delay-1000"></div>
+                <div className="absolute bottom-10 right-10 w-1 h-1 bg-cyan-400 rounded-full animate-ping delay-1500"></div>
 
-            <div className="container mx-auto px-4 py-6 relative z-10">
-                {/* Compact Header */}
-                <header className="text-center mb-12">
-                    <div className="relative mb-6">
-                        <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-                            <img
-                                src="https://images.pexels.com/photos/17483868/pexels-photo-17483868.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
-                                alt="AI Brain Visualization"
-                                className="w-full h-48 object-cover"
-                                data-macaly="hero-image"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-purple-600/90 to-pink-600/90 flex items-center justify-center">
-                                <div className="text-center text-white">
-                                    <div className="flex items-center justify-center mb-3">
-                                        <Brain className="w-8 h-8 mr-2 text-blue-200" />
-                                        <h1 className="text-4xl font-extralight tracking-wide" data-macaly="hero-title">
-                                            AI Chat Master
-                                        </h1>
-                                    </div>
-                                    <p className="text-lg font-light opacity-90 max-w-2xl mx-auto" data-macaly="hero-subtitle">
-                                        Khám phá nghệ thuật giao tiếp với AI và bộ sưu tập 100+ prompt tiếng Việt
-                                    </p>
-                                </div>
-                            </div>
+                <div className="container mx-auto px-4 py-6 relative z-10">
+                    {/* Compact Header */}
+                    <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
+                        <div className="container mx-auto px-4 text-center">
+                            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                                Câu Lệnh (Prompt) AI
+                            </h1>
+                            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+                                Khám phá nghệ thuật giao tiếp với AI và bộ sưu tập 100+ prompt tiếng Việt
+                            </p>
                         </div>
-                    </div>
-
-                    <div className="flex justify-center gap-3 mb-6">
-                        <Badge variant="secondary" className="text-xs bg-white/10 text-white border-white/20 backdrop-blur-sm">
-                            <Bot className="w-3 h-3 mr-1" />
-                            AI Conversations
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs bg-white/10 text-white border-white/20 backdrop-blur-sm">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Prompt Engineering
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs bg-white/10 text-white border-white/20 backdrop-blur-sm">
-                            <Globe className="w-3 h-3 mr-1" />
-                            100+ Templates
-                        </Badge>
-                    </div>
-                </header>
-
-                {/* Main Content */}
-                <Tabs defaultValue="prompts" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/10 backdrop-blur-sm border-white/20">
-                        <TabsTrigger value="guide" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                            <BookOpen className="w-4 h-4 mr-2" />
-                            Guide
-                        </TabsTrigger>
-                        <TabsTrigger value="prompts" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            English
-                        </TabsTrigger>
-                        <TabsTrigger value="vietnamese" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                            <Globe className="w-4 h-4 mr-2" />
-                            Tiếng Việt
-                        </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="guide" className="space-y-6">
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <Card className="bg-white/5 backdrop-blur-sm border-white/10 text-white hover:bg-white/10 transition-all duration-300">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                        <Target className="w-5 h-5 text-blue-400" />
-                                        Getting Started
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-3 text-sm">
-                                    <div>
-                                        <h4 className="font-medium mb-1">1. Be Clear and Specific</h4>
-                                        <p className="text-gray-300 text-xs">Use explicit instructions separated by ### or """ for clarity.</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-medium mb-1">2. Specify Output Format</h4>
-                                        <p className="text-gray-300 text-xs">Define desired length, format, and style clearly.</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-medium mb-1">3. Use Latest Models</h4>
-                                        <p className="text-gray-300 text-xs">Leverage GPT-4+ for improved accuracy.</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="bg-white/5 backdrop-blur-sm border-white/10 text-white hover:bg-white/10 transition-all duration-300">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                        <Lightbulb className="w-5 h-5 text-emerald-400" />
-                                        Advanced Tips
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-3 text-sm">
-                                    <div>
-                                        <h4 className="font-medium mb-1">Dynamic Prompting</h4>
-                                        <p className="text-gray-300 text-xs">Adjust follow-ups based on responses.</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-medium mb-1">Recursive Prompting</h4>
-                                        <p className="text-gray-300 text-xs">Build on previous outputs systematically.</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-medium mb-1">Reference Integration</h4>
-                                        <p className="text-gray-300 text-xs">Provide source material to reduce errors.</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                    </section>
+                    <header className="text-center mb-12 mt-4">
+                        <div className="flex justify-center gap-3 mb-6">
+                            <Badge variant="secondary" className="text-xs bg-white/10 text-white border-white/20 backdrop-blur-sm">
+                                <Bot className="w-3 h-3 mr-1" />
+                                AI Conversations
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs bg-white/10 text-white border-white/20 backdrop-blur-sm">
+                                <Sparkles className="w-3 h-3 mr-1" />
+                                Prompt Engineering
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs bg-white/10 text-white border-white/20 backdrop-blur-sm">
+                                <Globe className="w-3 h-3 mr-1" />
+                                100+ Templates
+                            </Badge>
                         </div>
+                    </header>
 
-                        <div className="grid gap-4 md:grid-cols-2">
-                            {techniques.map((technique, index) => (
-                                <Card key={index} className="bg-white/5 backdrop-blur-sm border-white/10 text-white hover:bg-white/10 transition-all duration-300">
-                                    <CardHeader className="pb-2">
-                                        <CardTitle className="flex items-center gap-2 text-base">
-                                            {technique.icon}
-                                            {technique.title}
+                    {/* Main Content */}
+                    <Tabs defaultValue="prompts" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/10 backdrop-blur-sm border-white/20">
+                            <TabsTrigger value="guide" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                                <BookOpen className="w-4 h-4 mr-2" />
+                                Guide
+                            </TabsTrigger>
+                            <TabsTrigger value="prompts" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                English
+                            </TabsTrigger>
+                            <TabsTrigger value="vietnamese" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                                <Globe className="w-4 h-4 mr-2" />
+                                Tiếng Việt
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="guide" className="space-y-6">
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <Card className="bg-white/5 backdrop-blur-sm border-white/10 text-white hover:bg-white/10 transition-all duration-300">
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                            <Target className="w-5 h-5 text-blue-400" />
+                                            Getting Started
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent>
-                                        <div className="bg-black/20 p-3 rounded-lg backdrop-blur-sm">
-                                            <p className="text-xs text-gray-300 mb-2 line-clamp-2">"{technique.example}"</p>
+                                    <CardContent className="space-y-3 text-sm">
+                                        <div>
+                                            <h4 className="font-medium mb-1">1. Be Clear and Specific</h4>
+                                            <p className="text-gray-300 text-xs">Use explicit instructions separated by ### or """ for clarity.</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium mb-1">2. Specify Output Format</h4>
+                                            <p className="text-gray-300 text-xs">Define desired length, format, and style clearly.</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium mb-1">3. Use Latest Models</h4>
+                                            <p className="text-gray-300 text-xs">Leverage GPT-4+ for improved accuracy.</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="bg-white/5 backdrop-blur-sm border-white/10 text-white hover:bg-white/10 transition-all duration-300">
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                            <Lightbulb className="w-5 h-5 text-emerald-400" />
+                                            Advanced Tips
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3 text-sm">
+                                        <div>
+                                            <h4 className="font-medium mb-1">Dynamic Prompting</h4>
+                                            <p className="text-gray-300 text-xs">Adjust follow-ups based on responses.</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium mb-1">Recursive Prompting</h4>
+                                            <p className="text-gray-300 text-xs">Build on previous outputs systematically.</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium mb-1">Reference Integration</h4>
+                                            <p className="text-gray-300 text-xs">Provide source material to reduce errors.</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {techniques.map((technique, index) => (
+                                    <Card key={index} className="bg-white/5 backdrop-blur-sm border-white/10 text-white hover:bg-white/10 transition-all duration-300">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="flex items-center gap-2 text-base">
+                                                {technique.icon}
+                                                {technique.title}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="bg-black/20 p-3 rounded-lg backdrop-blur-sm">
+                                                <p className="text-xs text-gray-300 mb-2 line-clamp-2">"{technique.example}"</p>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs h-7"
+                                                    onClick={() => copyPrompt(technique.example)}
+                                                >
+                                                    <Copy className="w-3 h-3 mr-1" />
+                                                    {copiedPrompt === technique.example ? "Copied!" : "Copy"}
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="prompts" className="space-y-6">
+                            {/* Category Filter */}
+                            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="flex items-center gap-2 text-white text-lg">
+                                        <Filter className="w-5 h-5" />
+                                        Filter by Category
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button
+                                            variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                                            size="sm"
+                                            className={selectedCategory === 'all'
+                                                ? 'bg-white/20 text-white border-white/20'
+                                                : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
+                                            }
+                                            onClick={() => setSelectedCategory('all')}
+                                        >
+                                            All Categories
+                                        </Button>
+                                        {promptCategories.map((category) => (
                                             <Button
-                                                variant="outline"
+                                                key={category.id}
+                                                variant={selectedCategory === category.id ? 'default' : 'outline'}
                                                 size="sm"
-                                                className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs h-7"
-                                                onClick={() => copyPrompt(technique.example)}
+                                                className={selectedCategory === category.id
+                                                    ? 'bg-white/20 text-white border-white/20'
+                                                    : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
+                                                }
+                                                onClick={() => setSelectedCategory(category.id)}
                                             >
-                                                <Copy className="w-3 h-3 mr-1" />
-                                                {copiedPrompt === technique.example ? "Copied!" : "Copy"}
+                                                {category.genre}
                                             </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    </TabsContent>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                    <TabsContent value="prompts" className="space-y-6">
-                        {/* Category Filter */}
-                        <Card className="bg-white/5 backdrop-blur-sm border-white/10">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="flex items-center gap-2 text-white text-lg">
-                                    <Filter className="w-5 h-5" />
-                                    Filter by Category
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-wrap gap-2">
-                                    <Button
-                                        variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                                        size="sm"
-                                        className={selectedCategory === 'all'
-                                            ? 'bg-white/20 text-white border-white/20'
-                                            : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
-                                        }
-                                        onClick={() => setSelectedCategory('all')}
-                                    >
-                                        All Categories
-                                    </Button>
-                                    {promptCategories.map((category) => (
+                            {/* Compact Prompt Display */}
+                            <div className="grid gap-4">
+                                {filteredEnglishPrompts.map((category, index) => (
+                                    <Card key={index} className={`${category.color} ${category.borderColor} border backdrop-blur-sm hover:shadow-lg transition-all duration-300`}>
+                                        <CardHeader className="pb-2">
+                                            <div className="flex items-center justify-between">
+                                                <CardTitle className={`flex items-center gap-2 ${category.textColor} text-lg`}>
+                                                    <Sparkles className="w-5 h-5" />
+                                                    {category.genre}
+                                                </CardTitle>
+                                                <Badge className={`${category.badgeColor} text-xs`}>
+                                                    {category.prompts.length} prompts
+                                                </Badge>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="grid gap-2">
+                                                {category.prompts.map((prompt, promptIndex) => (
+                                                    <div key={promptIndex} className="bg-white/90 backdrop-blur-sm p-3 rounded-lg border border-white/20 hover:bg-white/95 transition-all duration-300">
+                                                        <p className="text-xs text-gray-700 mb-2 line-clamp-2">"{prompt}"</p>
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-gray-900 border-gray-300 hover:bg-gray-50 text-xs h-7"
+                                                                onClick={() => copyPrompt(prompt)}
+                                                            >
+                                                                <Copy className="w-3 h-3 mr-1" />
+                                                                {copiedPrompt === prompt ? "Copied!" : "Copy"}
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="vietnamese" className="space-y-6">
+                            {/* Category Filter */}
+                            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="flex items-center gap-2 text-white text-lg">
+                                        <Filter className="w-5 h-5" />
+                                        Lọc theo danh mục
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex flex-wrap gap-2">
                                         <Button
-                                            key={category.id}
-                                            variant={selectedCategory === category.id ? 'default' : 'outline'}
+                                            variant={selectedCategory === 'all' ? 'default' : 'outline'}
                                             size="sm"
-                                            className={selectedCategory === category.id
+                                            className={selectedCategory === 'all'
                                                 ? 'bg-white/20 text-white border-white/20'
                                                 : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
                                             }
-                                            onClick={() => setSelectedCategory(category.id)}
+                                            onClick={() => setSelectedCategory('all')}
                                         >
-                                            {category.genre}
+                                            Tất cả danh mục
                                         </Button>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Compact Prompt Display */}
-                        <div className="grid gap-4">
-                            {filteredEnglishPrompts.map((category, index) => (
-                                <Card key={index} className={`${category.color} ${category.borderColor} border backdrop-blur-sm hover:shadow-lg transition-all duration-300`}>
-                                    <CardHeader className="pb-2">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className={`flex items-center gap-2 ${category.textColor} text-lg`}>
-                                                <Sparkles className="w-5 h-5" />
+                                        {vietnamesePrompts.map((category) => (
+                                            <Button
+                                                key={category.id}
+                                                variant={selectedCategory === category.id ? 'default' : 'outline'}
+                                                size="sm"
+                                                className={selectedCategory === category.id
+                                                    ? 'bg-white/20 text-white border-white/20'
+                                                    : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
+                                                }
+                                                onClick={() => setSelectedCategory(category.id)}
+                                            >
                                                 {category.genre}
-                                            </CardTitle>
-                                            <Badge className={`${category.badgeColor} text-xs`}>
-                                                {category.prompts.length} prompts
-                                            </Badge>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="grid gap-2">
-                                            {category.prompts.map((prompt, promptIndex) => (
-                                                <div key={promptIndex} className="bg-white/90 backdrop-blur-sm p-3 rounded-lg border border-white/20 hover:bg-white/95 transition-all duration-300">
-                                                    <p className="text-xs text-gray-700 mb-2 line-clamp-2">"{prompt}"</p>
-                                                    <div className="flex gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="text-gray-900 border-gray-300 hover:bg-gray-50 text-xs h-7"
-                                                            onClick={() => copyPrompt(prompt)}
-                                                        >
-                                                            <Copy className="w-3 h-3 mr-1" />
-                                                            {copiedPrompt === prompt ? "Copied!" : "Copy"}
-                                                        </Button>
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Compact Vietnamese Prompt Display */}
+                            <div className="grid gap-4">
+                                {filteredVietnamesePrompts.map((category, index) => (
+                                    <Card key={index} className={`${category.color} ${category.borderColor} border backdrop-blur-sm hover:shadow-lg transition-all duration-300`}>
+                                        <CardHeader className="pb-2">
+                                            <div className="flex items-center justify-between">
+                                                <CardTitle className={`flex items-center gap-2 ${category.textColor} text-lg`}>
+                                                    <Sparkles className="w-5 h-5" />
+                                                    {category.genre}
+                                                </CardTitle>
+                                                <Badge className={`${category.badgeColor} text-xs`}>
+                                                    {category.prompts.length} mẫu
+                                                </Badge>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="grid gap-2">
+                                                {category.prompts.map((prompt, promptIndex) => (
+                                                    <div key={promptIndex} className="bg-white/90 backdrop-blur-sm p-3 rounded-lg border border-white/20 hover:bg-white/95 transition-all duration-300">
+                                                        <p className="text-xs text-gray-700 mb-2 line-clamp-2">"{prompt}"</p>
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-gray-900 border-gray-300 hover:bg-gray-50 text-xs h-7"
+                                                                onClick={() => copyPrompt(prompt)}
+                                                            >
+                                                                <Copy className="w-3 h-3 mr-1" />
+                                                                {copiedPrompt === prompt ? "Đã sao chép!" : "Sao chép"}
+                                                            </Button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    </TabsContent>
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </TabsContent>
+                    </Tabs>
 
-                    <TabsContent value="vietnamese" className="space-y-6">
-                        {/* Category Filter */}
-                        <Card className="bg-white/5 backdrop-blur-sm border-white/10">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="flex items-center gap-2 text-white text-lg">
-                                    <Filter className="w-5 h-5" />
-                                    Lọc theo danh mục
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-wrap gap-2">
-                                    <Button
-                                        variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                                        size="sm"
-                                        className={selectedCategory === 'all'
-                                            ? 'bg-white/20 text-white border-white/20'
-                                            : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
-                                        }
-                                        onClick={() => setSelectedCategory('all')}
-                                    >
-                                        Tất cả danh mục
-                                    </Button>
-                                    {vietnamesePrompts.map((category) => (
-                                        <Button
-                                            key={category.id}
-                                            variant={selectedCategory === category.id ? 'default' : 'outline'}
-                                            size="sm"
-                                            className={selectedCategory === category.id
-                                                ? 'bg-white/20 text-white border-white/20'
-                                                : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
-                                            }
-                                            onClick={() => setSelectedCategory(category.id)}
-                                        >
-                                            {category.genre}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Compact Vietnamese Prompt Display */}
-                        <div className="grid gap-4">
-                            {filteredVietnamesePrompts.map((category, index) => (
-                                <Card key={index} className={`${category.color} ${category.borderColor} border backdrop-blur-sm hover:shadow-lg transition-all duration-300`}>
-                                    <CardHeader className="pb-2">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className={`flex items-center gap-2 ${category.textColor} text-lg`}>
-                                                <Sparkles className="w-5 h-5" />
-                                                {category.genre}
-                                            </CardTitle>
-                                            <Badge className={`${category.badgeColor} text-xs`}>
-                                                {category.prompts.length} mẫu
-                                            </Badge>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="grid gap-2">
-                                            {category.prompts.map((prompt, promptIndex) => (
-                                                <div key={promptIndex} className="bg-white/90 backdrop-blur-sm p-3 rounded-lg border border-white/20 hover:bg-white/95 transition-all duration-300">
-                                                    <p className="text-xs text-gray-700 mb-2 line-clamp-2">"{prompt}"</p>
-                                                    <div className="flex gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="text-gray-900 border-gray-300 hover:bg-gray-50 text-xs h-7"
-                                                            onClick={() => copyPrompt(prompt)}
-                                                        >
-                                                            <Copy className="w-3 h-3 mr-1" />
-                                                            {copiedPrompt === prompt ? "Đã sao chép!" : "Sao chép"}
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    </TabsContent>
-                </Tabs>
-
-                {/* Footer */}
-                <footer className="mt-12 text-center text-gray-400">
-                    <p className="text-sm">Được xây dựng với ❤️ để giúp bạn thành thạo nghệ thuật giao tiếp AI</p>
-                </footer>
+                    {/* Footer */}
+                    <footer className="mt-12 text-center text-gray-400">
+                        <p className="text-sm">Được xây dựng với ❤️ để giúp bạn thành thạo nghệ thuật giao tiếp AI</p>
+                    </footer>
+                </div>
             </div>
+
+            <Footer></Footer>
         </div>
     );
 }
