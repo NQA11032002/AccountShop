@@ -18,6 +18,7 @@ export default function FavoritesPage() {
   const { addItem } = useCart();
   const { toast } = useToast();
 
+
   const handleAddToCart = (item: any) => {
     // console.log("Adding favorite item to cart", { itemId: item.id });
 

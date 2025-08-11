@@ -118,11 +118,11 @@ export default function ProductDetailPage() {
     try {
       const cartItem = createCartItem(product, selectedPrice, user.id);
 
-      // 🟢 Gọi API thêm vào giỏ
-      const addedItem = await addToCart(cartItem, sessionId);
+      // // 🟢 Gọi API thêm vào giỏ
+      // const addedItem = await addToCart(cartItem, sessionId);
 
       // 🟢 Cập nhật state context giỏ hàng
-      addItem(addedItem);
+      addItem(cartItem);
 
       toast({
         title: "Đã thêm vào giỏ hàng!",
@@ -154,11 +154,11 @@ export default function ProductDetailPage() {
       const cartItem = createCartItem(product, selectedPrice, user.id);
 
       // 🟢 Gọi API thêm vào giỏ
-      const addedItem = await addToCart(cartItem, sessionId);
+      // const addedItem = await addToCart(cartItem, sessionId);
 
       // 🟢 Cập nhật state context giỏ hàng
       // sessionStorage.setItem('qai-store-buy-now-item', JSON.stringify(cartItem));
-      addItem(addedItem);
+      addItem(cartItem);
 
 
       toast({
@@ -343,9 +343,7 @@ export default function ProductDetailPage() {
                 className="h-96 flex items-center justify-center relative"
                 style={{ backgroundColor: product.color }}
               >
-                <div className="text-8xl">
-                  <img className='' src={`/images/products/${product.image}`}></img>
-                </div>
+                <img className='text-8xl h-1/2 w-1/2 object-contain' src={`/images/products/${product.image}`}></img>
               </div>
             </Card>
           </div>

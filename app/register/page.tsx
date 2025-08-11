@@ -76,7 +76,6 @@ export default function RegisterPage() {
           title: "🎉 Đăng ký thành công!",
           description: result.message,
         });
-        router.push('/');
       } else {
         toast({
           title: "❌ Đăng ký thất bại",
@@ -91,8 +90,6 @@ export default function RegisterPage() {
         variant: "destructive",
       });
     }
-
-
 
     setIsLoading(false);
   };

@@ -122,21 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await registerUser(name, email, password);
 
-      // Xử lý lưu user (nếu cần)
-      const userData: User = {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        avatar: data.user.avatar,
-        joinDate: data.user.join_date,
-        coins: data.user.coins,
-        phone: data.user.phone,
-        role: data.user.role || 'user',
-      };
-
-      setUser(userData);
-      setRole(userData.role);
-      localStorage.setItem('qai_user', JSON.stringify(userData));
+      router.push('/login');
 
       return {
         success: true,

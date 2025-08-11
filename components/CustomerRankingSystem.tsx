@@ -57,7 +57,7 @@ export function CustomerRankDisplay({
   useEffect(() => {
     const loadRanks = async () => {
       try {
-        const sessionId = localStorage.getItem('session_id') || '';
+        const sessionId = localStorage.getItem('qai_session') || '';
         const data = await fetchRanks(totalSpent, totalOrders, sessionId);
         setRanks(data);
 

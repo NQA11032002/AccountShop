@@ -47,7 +47,6 @@ export default function MyRankingPage() {
 
   const loadRankingData = async () => {
     if (!user || !sessionId) return;
-
     try {
       const data = await fetchUserRankingData(sessionId);
       setRankingData(data);
