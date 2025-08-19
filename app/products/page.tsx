@@ -138,7 +138,7 @@ function ProductsContent() {
     const search = searchParams?.get?.('search');
 
     if (search) {
-      console.log("search", search)
+      setSearchQuery(search);
     } else {
       if (!raw) {
         // nothing specified -> all
