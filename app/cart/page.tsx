@@ -14,6 +14,7 @@ import Image from 'next/image';
 export default function CartPage() {
   const { items, itemsCount, totalAmount, totalSavings, updateQuantity, removeItem, clearAllCart } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
@@ -21,18 +22,21 @@ export default function CartPage() {
 
   const handleQuantityChange = (productId: number, durationId: number, newQuantity: number) => {
     if (newQuantity < 1) return; // Ngăn không cho giảm dưới 1
+    setIsProcessing(true); // Bật trạng thái đang xử lý
     updateQuantity(productId, durationId, newQuantity);
+    setIsProcessing(false); // Reset trạng thái sau khi thay đổi xong
+
   };
 
 
   const handleRemoveItem = (id: number, durationId: string) => {
-    // console.log("Removing item from cart", { id, durationId });
+    if (isProcessing) return; // Ngăn không cho xóa khi đang xử lý
+    setIsProcessing(true); // Bật trạng thái đang xử lý
     removeItem(id, durationId);
+    setIsProcessing(false); // Reset trạng thái sau khi xóa xong
   };
 
   const handleCheckout = () => {
-    // console.log("Starting checkout process", { items, totalAmount });
-    // Use Next.js navigation instead of window.location.href
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('navigate-to-checkout', {
         detail: { path: '/checkout' }
@@ -86,9 +90,9 @@ export default function CartPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="pt-20 pb-16">
+      <main className="pt-10 pb-16">
         {/* Page Header */}
-        <section className="bg-gradient-to-r from-brand-blue to-brand-purple text-white py-12">
+        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between">
               <div>
@@ -102,7 +106,7 @@ export default function CartPage() {
               <Button
                 variant="outline"
                 onClick={handleContinueShopping}
-                className="border-white text-white hover:bg-white hover:text-brand-blue"
+                className="border-white text-indigo-500 hover:bg-white hover:text-brand-blue"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Tiếp tục mua sắm
@@ -125,6 +129,8 @@ export default function CartPage() {
                   size="sm"
                   onClick={clearAllCart}
                   className="text-red-600 border-red-600 hover:bg-red-50"
+                  disabled={isProcessing}
+
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Xóa tất cả
@@ -181,7 +187,7 @@ export default function CartPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleQuantityChange(item.id, item.selected_duration, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
+                            disabled={item.quantity <= 1 || isProcessing}
                             className="w-8 h-8 p-0"
                           >
                             <Minus className="w-3 h-3" />
@@ -194,6 +200,7 @@ export default function CartPage() {
                             size="sm"
                             onClick={() => handleQuantityChange(item.id, item.selected_duration, item.quantity + 1)}
                             className="w-8 h-8 p-0"
+                            disabled={isProcessing}
                           >
                             <Plus className="w-3 h-3" />
                           </Button>
@@ -206,6 +213,7 @@ export default function CartPage() {
                           size="sm"
                           onClick={() => handleRemoveItem(item.id, item.duration)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1"
+                          disabled={isProcessing}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -271,7 +279,10 @@ export default function CartPage() {
                   )}
 
                   <Button
-                    onClick={handleCheckout}
+                    onClick={() => {
+                      setIsCheckingOut(true);
+                      handleCheckout();
+                    }}
                     disabled={isCheckingOut}
                     className="w-full bg-gradient-to-r from-brand-blue to-brand-charcoal hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg"
                   >
@@ -289,7 +300,7 @@ export default function CartPage() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Shield className="w-4 h-4 text-brand-emerald" />
-                        <span>Bảo hành 30 ngày</span>
+                        <span>Bảo hành theo thời hạn gói</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Star className="w-4 h-4 text-yellow-500" />

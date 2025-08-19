@@ -187,13 +187,13 @@ export default function OrderDetailModal({ order, isOpen, onClose }: OrderDetail
                     <span className="line-through">{order.original_total.toLocaleString('vi-VN')}đ</span>
                   </div>
                 )}
-                {order.discount && order.discount > 0 && (
+                {/* {order.discount && order.discount > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
                     <span>Giảm giá:</span>
                     <span>-{order.discount.toLocaleString('vi-VN')}đ</span>
                   </div>
-                )}
-                <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                )} */}
+                <div className="flex justify-between font-bold text-lg ">
                   <span>Tổng cộng:</span>
                   <span className="text-brand-blue">{order.total.toLocaleString('vi-VN')}đ</span>
                 </div>

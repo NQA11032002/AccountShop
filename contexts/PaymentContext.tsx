@@ -243,114 +243,114 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const saveOrders = async (newOrders: Order[]) => {
-    if (user && user.id) {
-      console.log("💾 Saving orders to JSON API and localStorage", {
-        userId: user.id,
-        orderCount: newOrders.length
-      });
+    // if (user && user.id) {
+    //   console.log("💾 Saving orders to JSON API and localStorage", {
+    //     userId: user.id,
+    //     orderCount: newOrders.length
+    //   });
 
-      // Save to localStorage immediately for offline access
-      localStorage.setItem(`qai_orders_${user.id}`, JSON.stringify(newOrders));
+    //   // Save to localStorage immediately for offline access
+    //   localStorage.setItem(`qai_orders_${user.id}`, JSON.stringify(newOrders));
 
-      try {
-        // Transform orders to standardized API format for admin synchronization
-        const apiOrdersData = newOrders.map((order: Order) => ({
-          id: order.id,
-          userId: user.id,
-          userEmail: order.customerInfo.email,
-          customerName: order.customerInfo.name || user.name || user.email.split('@')[0],
-          customerPhone: order.customerInfo.phone || '',
-          products: order.items.map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            duration: item.duration
-          })),
-          total: order.total,
-          originalTotal: order.originalTotal,
-          discount: order.discount,
-          status: order.status,
-          paymentMethod: order.paymentMethod,
-          paymentStatus: order.paymentStatus,
-          createdAt: order.date.toISOString(),
-          date: order.date.toISOString(),
-          completedAt: order.status === 'completed' ? new Date().toISOString() : null,
-          shippingAddress: order.customerInfo.socialContact || '',
-          notes: order.status === 'completed' ? 'Order completed with digital delivery' : '',
-          discountCode: order.discountCode,
-          transactionId: order.transactionId,
-          deliveryInfo: order.deliveryInfo
-        }));
+    //   try {
+    //     // Transform orders to standardized API format for admin synchronization
+    //     const apiOrdersData = newOrders.map((order: Order) => ({
+    //       id: order.id,
+    //       userId: user.id,
+    //       userEmail: order.customerInfo.email,
+    //       customerName: order.customerInfo.name || user.name || user.email.split('@')[0],
+    //       customerPhone: order.customerInfo.phone || '',
+    //       products: order.items.map((item: any) => ({
+    //         id: item.id,
+    //         name: item.name,
+    //         quantity: item.quantity,
+    //         price: item.price,
+    //         duration: item.duration
+    //       })),
+    //       total: order.total,
+    //       originalTotal: order.originalTotal,
+    //       discount: order.discount,
+    //       status: order.status,
+    //       paymentMethod: order.paymentMethod,
+    //       paymentStatus: order.paymentStatus,
+    //       createdAt: order.date.toISOString(),
+    //       date: order.date.toISOString(),
+    //       completedAt: order.status === 'completed' ? new Date().toISOString() : null,
+    //       shippingAddress: order.customerInfo.socialContact || '',
+    //       notes: order.status === 'completed' ? 'Order completed with digital delivery' : '',
+    //       discountCode: order.discountCode,
+    //       transactionId: order.transactionId,
+    //       deliveryInfo: order.deliveryInfo
+    //     }));
 
-        // CRITICAL: Primary save directly to JSON data file with immediate persistence
-        console.log("🔥 CRITICAL: Primary order save - adding order to JSON data file...");
+    //     // CRITICAL: Primary save directly to JSON data file with immediate persistence
+    //     console.log("🔥 CRITICAL: Primary order save - adding order to JSON data file...");
 
-        const primarySaveResponse = await fetch('/api/data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'orders',
-            action: 'bulk_update',
-            items: apiOrdersData
-          })
-        });
+    //     const primarySaveResponse = await fetch('/api/data', {
+    //       method: 'POST',
+    //       headers: { 'Content-Type': 'application/json' },
+    //       body: JSON.stringify({
+    //         type: 'orders',
+    //         action: 'bulk_update',
+    //         items: apiOrdersData
+    //       })
+    //     });
 
-        const primarySaveResult = await primarySaveResponse.json();
-        console.log("🔥 CRITICAL: Primary save result:", {
-          success: primarySaveResult.success,
-          orderCount: apiOrdersData.length,
-          orderIds: apiOrdersData.map(o => o.id)
-        });
+    //     const primarySaveResult = await primarySaveResponse.json();
+    //     console.log("🔥 CRITICAL: Primary save result:", {
+    //       success: primarySaveResult.success,
+    //       orderCount: apiOrdersData.length,
+    //       orderIds: apiOrdersData.map(o => o.id)
+    //     });
 
-        // Backup save using DataSyncHelper
-        const success = await DataSyncHelper.saveToAPI('orders', apiOrdersData, 'bulk_update');
-        console.log("📊 Backup save result:", { success });
+    //     // Backup save using DataSyncHelper
+    //     const success = await DataSyncHelper.saveToAPI('orders', apiOrdersData, 'bulk_update');
+    //     console.log("📊 Backup save result:", { success });
 
-        // Trigger real-time admin updates for order data
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('orders-json-saved', {
-            detail: {
-              orders: apiOrdersData,
-              userId: user.id,
-              timestamp: Date.now(),
-              apiSynced: success
-            }
-          }));
-        }
+    //     // Trigger real-time admin updates for order data
+    //     if (typeof window !== 'undefined') {
+    //       window.dispatchEvent(new CustomEvent('orders-json-saved', {
+    //         detail: {
+    //           orders: apiOrdersData,
+    //           userId: user.id,
+    //           timestamp: Date.now(),
+    //           apiSynced: success
+    //         }
+    //       }));
+    //     }
 
-        console.log("✅ Orders synchronized to JSON API", {
-          userId: user.id,
-          count: newOrders.length,
-          apiSynced: success,
-          completedOrders: newOrders.filter(o => o.status === 'completed').length
-        });
+    //     console.log("✅ Orders synchronized to JSON API", {
+    //       userId: user.id,
+    //       count: newOrders.length,
+    //       apiSynced: success,
+    //       completedOrders: newOrders.filter(o => o.status === 'completed').length
+    //     });
 
-        // Trigger real-time admin updates for completed orders
-        const completedOrders = newOrders.filter(o => o.status === 'completed');
-        if (completedOrders.length > 0 && typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('orders-updated', {
-            detail: {
-              orders: apiOrdersData,
-              completedOrders: completedOrders.length,
-              userId: user.id
-            }
-          }));
-        }
+    //     // Trigger real-time admin updates for completed orders
+    //     const completedOrders = newOrders.filter(o => o.status === 'completed');
+    //     if (completedOrders.length > 0 && typeof window !== 'undefined') {
+    //       window.dispatchEvent(new CustomEvent('orders-updated', {
+    //         detail: {
+    //           orders: apiOrdersData,
+    //           completedOrders: completedOrders.length,
+    //           userId: user.id
+    //         }
+    //       }));
+    //     }
 
-      } catch (error) {
-        console.error("❌ CRITICAL: Failed to save orders to JSON API:", error);
-        // Even on error, ensure localStorage save as absolute fallback
-        try {
-          localStorage.setItem(`qai_orders_${user.id}`, JSON.stringify(newOrders));
-          console.log("💾 Emergency: Orders saved to localStorage only");
-        } catch (localError) {
-          console.error("❌ EMERGENCY: All save methods failed:", localError);
-        }
-      }
-    } else {
-      console.warn("⚠️ Cannot save orders - no user logged in");
-    }
+    //   } catch (error) {
+    //     console.error("❌ CRITICAL: Failed to save orders to JSON API:", error);
+    //     // Even on error, ensure localStorage save as absolute fallback
+    //     try {
+    //       localStorage.setItem(`qai_orders_${user.id}`, JSON.stringify(newOrders));
+    //       console.log("💾 Emergency: Orders saved to localStorage only");
+    //     } catch (localError) {
+    //       console.error("❌ EMERGENCY: All save methods failed:", localError);
+    //     }
+    //   }
+    // } else {
+    //   console.warn("⚠️ Cannot save orders - no user logged in");
+    // }
   };
 
   const applyDiscountCode = async (code: string, orderTotal: number): Promise<boolean> => {

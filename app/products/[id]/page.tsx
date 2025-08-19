@@ -357,7 +357,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-center space-x-1">
                   <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                   <span className="font-medium">{product.rating}</span>
-                  <span className="text-gray-500">({product.reviews} đánh giá)</span>
+                  <span className="text-gray-500">({product.reviews_count} đánh giá)</span>
                 </div>
                 <Badge className="bg-green-500 text-white">
                   Có sẵn
@@ -366,7 +366,7 @@ export default function ProductDetailPage() {
               <p className="text-gray-600 text-lg leading-relaxed mb-4">{product.description}</p>
 
               {/* Key Benefits */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-100">
+              {/* <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-100">
                 <h3 className="font-semibold text-brand-charcoal mb-2">✨ Điểm nổi bật:</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <div className="flex items-center space-x-2">
@@ -386,7 +386,7 @@ export default function ProductDetailPage() {
                     <span className="text-sm text-gray-700">Đổi trả trong 7 ngày</span>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Duration Selection */}
@@ -467,7 +467,7 @@ export default function ProductDetailPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="features" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-100">
             <TabsTrigger value="features">Chi tiết tính năng</TabsTrigger>
             <TabsTrigger value="reviews">Đánh giá ({reviews.length})</TabsTrigger>
             <TabsTrigger value="warranty">Chính sách</TabsTrigger>
@@ -491,19 +491,19 @@ export default function ProductDetailPage() {
                     <h3 className="text-xl font-bold text-gray-800">Bao gồm trong gói</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Array.isArray(product.features) && product.features.map((feature: any, index: number) => (
+                    {Array.isArray(product.product_features) && product.product_features.map((feature: any, index: number) => (
                       <div key={index} className="flex items-center space-x-3 p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-green-200/50 hover:shadow-md transition-shadow">
                         <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
                           <Check className="w-5 h-5 text-white" />
                         </div>
-                        <span className="font-medium text-gray-800">{feature}</span>
+                        <span className="font-medium text-gray-800">{feature.feature}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* System Requirements */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100 shadow-sm">
+                {/* <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100 shadow-sm">
                   <div className="flex items-center mb-6">
                     <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
                       <span className="text-white text-xl">⚙️</span>
@@ -560,7 +560,7 @@ export default function ProductDetailPage() {
                       </ul>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Usage Guide */}
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-100 shadow-sm">
@@ -575,7 +575,7 @@ export default function ProductDetailPage() {
                       <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">1</div>
                       <div>
                         <div className="font-semibold text-gray-800 text-lg mb-2">Nhận thông tin tài khoản</div>
-                        <div className="text-gray-600">Sau khi thanh toán thành công, bạn sẽ nhận được email chứa đầy đủ thông tin đăng nhập và hướng dẫn chi tiết</div>
+                        <div className="text-gray-600">Sau khi thanh toán thành công, bạn sẽ nhận được tài khoản chứa đầy đủ thông tin đăng nhập và hướng dẫn chi tiết</div>
                       </div>
                     </div>
                     <div className="flex items-start space-x-4 bg-white/70 backdrop-blur-sm p-5 rounded-lg border border-purple-200/50 hover:shadow-md transition-all duration-300 hover:scale-[1.02]">
@@ -589,7 +589,7 @@ export default function ProductDetailPage() {
                       <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">3</div>
                       <div>
                         <div className="font-semibold text-gray-800 text-lg mb-2">Hỗ trợ 24/7</div>
-                        <div className="text-gray-600">Đội ngũ hỗ trợ chuyên nghiệp luôn sẵn sàng hỗ trợ bạn qua Telegram và Zalo mọi lúc trong ngày</div>
+                        <div className="text-gray-600">Đội ngũ hỗ trợ chuyên nghiệp luôn sẵn sàng hỗ trợ bạn qua Fanpage và Zalo mọi lúc trong ngày</div>
                       </div>
                     </div>
                   </div>
@@ -609,7 +609,7 @@ export default function ProductDetailPage() {
                         <Shield className="w-6 h-6 text-white" />
                       </div>
                       <h4 className="font-semibold text-gray-800 mb-2">Bảo mật cao</h4>
-                      <p className="text-sm text-gray-600">Tài khoản được bảo vệ bằng công nghệ mã hóa tiên tiến</p>
+                      <p className="text-sm text-gray-600">Tài khoản được mật tuyệt đối</p>
                     </div>
                     <div className="text-center p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-amber-200/50 hover:shadow-md transition-shadow">
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
@@ -671,7 +671,7 @@ export default function ProductDetailPage() {
                     <Button
                       onClick={handleSubmitReview}
                       disabled={isSubmittingReview}
-                      className="bg-gradient-to-r from-brand-charcoal to-brand-blue hover:from-brand-purple/90 hover:to-brand-blue/90"
+                      className="w-full bg-gradient-to-r from-brand-emerald to-brand-blue hover:from-brand-emerald/90 hover:to-brand-blue/90 text-white h-12 text-lg font-semibold"
                     >
                       {isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
                     </Button>
@@ -729,19 +729,24 @@ export default function ProductDetailPage() {
             <Card>
               <CardContent className="p-6">
                 <div className="prose max-w-none">
-                  <h3 className="text-lg font-semibold mb-4">Chính sách bảo hành</h3>
-                  <ul className="space-y-2 text-gray-700">
-                    <li>• Bảo hành 30 ngày kể từ ngày mua</li>
-                    <li>• Hỗ trợ 24/7 qua Telegram và Zalo</li>
-                    <li>• Đổi tài khoản mới nếu có vấn đề trong thời gian bảo hành</li>
-                    <li>• Không bảo hành nếu khách hàng thay đổi thông tin tài khoản</li>
-                  </ul>
 
-                  <h3 className="text-lg font-semibold mt-6 mb-4">Hướng dẫn sử dụng</h3>
                   <ul className="space-y-2 text-gray-700">
-                    <li>• Không thay đổi mật khẩu hoặc thông tin tài khoản</li>
-                    <li>• Sử dụng đúng mục đích và không chia sẻ cho người khác</li>
-                    <li>• Liên hệ hỗ trợ nếu gặp vấn đề</li>
+                    <h3 className="text-lg font-semibold">Chính sách bảo hành</h3>
+                    <li>• Bảo hành đầy đủ thời gian của gói kể từ ngày mua</li>
+                    <li>• Hỗ trợ 24/7 qua Telegram và Zalo</li>
+                    <li>• Đổi tài khoản mới hoặc fix lỗi nếu có vấn đề trong thời gian bảo hành</li>
+                    <li>• Không bảo hành nếu khách hàng vi phạm chính sách của gói</li>
+                    <h3 className="text-lg font-semibold">Hướng dẫn sử dụng</h3>
+                    <li>• Sau khi nhận tài khoản hãy kiểm tra ngay lập tức</li>
+                    <li>• Nếu có vấn đề bất thường hãy liên hệ lại Shop để được hỗ trợ.</li>
+                    <li>• Sử dụng & bảo quản tài khoản theo đúng quy định</li>
+                    <h3 className="text-lg font-semibold ">Đối với gói chính chủ</h3>
+                    <li>• Nâng trực tiếp từ tài khoản Anh/Chị </li>
+                    <li>• Sau khi nâng cấp hãy đổi toàn bộ thông tin, tài khoản sẽ do Anh/Chị quản lý, Shop sẽ không can thiệp vào tài khoản </li>
+                    <h3 className="text-lg font-semibold ">Đối với gói dùng chung</h3>
+                    <li>• Tài khoản Shop cấp để Anh/Chị truy cập vào sử dụng</li>
+                    <li>• Không chia sẽ hoặc bán tài khoản cho bất kỳ ai</li>
+                    <li>• Không thay đổi bất kỳ thông tin nào </li>
                   </ul>
                 </div>
               </CardContent>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingCart, Menu, X, User, Moon, Sun, Heart, LogOut, Settings, Grid3X3, ChevronDown, MapPin, Phone, Wallet, Shield } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Grid3X3, ChevronDown, LogOut } from 'lucide-react';
 import DataSyncHelper from '@/lib/syncHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,8 @@ import { useFavorites } from '@/contexts/FavoritesContext';
 import { useWallet } from '@/contexts/WalletContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { fetchCategories } from '@/lib/api';
+import type { Category, ParentCategory } from '@/types/category.interface';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,13 +30,13 @@ export default function Header() {
   const { toast } = useToast();
   const router = useRouter();
 
-  // console.log("ENHANCED Header component rendered", {
-  //   isMenuOpen,
-  //   itemsCount,
-  //   realtimeCartCount,
-  //   user: user?.email,
-  //   favoritesCount: favorites.length
-  // });
+  // categories state (flat list). Use any internally to allow slug even if your type lacks it.
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
+  // search input
+  const [searchInput, setSearchInput] = useState('');
 
   // Enhanced real-time cart sync for Header
   useEffect(() => {
@@ -43,13 +45,11 @@ export default function Header() {
       return;
     }
 
-
     // Sync realtime count with context
     setRealtimeCartCount(itemsCount);
 
     // Subscribe to cart sync events
     const unsubscribe = DataSyncHelper.subscribeToCartSync((eventData) => {
-
       if (eventData.userId === user.id) {
         if (eventData.type === 'delete') {
           const newCount = eventData.updatedCart?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
@@ -93,93 +93,128 @@ export default function Header() {
     { name: 'Lấy Code', href: '/onetimecode' },
   ];
 
-  const productCategories = [
-    {
-      title: 'HỌC TẬP, KHÓA HỌC',
-      icon: '📚',
-      items: [
-        { name: 'Học ngoại ngữ', href: '/products?category=language' },
-        { name: 'Khóa học giá rẻ', href: '/products?category=cheap-courses' },
-        { name: 'Học lập trình', href: '/products?category=programming' },
-        { name: 'Tài khoản học tập khác', href: '/products?category=education' }
-      ]
-    },
-    {
-      title: 'PHẦN MỀM, CÔNG CỤ AI',
-      icon: '🤖',
-      items: [
-        { name: 'Chat GPT - Open AI', href: '/products?category=chatgpt' },
-        { name: 'Piktory AI', href: '/products?category=piktory' },
-        { name: 'Heygen', href: '/products?category=heygen' },
-        { name: 'Veed.io', href: '/products?category=veed' },
-        { name: 'Midjourney', href: '/products?category=midjourney' },
-        { name: 'Công cụ AI khác', href: '/products?category=ai-tools' }
-      ]
-    },
-    {
-      title: 'GIẢI TRÍ, NGHỆ NHẠC',
-      icon: '🎵',
-      items: [
-        { name: 'Youtube Premium', href: '/products?category=youtube' },
-        { name: 'Spotify Premium', href: '/products?category=spotify' },
-        { name: 'Netflix', href: '/products?category=netflix' },
-        { name: 'Veon, FPT Play', href: '/products?category=streaming' },
-        { name: 'Apple Music', href: '/products?category=apple-music' },
-        { name: 'Phần mềm khác', href: '/products?category=entertainment' }
-      ]
-    },
-    {
-      title: 'ĐỒ HỌA, EDIT VIDEO',
-      icon: '🎨',
-      items: [
-        { name: 'Adobe', href: '/products?category=adobe' },
-        { name: 'Canva Pro', href: '/products?category=canva' },
-        { name: 'Capcut Pro', href: '/products?category=capcut' },
-        { name: 'Freepik, Pingtree, Pikbest', href: '/products?category=design-resources' },
-        { name: 'Tài khoản đồ họa khác', href: '/products?category=graphics' }
-      ]
-    },
-    {
-      title: 'BẢO MẬT, VPN',
-      icon: '🔒',
-      items: [
-        { name: 'Key, Phần mềm VPN', href: '/products?category=vpn' },
-        { name: 'Phần mềm chống virus', href: '/products?category=antivirus' },
-        { name: 'Thuê Proxy', href: '/products?category=proxy' }
-      ]
-    },
-    {
-      title: 'NÂNG CẤP DUNG LƯỢNG',
-      icon: '☁️',
-      items: [
-        { name: 'Google One', href: '/products?category=google-one' },
-        { name: 'One Drive', href: '/products?category=onedrive' },
-        { name: 'ICloud', href: '/products?category=icloud' }
-      ]
-    },
-    {
-      title: 'KEY, PHẦN MỀM BẢN QUYỀN',
-      icon: '🔑',
-      items: [
-        { name: 'Microsoft Office 365', href: '/products?category=office' },
-        { name: 'Zoom Pro', href: '/products?category=zoom' },
-        { name: 'Key, Tài khoản Adobe', href: '/products?category=adobe-key' }
-      ]
-    }
-  ];
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const handleCartClick = () => {
-    window.location.href = '/cart';
+    router.push('/cart');
   };
 
+  // SEARCH: submit -> try match category by slug/name, else perform search
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Future: Handle search functionality
+    const q = (searchInput || '').trim();
+    if (!q) return;
+
+    const qLower = q.toLowerCase();
+
+    // exact match slug OR exact match name (case-insensitive)
+    const matched = categories.find((c: any) =>
+      (c.slug && String(c.slug).toLowerCase() === qLower) ||
+      (c.name && String(c.name).toLowerCase() === qLower)
+    );
+
+    if (matched) {
+      const val = matched.slug ? matched.slug : String(matched.id);
+      router.push(`/products?category=${encodeURIComponent(val)}`);
+    } else {
+      router.push(`/products?search=${q}`);
+    }
   };
+
+  // Load categories from API and normalize into flat Category[] matching your interface
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setLoadingCategories(true);
+      setCategoriesError(null);
+
+      try {
+        const resp = await fetchCategories();
+        // resp may be an array or { data: [...] } or parent objects with .categories
+        const raw: any[] = Array.isArray(resp) ? resp : (Array.isArray(resp?.data) ? resp.data : (Array.isArray(resp?.categories) ? resp.categories : []));
+
+        const flat: any[] = [];
+
+        if (raw.length > 0) {
+          const first = raw[0];
+
+          if (first && Array.isArray(first.categories)) {
+            // raw is array of parent objects; convert parent + children to flat categories
+            raw.forEach((parentObj: any) => {
+              // push parent as top-level (parent_id may be 0 or undefined)
+              flat.push({
+                id: Number(parentObj.id),
+                name: String(parentObj.name ?? ''),
+                parent_id: Number(parentObj.parent_id ?? 0),
+                parent: undefined,
+                slug: parentObj.slug ?? undefined
+              });
+
+              (parentObj.categories ?? []).forEach((child: any) => {
+                flat.push({
+                  id: Number(child.id),
+                  name: String(child.name ?? ''),
+                  parent_id: Number(child.parent_id ?? parentObj.id ?? 0),
+                  parent: { id: Number(parentObj.id), name: String(parentObj.name ?? '') } as ParentCategory,
+                  // child may have its own slug; fallback to parent's slug if child.slug missing
+                  slug: child.slug ?? parentObj.slug ?? undefined
+                });
+              });
+            });
+          } else {
+            // raw is likely flat list of categories already
+            raw.forEach((c: any) => {
+              flat.push({
+                id: Number(c.id),
+                name: String(c.name ?? ''),
+                parent_id: Number(c.parent_id ?? 0),
+                parent: c.parent ? { id: Number(c.parent.id), name: String(c.parent.name ?? '') } : undefined,
+                slug: c.slug ?? undefined
+              });
+            });
+          }
+        }
+
+        // dedupe by id (keep first)
+        const map = new Map<number, any>();
+        flat.forEach((c) => {
+          if (!map.has(c.id)) map.set(c.id, c);
+        });
+        const unique = Array.from(map.values());
+
+        if (mounted) {
+          setCategories(unique);
+        }
+      } catch (err: any) {
+        console.error('Failed to load categories in Header:', err);
+        if (mounted) {
+          setCategoriesError(err?.message || 'Không lấy được danh mục');
+          setCategories([]);
+        }
+      } finally {
+        if (mounted) setLoadingCategories(false);
+      }
+    };
+
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  // Build grouped categories: top-level parents with their children
+  const groupedCategories = (() => {
+    if (!categories || categories.length === 0) return [];
+    // Top-level parents: parent_id === 0 or falsy
+    // const parents = categories.filter((c) => !c.parent_id || Number(c.parent_id) === 0);
+    // sort alphabetically
+    // parents.sort((a, b) => (String(a.name || '').localeCompare(String(b.name || ''))));
+
+    return categories.map((parent) => ({
+      parent,
+      children: categories.filter((c) => Number(c.parent_id) === Number(parent.id)).sort((a, b) => (String(a.name || '').localeCompare(String(b.name || '')))),
+    }));
+  })();
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-lg">
@@ -188,14 +223,11 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 border-b border-gray-200">
           {/* Left - Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10  rounded-lg flex items-center justify-center">
-              {/* <span className="text-white font-bold text-lg">5K</span> */}
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
               <img src="/images/logo.png" alt="" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-xl font-bold text-gray-800 leading-tight">
-                QAI STORE
-              </h1>
+              <h1 className="text-xl font-bold text-gray-800 leading-tight">QAI STORE</h1>
               <p className="text-gray-400 text-sm">SHOP TÀI KHOẢN</p>
             </div>
           </div>
@@ -207,6 +239,8 @@ export default function Header() {
               <Input
                 type="text"
                 placeholder="Tìm kiếm tài khoản, khóa học, phần mềm..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-12 pr-4 py-3 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all duration-300"
               />
               <Button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-brand-blue hover:bg-brand-blue/90 p-2 rounded-md">
@@ -246,7 +280,7 @@ export default function Header() {
               )}
             </Button>
 
-            {/* User Account - Mobile/Small screens */}
+            {/* User Account */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -254,15 +288,15 @@ export default function Header() {
                     <Avatar className="w-6 h-6">
                       <AvatarImage src={user.avatar} alt={user.name} />
                       <AvatarFallback className="text-xs bg-gray-100 text-gray-800 border border-gray-300">
-                        {user.name.charAt(0).toUpperCase()}
+                        {user.name?.charAt(0)?.toUpperCase?.() ?? 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <span className="ml-2 hidden sm:inline text-sm">{user.name}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 bg-white/95 backdrop-blur-md  border-white/20 text-gray-800 shadow-xl rounded-xl">
+                <DropdownMenuContent align="end" className="w-64 bg-white/95 backdrop-blur-md border-white/20 text-gray-800 shadow-xl rounded-xl">
                   <DropdownMenuItem asChild>
-                    <Link href="/wallet" className="flex items-center px-4 py-3 cursor-grab hover:bg-green-50 rounded-lg">
+                    <Link href="/wallet" className="flex items-center px-4 py-3 hover:bg-green-50 rounded-lg">
                       <Wallet className="mr-3 h-4 w-4 text-green-600" />
                       <div>
                         <span>Ví của tôi</span>
@@ -271,31 +305,25 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/accounts" className="flex items-center px-4 py-3 cursor-grab hover:bg-purple-50 rounded-lg">
+                    <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg">
                       <Shield className="mr-3 h-4 w-4 text-purple-600" />
                       <span>Tài khoản của tôi</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/orders" className="flex items-center px-4 py-3 cursor-grab hover:bg-blue-50 rounded-lg">
+                    <Link href="/orders" className="flex items-center px-4 py-3 hover:bg-blue-50 rounded-lg">
                       <ShoppingCart className="mr-3 h-4 w-4 text-blue-600" />
                       <span>Đơn hàng của tôi</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/favorites" className="flex items-center px-4 py-3 cursor-grab hover:bg-pink-50 rounded-lg">
-                      <Heart className="mr-3 h-4 w-4 text-pink-600" />
+                    <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
+                      <span className="mr-3 text-pink-600">♥</span>
                       <span>Yêu thích</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/my-ranking" className="flex items-center px-4 py-3 cursor-grab hover:bg-yellow-50 rounded-lg">
-                      <span className="mr-3 text-yellow-600">👑</span>
-                      <span>Hạng khách hàng</span>
-                    </Link>
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-100" />
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 cursor-grab hover:bg-red-50 text-red-600 rounded-lg">
+                  <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 hover:bg-red-50 text-red-600 rounded-lg">
                     <LogOut className="mr-3 h-4 w-4" />
                     <span>Đăng xuất</span>
                   </DropdownMenuItem>
@@ -311,12 +339,7 @@ export default function Header() {
             )}
 
             {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleMenu}
-              className="lg:hidden text-gray-800 hover:bg-gray-100 p-2 rounded-lg"
-            >
+            <Button variant="ghost" size="sm" onClick={toggleMenu} className="lg:hidden text-gray-800 hover:bg-gray-100 p-2 rounded-lg">
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
@@ -328,70 +351,79 @@ export default function Header() {
             <div key={item.name} className="relative group">
               {item.name === 'Danh mục sản phẩm' ? (
                 <>
-                  <a
-                    href={item.href}
-                    className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition-all duration-200 flex items-center"
-                  >
+                  <Link href={item.href} className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition-all duration-200 flex items-center">
                     {item.name}
                     <ChevronDown className="w-4 h-4 ml-1 group-hover:rotate-180 transition-transform duration-300" />
-                  </a>
+                  </Link>
 
                   {/* Mega Menu Dropdown */}
                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-screen max-w-5xl bg-white/95 backdrop-blur-lg rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 mt-1">
                     <div className="p-6">
-                      <div className="grid grid-cols-3 gap-6">
-                        {productCategories.slice(0, 6).map((category, index) => (
-                          <div key={index} className="space-y-3">
-                            <div className="flex items-center space-x-3 pb-2 border-b border-gray-200">
-                              <div className="w-8 h-8 bg-gradient-to-br from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center shadow-sm">
-                                <span className="text-white text-sm">{category.icon}</span>
+                      {loadingCategories ? (
+                        <div className="py-12 text-center text-gray-500">Đang tải danh mục...</div>
+                      ) : categoriesError ? (
+                        <div className="py-12 text-center text-red-500">Không tải được danh mục</div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-6">
+                          {groupedCategories.slice(0, 6).map(({ parent, children }: any) => (
+                            <div key={parent.id} className="space-y-3">
+                              <div className="flex items-center space-x-3 pb-2 border-b border-gray-200">
+                                <div className="w-8 h-8 bg-gradient-to-br from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center shadow-sm">
+                                  <span className="text-white text-sm">📂</span>
+                                </div>
+                                <h3 className="font-semibold text-gray-800 text-xs uppercase tracking-wider">{parent.name}</h3>
                               </div>
-                              <h3 className="font-semibold text-gray-800 text-xs uppercase tracking-wider">
-                                {category.title}
-                              </h3>
+
+                              <ul className="space-y-1">
+                                {children.length > 0 ? (
+                                  children.slice(0, 4).map((child: any) => (
+                                    <li key={child.id}>
+                                      <Link
+                                        href={`/products?category=${encodeURIComponent(child.slug ?? String(child.id))}`}
+                                        className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition-all duration-200 hover:translate-x-1"
+                                      >
+                                        {child.name}
+                                      </Link>
+                                    </li>
+                                  ))
+                                ) : (
+                                  <li>
+                                    <Link
+                                      href={`/products?category=${encodeURIComponent(parent.slug ?? String(parent.id))}`}
+                                      className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition-all duration-200 hover:translate-x-1"
+                                    >
+                                      {parent.name}
+                                    </Link>
+                                  </li>
+                                )}
+
+                                {children.length > 4 && (
+                                  <li>
+                                    <Link
+                                      href={`/products?category=${encodeURIComponent(parent.slug ?? String(parent.id))}`}
+                                      className="block text-xs text-blue-600 font-medium px-2 py-1.5 hover:text-blue-700"
+                                    >
+                                      + {children.length - 4} mục khác
+                                    </Link>
+                                  </li>
+                                )}
+                              </ul>
                             </div>
-                            <ul className="space-y-1">
-                              {category.items.slice(0, 4).map((item, itemIndex) => (
-                                <li key={itemIndex}>
-                                  <a
-                                    href={item.href}
-                                    className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition-all duration-200 hover:translate-x-1"
-                                  >
-                                    {item.name}
-                                  </a>
-                                </li>
-                              ))}
-                              {category.items.length > 4 && (
-                                <li>
-                                  <a
-                                    href="/products"
-                                    className="block text-xs text-blue-600 font-medium px-2 py-1.5 hover:text-blue-700"
-                                  >
-                                    + {category.items.length - 4} sản phẩm khác
-                                  </a>
-                                </li>
-                              )}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
 
                       {/* Streamlined Footer */}
                       <div className="mt-6 pt-4 border-t border-gray-200">
                         <div className="flex items-center justify-between">
                           <p className="text-gray-500 text-sm">Khám phá hàng trăm sản phẩm chất lượng</p>
                           <div className="flex space-x-3">
-                            <Button
-                              size="sm"
-                              className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white text-xs px-4 py-2 shadow-md"
-                            >
-                              Xem tất cả
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs px-4 py-2"
-                            >
+                            <Link href="/products" className="inline-block">
+                              <Button size="sm" className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white text-xs px-4 py-2 shadow-md">
+                                Xem tất cả
+                              </Button>
+                            </Link>
+                            <Button variant="outline" size="sm" className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs px-4 py-2">
                               Hỗ trợ
                             </Button>
                           </div>
@@ -401,17 +433,13 @@ export default function Header() {
                   </div>
                 </>
               ) : (
-                <a
-                  href={item.href}
-                  className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition-all duration-200 flex items-center"
-                >
+                <Link href={item.href} className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition-all duration-200 flex items-center">
                   {item.name}
-                </a>
+                </Link>
               )}
             </div>
           ))}
         </nav>
-
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
@@ -419,10 +447,12 @@ export default function Header() {
             {/* Mobile Search */}
             <form onSubmit={handleSearchSubmit} className="md:hidden">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+                <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
                 <Input
                   type="text"
                   placeholder="Tìm kiếm tài khoản, khóa học, phần mềm..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="pl-10 pr-4 py-2 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500"
                 />
               </div>
@@ -431,15 +461,32 @@ export default function Header() {
             {/* Mobile Navigation Links */}
             <nav className="space-y-2">
               {navigation.map((item) => (
-                <a
+                <Link
                   key={item.name}
                   href={item.href}
                   className="block py-3 text-gray-700 hover:text-brand-blue font-medium text-base rounded-lg hover:bg-gray-100 px-4 transition-colors duration-200"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
-                </a>
+                </Link>
               ))}
+
+              {/* Mobile: show top-level categories */}
+              {!loadingCategories && categories.length > 0 && (
+                <>
+                  <div className="pt-4 border-t border-gray-100 text-xs text-gray-500">Danh mục</div>
+                  {categories.filter(c => !c.parent_id || Number(c.parent_id) === 0).slice(0, 8).map((top) => (
+                    <Link
+                      key={top.id}
+                      href={`/products?category=${encodeURIComponent(top.slug ?? String(top.id))}`}
+                      className="block py-2 px-4 text-gray-700 rounded-lg hover:bg-gray-100"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {top.name}
+                    </Link>
+                  ))}
+                </>
+              )}
             </nav>
 
             {/* Mobile Contact Info */}

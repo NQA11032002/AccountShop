@@ -60,6 +60,7 @@ function CheckoutPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [currentStep, setCurrentStep] = useState(1);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -68,6 +69,7 @@ function CheckoutPageContent() {
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
   const [paymentMode] = useState<'coins'>('coins'); // Focus on coin payments only
   const [finalOrderAmount, setFinalOrderAmount] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Trạng thái kiểm tra khi đang gửi
 
   // Buy now mode state
   const [isBuyNowMode, setIsBuyNowMode] = useState(false);
@@ -81,35 +83,6 @@ function CheckoutPageContent() {
     socialContact: ''
   });
   const [agreeTOS, setAgreeTOS] = useState(false);
-
-  // Check for buy now mode and load product data
-  // useEffect(() => {
-  //   const mode = searchParams.get('mode');
-  //   if (mode === 'buynow') {
-  //     const buyNowData = sessionStorage.getItem('qai-store-buy-now-item');
-  //     if (buyNowData) {
-  //       try {
-  //         const parsedData = JSON.parse(buyNowData);
-  //         setBuyNowItem(parsedData);
-  //         setIsBuyNowMode(true);
-  //       } catch (error) {
-  //         toast({
-  //           title: "Lỗi dữ liệu",
-  //           description: "Không thể tải thông tin sản phẩm. Vui lòng thử lại.",
-  //           variant: "destructive"
-  //         });
-  //         router.push('/products');
-  //       }
-  //     } else {
-  //       toast({
-  //         title: "Không tìm thấy sản phẩm",
-  //         description: "Vui lòng chọn sản phẩm để mua.",
-  //         variant: "destructive"
-  //       });
-  //       router.push('/products');
-  //     }
-  //   }
-  // }, [searchParams, router, toast]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
@@ -234,8 +207,13 @@ function CheckoutPageContent() {
 
   const handleCreateOrder = async () => {
     // console.log("Creating order with customer info", { customerInfo, finalTotal: calculateFinalTotal() });
+    if (isSubmitting) return; // Nếu đang submit, không làm gì thêm
+
+    setIsSubmitting(true); // Bắt đầu quá trình submit
 
     if (!customerInfo.fullName || !customerInfo.email || !customerInfo.phone) {
+      setIsSubmitting(false);
+
       toast({
         title: "Thông tin không đầy đủ",
         description: "Vui lòng điền đầy đủ thông tin giao hàng.",
@@ -245,6 +223,8 @@ function CheckoutPageContent() {
     }
 
     if (!agreeTOS) {
+      setIsSubmitting(false);
+
       toast({
         title: "Chưa đồng ý điều khoản",
         description: "Vui lòng đọc và đồng ý với điều khoản sử dụng.",
@@ -278,6 +258,8 @@ function CheckoutPageContent() {
         description: error.message || "Có lỗi xảy ra khi tạo đơn hàng.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false); // Hoàn tất quá trình, cho phép người dùng nhấn nút lần nữa
     }
   };
 
@@ -531,6 +513,8 @@ function CheckoutPageContent() {
                             onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
                             placeholder="0901234567"
                           />
+                          {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
+
                         </div>
                       </div>
 
@@ -564,7 +548,7 @@ function CheckoutPageContent() {
                         </div>
                         <p className="text-xs text-gray-500 flex items-center space-x-1">
                           <span>💡</span>
-                          <span>Để chúng tôi có thể liên hệ hỗ trợ nhanh chóng khi cần thiết</span>
+                          <span>Vui lòng ghi đúng thông tin. Để chúng tôi có thể liên hệ hỗ trợ nhanh chóng khi cần thiết</span>
                         </p>
                       </div>
 
@@ -634,9 +618,8 @@ function CheckoutPageContent() {
 
                       <Button
                         onClick={handleCreateOrder}
-                        className="w-full btn-primary"
-                        size="lg"
-                        disabled={!customerInfo.fullName || !customerInfo.email || !customerInfo.phone || !agreeTOS || !customerInfo.socialContact}
+                        className="hover:opacity-80 h-12 bg-gradient-to-br from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center shadow-sm w-full" size="lg"
+                        disabled={!customerInfo.fullName || !customerInfo.email || !customerInfo.phone || !agreeTOS || !customerInfo.socialContact || isSubmitting}
                       >
                         Tiếp tục thanh toán
                       </Button>

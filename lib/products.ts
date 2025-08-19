@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchProducts } from './api';
 import { ProductDuration } from '@/types/productDuration.interface';
-import { Category } from '@/types/product.interface';
+import { Category } from '@/types/category.interface';
 
 export interface ProductBase {
     id: number;
@@ -22,6 +22,7 @@ export interface ProductBase {
     sales: number;
     stock: number;
     status: string;
+    slug: string;
 
     // bổ sung nếu có durations (dữ liệu quan hệ)
     durations?: ProductDuration[];

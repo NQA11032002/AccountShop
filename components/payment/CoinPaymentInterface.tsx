@@ -50,6 +50,7 @@ export default function CoinPaymentInterface({
   const { items, clearAllCart } = useCart();
   const router = useRouter();
   const { user, sessionId, setUser } = useAuth(); // ⚠️ cần sửa AuthContext để expose `setUser`
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Trạng thái kiểm tra khi đang xử lý thanh toán
 
   // Animation progression
   useEffect(() => {
@@ -65,6 +66,9 @@ export default function CoinPaymentInterface({
 
   // nếu đang dùng custom toast
   const handlePayment = async () => {
+    if (isProcessingPayment) return; // Ngừng nếu đang xử lý thanh toán
+
+    setIsProcessingPayment(true); // Bắt đầu xử lý thanh toán
     setShowConfetti(true);
 
     try {
@@ -77,7 +81,7 @@ export default function CoinPaymentInterface({
         original_total: amount,
         discount: 0,
         payment_method: 'coin',
-        payment_status: 'paid',
+        payment_status: 'Đã thanh toán',
         products: items.map((item) => ({
           product_id: item.id,
           product_name: item.product_name,
@@ -127,6 +131,8 @@ export default function CoinPaymentInterface({
         description: error?.message || "Có lỗi xảy ra khi tạo đơn hàng",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessingPayment(false); // Kết thúc quá trình thanh toán
     }
   };
 
@@ -138,7 +144,7 @@ export default function CoinPaymentInterface({
           <CardHeader className="pb-4 bg-gradient-to-r from-brand-blue to-brand-emerald text-white">
             <div className="flex items-center space-x-3">
               <div className={`
-                w - 16 h - 16 rounded - lg flex items - center justify - center 
+                w -16 h - 16 rounded - lg flex items - center justify - center 
                 bg - white / 20 shadow - sm
                 transform transition - all duration - 700 ease - out
                 ${animationStep >= 1 ? 'scale-100 rotate-0' : 'scale-0 rotate-180'}
@@ -273,9 +279,9 @@ export default function CoinPaymentInterface({
                     <TrendingUp className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-800">{item.name}</p>
+                    <p className="font-medium text-gray-800">{item.product_name}</p>
                     <p className="text-sm text-gray-500">
-                      {item.quantity}x {new Intl.NumberFormat('vi-VN').format(item.price)}đ
+                      {item.quantity} x {new Intl.NumberFormat('vi-VN').format(item.price)}đ
                     </p>
                   </div>
                 </div>
@@ -340,25 +346,21 @@ export default function CoinPaymentInterface({
                 <h3 className="font-semibold text-gray-800">Bảo mật cao</h3>
                 <p className="text-sm text-gray-600 flex items-center">
                   <Clock className="w-3 h-3 mr-1" />
-                  Giao dịch tức thì • Mã hóa 256-bit
+                  Giao dịch tức thì • Mã hóa dữ liệu
                 </p>
               </div>
             </div>
 
             <Button
               onClick={handlePayment}
-              disabled={!isAffordable || isProcessing}
+              disabled={!isAffordable || isProcessingPayment}
               size="lg"
-              className={`
-    px - 8 py - 4 text - lg font - semibold min - w - [200px] rounded - lg
-                ${isAffordable
-                  ? 'bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white shadow-md'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }
-                transform transition - all duration - 200 hover: scale - 105 hover: shadow - lg active: scale - 95
-      `}
+              className={`px-8 py-4 text-lg font-semibold min-w-[200px] rounded-lg ${isAffordable
+                ? 'bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white shadow-md'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
             >
-              {isProcessing ? (
+              {isProcessingPayment ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Đang xử lý...
@@ -383,11 +385,11 @@ export default function CoinPaymentInterface({
       <div className="grid grid-cols-3 gap-4">
         {[
           { icon: Zap, title: "Tức thì", desc: "Nhận ngay lập tức", color: "text-brand-blue" },
-          { icon: Shield, title: "An toàn", desc: "Mã hóa 256-bit", color: "text-brand-emerald" },
+          { icon: Shield, title: "An toàn", desc: "Thông tin được mã hóa", color: "text-brand-emerald" },
           { icon: Gift, title: "Miễn phí", desc: "Không phí giao dịch", color: "text-green-600" }
         ].map((benefit, index) => (
           <Card key={index} className={`
-    text - center p - 4 bg - white border border - gray - 200 shadow - sm hover: shadow - md
+    text - center p - 4 bg - white border - gray - 200 - sm p-3 hover: shadow - md
             transform transition - all duration - 700 ease - out hover: scale - 105
             ${animationStep >= 3 ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}
     `} style={{ transitionDelay: `${800 + index * 100} ms` }}>
