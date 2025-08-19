@@ -75,7 +75,6 @@ export default function FavoritesPage() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-blue/5 via-brand-purple/5 to-brand-emerald/5">
       {/* Header */}
