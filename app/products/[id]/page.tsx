@@ -21,6 +21,7 @@ import { fetchProductById } from '@/lib/api';
 import { Review } from '@/types/reviews.interface';
 import { fetchReviews, postReview } from '@/lib/api';
 import { addToCart } from '@/lib/api';
+import DOMPurify from 'dompurify';
 
 // interface Review {
 //   id: number;
@@ -363,7 +364,9 @@ export default function ProductDetailPage() {
                   Có sẵn
                 </Badge>
               </div>
-              <p className="text-gray-600 text-lg leading-relaxed mb-4">{product.description}</p>
+              {/* <p className="text-gray-600 text-lg leading-relaxed mb-4"></p> */}
+
+
 
               {/* Key Benefits */}
               {/* <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-100">
@@ -488,8 +491,14 @@ export default function ProductDetailPage() {
                     <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
                       <span className="text-white text-xl">📦</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">Bao gồm trong gói</h3>
+                    <h3 className="text-xl font-bold text-gray-800">Thông tin sản phẩm</h3>
                   </div>
+                  <div
+                    className="text-gray-600 text-lg leading-relaxed mb-4"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(product.description),
+                    }}
+                  />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Array.isArray(product.product_features) && product.product_features.map((feature: any, index: number) => (
                       <div key={index} className="flex items-center space-x-3 p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-green-200/50 hover:shadow-md transition-shadow">

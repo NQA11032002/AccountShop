@@ -16,7 +16,7 @@ export default function Home() {
       <main className="bg-white">
         <HeroSection />
         <FeaturedCategories />
-        <PromotionalAccounts />
+        {/* <PromotionalAccounts /> */}
         <TopProducts />
         <WhyChooseUs />
         <Testimonials />

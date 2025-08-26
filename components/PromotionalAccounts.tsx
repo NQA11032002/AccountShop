@@ -105,7 +105,7 @@ export default function PromotionalAccounts() {
       warranty: "Bảo hành 30 ngày"
     };
 
-    addItem(cartItem);
+    // addItem(cartItem);
     toast({
       title: "Đã thêm vào giỏ hàng!",
       description: `${item.name} đã được thêm vào giỏ hàng.`,

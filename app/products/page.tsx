@@ -12,6 +12,7 @@ import ProductCard from '@/components/ProductCard';
 import { ProductBase } from '@/lib/products';
 import { fetchProducts, fetchCategories } from '@/lib/api';
 import { Category } from '@/types/category.interface';
+import DOMPurify from 'dompurify';
 
 function ProductsContent() {
   const [products, setProducts] = useState<ProductBase[]>([]);

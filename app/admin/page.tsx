@@ -467,20 +467,6 @@ QAI Store - Tài khoản premium uy tín #1
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (isLoading) return; // Nếu đang loading thì không làm gì
-
-  //   // Nếu không có sessionId, redirect về trang đăng nhập
-  //   if (!sessionId && role != 'admin') {
-  //     router.push('/admin/login'); // Điều hướng về trang đăng nhập
-  //     return;
-  //   }
-
-  //   // Khi có sessionId, tiếp tục gọi API
-  //   loadDashboardData();
-  // }, [sessionId, isLoading]); // Hook này sẽ được gọi lại mỗi khi sessionId thay đổi
-
-
   const loadDashboardData = async (forceAPI = false) => {
 
     try {
@@ -538,19 +524,23 @@ QAI Store - Tài khoản premium uy tín #1
         }
       }
 
-      if (sessionId) {
-        const data = await getProductsAdmin(sessionId);
-        setProducts(data);
-      }
+      loadProducts();
 
       // Load customer accounts with JSON API support
       await loadCustomerAccounts(forceAPI);
 
-      console.log('✅ Dashboard data loaded successfully');
     } catch (error) {
       console.error('❌ Error loading dashboard data:', error);
     }
   };
+
+  const loadProducts = async () => {
+    if (sessionId) {
+      const data = await getProductsAdmin(sessionId);
+      setProducts(data);
+    }
+  }
+
 
   const loadCustomerAccounts = async (forceAPI = false) => {
     try {
@@ -794,7 +784,6 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const handleEditProduct = (product: Product | null) => {
-
     setEditProductDialog({ open: true, product });
   };
 
@@ -822,9 +811,8 @@ QAI Store - Tài khoản premium uy tín #1
         description: `Sản phẩm ${productData.name} đã được tạo.`,
       });
     }
+    loadProducts();
 
-    // Sync changes across all admin tabs
-    // DataSyncHelper.syncAdminData('products', updatedProducts);
   };
 
   const handleDeleteProduct = (product: Product) => {

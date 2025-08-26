@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ProductBase } from '@/lib/products';
 import { getFeaturedDuration, formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
 import { FavoriteItem } from '@/types/favorite.interface';
+import DOMPurify from 'dompurify';
 
 interface ProductCardProps {
   product: ProductBase;
@@ -344,9 +345,10 @@ export default function ProductCard({
           </Badge>
 
           {/* Description */}
-          <p className="text-xs lg:text-sm text-gray-600 mb-3 leading-relaxed line-clamp-2">
+          {/* <p className="text-xs lg:text-sm text-gray-600 mb-3 leading-relaxed line-clamp-2">
             {product.description}
-          </p>
+          </p> */}
+
         </div>
 
         <div className="space-y-3">
