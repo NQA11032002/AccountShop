@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Grid3X3, ChevronDown, LogOut } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Crown, Grid3X3, ChevronDown, LogOut, Heart } from 'lucide-react';
 import DataSyncHelper from '@/lib/syncHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -296,7 +296,7 @@ export default function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64 bg-white/95 backdrop-blur-md border-white/20 text-gray-800 shadow-xl rounded-xl">
                   <DropdownMenuItem asChild>
-                    <Link href="/wallet" className="flex items-center px-4 py-3 hover:bg-green-50 rounded-lg">
+                    <Link href="/wallet" className="flex items-center px-4 py-3 hover:bg-green-50 rounded-lg cursor-grab">
                       <Wallet className="mr-3 h-4 w-4 text-green-600" />
                       <div>
                         <span>Ví của tôi</span>
@@ -305,25 +305,31 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg">
+                    <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg cursor-grab">
                       <Shield className="mr-3 h-4 w-4 text-purple-600" />
                       <span>Tài khoản của tôi</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/orders" className="flex items-center px-4 py-3 hover:bg-blue-50 rounded-lg">
+                    <Link href="/my-ranking" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg cursor-grab">
+                      <Crown className="mr-3 h-4 w-4 text-purple-600" />
+                      <span>Hạng của tôi</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/orders" className="flex items-center px-4 py-3 hover:bg-blue-50 rounded-lg cursor-grab">
                       <ShoppingCart className="mr-3 h-4 w-4 text-blue-600" />
                       <span>Đơn hàng của tôi</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
-                      <span className="mr-3 text-pink-600">♥</span>
+                    <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg cursor-grab">
+                      <Heart className="mr-3 h-4 w-4 text-purple-600" />
                       <span>Yêu thích</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-100" />
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 hover:bg-red-50 text-red-600 rounded-lg">
+                  <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 border-t hover:bg-red-100 text-red-600  cursor-grab">
                     <LogOut className="mr-3 h-4 w-4" />
                     <span>Đăng xuất</span>
                   </DropdownMenuItem>

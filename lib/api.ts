@@ -28,6 +28,68 @@ export async function fetchProductById(id: number): Promise<ProductBase> {
     return res.json();
 }
 
+// lib/api.ts
+type UploadImageResult = { filename: string; url: string };
+
+
+function extractJson(raw: string) {
+    // Tước mọi rác HTML/Notice trước/sau JSON
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+    if (start === -1 || end === -1 || end < start) {
+        throw new Error(`Upload response is not JSON: ${raw.slice(0, 200)}`);
+    }
+    const jsonStr = raw.slice(start, end + 1);
+    return JSON.parse(jsonStr);
+}
+
+
+export async function uploadProductImage(
+    file: File,
+    sessionId: string,
+    oldFilename?: string
+): Promise<UploadImageResult> {
+    const fd = new FormData();
+    fd.append("image", file, file.name); // BE validate key "image"
+    if (oldFilename) fd.append("old", oldFilename);
+
+    const res = await fetch(`${API_URL}/admin/upload-product-image`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${sessionId}` },
+        body: fd, // KHÔNG set Content-Type khi dùng FormData
+        cache: "no-store",
+    });
+
+    const raw = await res.text();
+    // Nếu HTTP fail -> ném lỗi kèm raw
+    if (!res.ok) throw new Error(`Upload failed (${res.status}): ${raw.slice(0, 200)}`);
+
+    let data: any;
+    try {
+        data = extractJson(raw);
+    } catch (e: any) {
+        throw new Error(e?.message || "Upload response is not JSON");
+    }
+
+    // Laravel của bạn có thể chỉ trả filename; tự suy url nếu thiếu
+    if (!data?.success || !data?.filename) {
+        const msg = data?.message || data?.errors?.image?.[0] || "Upload image failed";
+        throw new Error(msg);
+    }
+
+    const filename = String(data.filename);
+    const url = data.url || `/images/products/${filename}`;
+
+    return { filename, url };
+}
+
+
+/** Helper: từ tên file trong DB -> URL để hiển thị ảnh */
+export function imageFilenameToUrl(filename?: string | null): string {
+    if (!filename) return '';
+    return `/images/products/${filename}`;
+}
+
 
 // Lấy tất cả review của 1 sản phẩm
 export async function fetchReviews(productId: number): Promise<Review[]> {

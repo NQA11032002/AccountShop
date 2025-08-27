@@ -22,4 +22,5 @@ export interface Product {
     sales: number;
     stock: number;
     status: 'active' | 'inactive';
+    slug: string
 }

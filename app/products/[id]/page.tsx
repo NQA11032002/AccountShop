@@ -499,7 +499,7 @@ export default function ProductDetailPage() {
                       __html: DOMPurify.sanitize(product.description),
                     }}
                   />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Array.isArray(product.product_features) && product.product_features.map((feature: any, index: number) => (
                       <div key={index} className="flex items-center space-x-3 p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-green-200/50 hover:shadow-md transition-shadow">
                         <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -508,7 +508,7 @@ export default function ProductDetailPage() {
                         <span className="font-medium text-gray-800">{feature.feature}</span>
                       </div>
                     ))}
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* System Requirements */}

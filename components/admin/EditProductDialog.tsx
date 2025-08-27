@@ -25,7 +25,7 @@ import {
 import { Product, Category } from "@/types/product.interface";
 import { ProductDuration } from "@/types/productDuration.interface";
 
-import { updateProduct, fetchCategories, createProduct } from "@/lib/api";
+import { updateProduct, fetchCategories, createProduct, uploadProductImage } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import "suneditor/dist/css/suneditor.min.css";
 
@@ -44,12 +44,12 @@ interface EditProductDialogProps {
 const defaultCategory: Category = { id: 0, name: "", parent_id: null };
 
 const defaultForm: FormState = {
-  id: Date.now(),
+  id: 0, // 0 => thêm mới
   name: "",
   category: defaultCategory,
   price: 0,
   original_price: 0,
-  image: "",
+  image: "", // DB chỉ lưu "filename.ext"
   color: "",
   badge: "",
   badge_color: "",
@@ -62,6 +62,7 @@ const defaultForm: FormState = {
   status: "active",
   description: "",
   durations: [],
+  slug: "",
 };
 
 export function EditProductDialog({
@@ -72,14 +73,42 @@ export function EditProductDialog({
 }: EditProductDialogProps) {
   const { sessionId } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
-  const serverDurationIds = useRef<Set<number>>(new Set()); // 🔑 lưu ID duration từ server
+  const serverDurationIds = useRef<Set<number>>(new Set());
+
+  // Upload states
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+
+  // auto sync badge/badge_color/color
+  function applyStatusBadge(status: "active" | "inactive") {
+    const isActive = status === "active";
+    return {
+      status,
+      badge: isActive ? "còn hàng" : "hết hàng",
+      badge_color: isActive ? "bg-green-500" : "bg-red-500",
+      color: "white",
+    };
+  }
 
   const [formData, setFormData] = useState<FormState>(() => {
     const durs = (product?.durations ?? []).map(normalizeDuration(product?.id));
-    return product
+    const base = product
       ? ({ ...(product as Product), durations: durs } as FormState)
       : defaultForm;
+
+    return { ...base, ...applyStatusBadge(base.status as "active" | "inactive") };
   });
+
+  // Helper to show preview for existing image filename
+  const fileNameOnly = (p?: string) => (p || "").split("/").pop() || "";
+
+  useEffect(() => {
+    if (open) {
+      const fn = fileNameOnly(product?.image || formData.image);
+      if (fn) setImagePreview(`https://www.taikhoangpremium.shop//images/products/${fn}`);
+      else setImagePreview("");
+    }
+  }, [open]); // eslint-disable-line
 
   const prevOpen = useRef(open);
   useEffect(() => {
@@ -87,18 +116,26 @@ export function EditProductDialog({
     prevOpen.current = open;
 
     if (open && !wasOpen) {
-      // chỉ reset khi dialog vừa mở
       const rawDurs = product?.durations ?? [];
       serverDurationIds.current = new Set(
         rawDurs.filter((d) => !!d.id).map((d) => Number(d.id))
       );
-
       const durs = rawDurs.map(normalizeDuration(product?.id));
-      setFormData(
-        product
-          ? ({ ...(product as Product), durations: durs } as FormState)
-          : { ...defaultForm, id: 0 }
-      );
+
+      const base = product
+        ? ({ ...(product as Product), durations: durs } as FormState)
+        : { ...defaultForm, id: 0 };
+
+      const withStatusFields = {
+        ...base,
+        ...applyStatusBadge(base.status as "active" | "inactive"),
+      };
+      setFormData(withStatusFields);
+
+      // reset upload states
+      setImageFile(null);
+      const fn = fileNameOnly(base.image);
+      setImagePreview(fn ? `https://www.taikhoangpremium.shop/images/products/${fn}` : "");
 
       (async () => {
         try {
@@ -113,7 +150,7 @@ export function EditProductDialog({
 
   function normalizeDuration(productId?: number) {
     return (d: ProductDuration): ProductDuration => ({
-      id: d.id ?? Date.now(), // id tạm để render UI
+      id: d.id ?? Date.now(),
       product_id: d.product_id ?? (productId ?? 0),
       name: d.name ?? "",
       price: Number(d.price ?? 0),
@@ -122,6 +159,24 @@ export function EditProductDialog({
     });
   }
 
+  // ----- Upload handlers -----
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const okTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"];
+    if (!okTypes.includes(f.type)) {
+      console.warn("File type not allowed:", f.type);
+      return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      console.warn("File too large (>5MB)");
+      return;
+    }
+    setImageFile(f);
+    setImagePreview(URL.createObjectURL(f));
+  };
+
+
   // ----- Durations UI -----
   const addDuration = () => {
     setFormData((prev) => ({
@@ -129,7 +184,7 @@ export function EditProductDialog({
       durations: [
         ...prev.durations,
         normalizeDuration(prev.id)({
-          id: Date.now(), // chỉ dùng cho key UI, KHÔNG gửi lên backend
+          id: Date.now(),
           product_id: prev.id || 0,
           name: "",
           price: 0,
@@ -170,13 +225,38 @@ export function EditProductDialog({
     }));
   };
 
+  // Trả về { filename, url } thay vì string
+
+  // Upload nếu có, trả { filename, url }
+  const uploadImageIfNeeded = async (): Promise<{ filename: string; url: string } | null> => {
+    if (!imageFile || !sessionId) return null;
+    const oldFilename = fileNameOnly(formData.image);
+    const { filename, url } = await uploadProductImage(imageFile, sessionId, oldFilename);
+    setImagePreview(url);
+    return { filename, url };
+  };
+
+
   // ----- SAVE -----
   const handleSave = async () => {
     try {
       if (!sessionId) throw new Error("Missing session token");
 
-      // 👉 chỉ gửi id cho durations cũ (tồn tại trên server)
-      const durationsPayload = formData.durations.map((d) => {
+      // 1) upload ảnh (nếu có)
+      const uploaded = await uploadImageIfNeeded(); // { filename, url } | null
+
+      // 2) đồng bộ badge theo status
+      const normalizedForm: FormState = {
+        ...formData,
+        ...applyStatusBadge(formData.status as "active" | "inactive"),
+      };
+
+      // 3) CHỈ LƯU FILENAME VÀO DB
+      const currentFilename = fileNameOnly(normalizedForm.image);
+      const imageName = uploaded?.filename ?? currentFilename; // <-- filename, không phải url
+
+      // 4) build durations
+      const durationsPayload = normalizedForm.durations.map((d) => {
         const base = {
           name: d.name,
           price: Number(d.price) || 0,
@@ -188,28 +268,26 @@ export function EditProductDialog({
       });
 
       const payload = {
-        ...formData,
-        category: formData.category.id, // chỉ gửi ID category
-        durations: durationsPayload,    // 👈 đã lọc id phù hợp
+        ...normalizedForm,
+        image: imageName,                       // <-- DB chỉ lưu "tên.đuôi"
+        category: normalizedForm.category.id,   // gửi ID
+        durations: durationsPayload,
       };
 
-      if (!formData.id || formData.id === 0) {
+      if (!normalizedForm.id || normalizedForm.id === 0) {
         const result = await createProduct(sessionId, payload);
-
-        const newCategory =
-          categories.find((c) => c.id === result.category) || defaultCategory;
-
-        const newProduct: Product = {
+        const newCategory = categories.find((c) => c.id === result.category) || defaultCategory;
+        onSave({
           id: result.id,
           name: result.name,
           category: newCategory,
           price: result.price,
           original_price: result.original_price,
-          image: result.image,
+          image: result.image,   // BE trả filename
           color: result.color,
           badge: result.badge,
           badge_color: result.badge_color,
-          in_stock: result.in_stock === 1,
+          in_stock: result.in_stock === 1 || result.in_stock === true,
           rating: result.rating,
           reviews: result.reviews,
           warranty: result.warranty,
@@ -217,26 +295,22 @@ export function EditProductDialog({
           stock: result.stock,
           status: result.status,
           description: result.description,
-        };
-
-        onSave(newProduct);
+          slug: result.slug,
+        });
       } else {
-        const result = await updateProduct(sessionId, formData.id, payload);
-
-        const updatedCategory =
-          categories.find((c) => c.id === result.category) || defaultCategory;
-
-        const updatedProduct: Product = {
+        const result = await updateProduct(sessionId, normalizedForm.id, payload);
+        const updatedCategory = categories.find((c) => c.id === result.category) || defaultCategory;
+        onSave({
           id: result.id,
           name: result.name,
           category: updatedCategory,
           price: result.price,
           original_price: result.original_price,
-          image: result.image,
+          image: result.image,   // filename
           color: result.color,
           badge: result.badge,
           badge_color: result.badge_color,
-          in_stock: result.in_stock === 1,
+          in_stock: result.in_stock === 1 || result.in_stock === true,
           rating: result.rating,
           reviews: result.reviews,
           warranty: result.warranty,
@@ -244,16 +318,16 @@ export function EditProductDialog({
           stock: result.stock,
           status: result.status,
           description: result.description,
-        };
-
-        onSave(updatedProduct);
+          slug: result.slug,
+        });
       }
 
       onOpenChange(false);
     } catch (err: any) {
-      console.error("❌ Failed to update product:", err.message);
+      console.error("❌ Failed to save product:", err?.message || err);
     }
   };
+
 
   // ----- UI -----
   return (
@@ -274,16 +348,56 @@ export function EditProductDialog({
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Netflix Premium"
+              placeholder="Tên sản phẩm"
               required
             />
+          </div>
+
+          <div>
+            <Label htmlFor="slug">Slug *</Label>
+            <Input
+              id="slug"
+              value={formData.slug}
+              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              placeholder="netflix, chat-gpt, office365..."
+              required
+            />
+          </div>
+
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <Label>Ảnh sản phẩm</Label>
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-24 rounded-lg border bg-muted overflow-hidden flex items-center justify-center">
+                {imagePreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    alt="preview"
+                    src={imagePreview}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs text-muted-foreground">No image</span>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+                  onChange={handleFileChange}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Hỗ trợ PNG, JPG, JPEG, WEBP, GIF (tối đa 5MB). Lưu tại <code>public/images/products</code>.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Category */}
           <div>
             <Label>Danh mục *</Label>
             <Select
-              value={formData.category.id.toString()}
+              value={formData.category.id?.toString() || "0"}
               onValueChange={(value) => {
                 const selected = categories.find((c) => c.id === parseInt(value));
                 if (selected) setFormData({ ...formData, category: selected });
@@ -302,7 +416,7 @@ export function EditProductDialog({
             </Select>
           </div>
 
-          {/* Durations dynamic */}
+          {/* Durations */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label>Thời hạn gói</Label>
@@ -348,7 +462,9 @@ export function EditProductDialog({
                     onChange={(e) => changeDuration(i, "featured", e.target.checked)}
                     className="h-4 w-4 accent-blue-600"
                   />
-                  <Label htmlFor={`featured-${d.id}`} className="text-xs">Hiển thị</Label>
+                  <Label htmlFor={`featured-${d.id}`} className="text-xs">
+                    Hiển thị
+                  </Label>
                 </div>
                 <div className="col-span-1 flex justify-end">
                   <Button
@@ -365,34 +481,6 @@ export function EditProductDialog({
             ))}
           </div>
 
-          {/* Pricing */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="price">Giá bán (VNĐ) *</Label>
-              <Input
-                id="price"
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
-                placeholder="89000"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="originalPrice">Giá gốc (VNĐ) *</Label>
-              <Input
-                id="originalPrice"
-                type="number"
-                value={formData.original_price}
-                onChange={(e) =>
-                  setFormData({ ...formData, original_price: parseInt(e.target.value) || 0 })
-                }
-                placeholder="260000"
-                required
-              />
-            </div>
-          </div>
-
           {/* Stock & Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -405,16 +493,17 @@ export function EditProductDialog({
                 placeholder="50"
               />
             </div>
+
             <div>
               <Label>Trạng thái</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value: "active" | "inactive") =>
-                  setFormData({ ...formData, status: value })
+                  setFormData((prev) => ({ ...prev, ...applyStatusBadge(value) }))
                 }
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Hoạt động</SelectItem>
@@ -453,7 +542,7 @@ export function EditProductDialog({
             </div>
           </div>
 
-          {/* Description - SunEditor */}
+          {/* Description */}
           <div>
             <Label htmlFor="description">Mô tả sản phẩm</Label>
             <SunEditor
