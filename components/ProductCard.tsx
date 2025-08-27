@@ -197,7 +197,7 @@ export default function ProductCard({
         <CardContent className="flex-1 flex flex-row space-x-6 p-6">
           <div className="flex-shrink-0">
             <div className={`${config.iconSize} ${product.color || 'bg-gray-500'} rounded-2xl flex items-center justify-center text-2xl shadow-lg`}>
-              <img src={`/images/products/${product.image}`}
+              <img src={`https://www.taikhoangpremium.shop/images/products/${product.image}`}
                 alt="" />
             </div>
           </div>
