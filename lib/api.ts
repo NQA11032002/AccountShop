@@ -863,3 +863,26 @@ export async function deleteOrder(id: number, sessionId: string): Promise<void> 
         throw new Error(err.message || 'Không thể xoá order');
     }
 }
+
+
+export async function sendOrderEmail(
+    sessionId: string,
+    orderId: number,
+    payload: { subject: string; message: string; template?: 'custom' | 'status_update' }
+) {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/orders/${orderId}/email`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(data?.message || 'Không thể gửi email');
+    }
+    return data; // { success: true, message: 'Email scheduled to send' }
+}

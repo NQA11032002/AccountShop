@@ -121,6 +121,7 @@ import {
 } from '@/lib/api';
 import { Product } from '@/types/product.interface';
 import { deleteOrder } from '@/lib/api';
+import { sendOrderEmail } from '@/lib/api';
 
 // interface User {
 //   id: string;
@@ -1357,12 +1358,18 @@ QAI Store - Tài khoản premium uy tín #1
       .replace('{accountLink}', credentials.accountLink)
       .replace('{duration}', credentials.duration);
   };
+  const toNumericId = (id: string | number): number | null => {
+    if (typeof id === 'number') return id;
+    return /^\d+$/.test(id) ? Number(id) : null;
+  };
+
 
   const handleSendEmails = async () => {
-    console.log("🚀 Starting real email sending process");
     setSendingEmails(true);
 
     try {
+      if (!sessionId) throw new Error('Thiếu sessionId/token.');
+
       const ordersToSend = sendAccountModal.order
         ? [sendAccountModal.order]
         : orders.filter(o => selectedOrders.includes(o.id));
@@ -1373,39 +1380,34 @@ QAI Store - Tài khoản premium uy tín #1
 
       for (const order of ordersToSend) {
         try {
+          // Bỏ qua đơn local nếu id không phải số (không có trên server để gửi email theo order)
+          const numericId = toNumericId(order.id);
+          if (numericId === null) {
+            failedCount++;
+            failedEmails.push(order.userEmail);
+            console.error(`❌ Bỏ qua: Order id không hợp lệ để gửi email qua server: ${order.id}`);
+            continue;
+          }
+
           const credentials = generateAccountCredentials(order);
           const emailContent = formatEmailContent(order, credentials);
 
-          console.log(`📧 Sending email ${sentCount + 1}/${ordersToSend.length} to:`, order.userEmail);
+          console.log(`📧 Gửi email ${sentCount + 1}/${ordersToSend.length} -> ${order.userEmail}`);
 
-          // Call the actual email API
-          const response = await fetch('/api/send-email', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              to: order.userEmail,
-              subject: emailSubject,
-              content: emailContent,
-              credentials: credentials,
-              orderInfo: {
-                orderId: order.id,
-                customerName: order.customerName || order.userEmail,
-                total: order.total
-              }
-            })
+          // Gọi API Laravel: POST /admin/orders/{id}/email
+          const result = await sendOrderEmail(sessionId, numericId, {
+            subject: emailSubject,          // ví dụ: state bạn đang dùng
+            message: emailContent,          // nội dung render sẵn
+            template: 'custom',             // hoặc 'status_update' nếu muốn server tự build theo status
           });
 
-          const result = await response.json();
-
-          if (result.success) {
+          if (result?.success) {
             sentCount++;
-            console.log(`✅ Email sent successfully to ${order.userEmail}:`, result);
+            console.log(`✅ Sent -> ${order.userEmail}`, result);
           } else {
             failedCount++;
             failedEmails.push(order.userEmail);
-            console.error(`❌ Failed to send email to ${order.userEmail}:`, result.error);
+            console.error(`❌ Failed -> ${order.userEmail}:`, result);
           }
 
         } catch (emailError) {
@@ -1415,7 +1417,7 @@ QAI Store - Tài khoản premium uy tín #1
         }
       }
 
-      // Show success/failure summary
+      // Toast tổng kết
       if (sentCount > 0 && failedCount === 0) {
         toast({
           title: "🎉 Gửi email thành công!",
@@ -1435,15 +1437,13 @@ QAI Store - Tài khoản premium uy tín #1
         });
       }
 
-      // Log detailed results
       console.log("📊 Email sending summary:", {
         total: ordersToSend.length,
         sent: sentCount,
         failed: failedCount,
-        failedEmails: failedEmails
+        failedEmails,
       });
 
-      // Reset states only if some emails were sent successfully
       if (sentCount > 0) {
         setSendAccountModal({ open: false, order: null });
         setSelectedOrders([]);
