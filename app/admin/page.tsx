@@ -116,8 +116,11 @@ import {
   CustomerRankDisplay,
 } from '@/components/CustomerRankingSystem';
 import { User } from '@/types/user.interface';
-import { fetchAdminUsers, getProductsAdmin, deleteProduct, checkRole } from '@/lib/api';
+import {
+  fetchAdminUsers, getProductsAdmin, deleteProduct, checkRole, fetchAdminOrdersData,
+} from '@/lib/api';
 import { Product } from '@/types/product.interface';
+import { deleteOrder } from '@/lib/api';
 
 // interface User {
 //   id: string;
@@ -258,6 +261,7 @@ QAI Store - Tài khoản premium uy tín #1
   const { user, logout, role, sessionId, isLoading, setRole, setSessionId } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Data generation functions moved outside component to avoid errors
   const [analyticsData, setAnalyticsData] = useState<any[]>([]);
@@ -276,6 +280,7 @@ QAI Store - Tài khoản premium uy tín #1
     setSessionId('');
     router.push('/admin/login');
   };
+
 
   useEffect(() => {
     // Generate analytics data
@@ -296,7 +301,6 @@ QAI Store - Tài khoản premium uy tín #1
           traffic: Math.floor(Math.random() * 10000) + 2000
         });
       }
-
       return months;
     };
 
@@ -382,67 +386,48 @@ QAI Store - Tài khoản premium uy tín #1
       }
     });
 
-    // Subscribe to order completion events for real-time updates
-    const unsubscribeOrderCompletion = DataSyncHelper.subscribeToOrderCompletion(async (orderData) => {
 
-      // Force reload orders from enhanced Orders API to get the latest data immediately
+    // Khi BE/Realtime phát sự kiện hoàn tất đơn
+    const unsubscribeOrderCompletion = DataSyncHelper.subscribeToOrderCompletion(async (_orderData) => {
       try {
-        const ordersResponse = await fetch('/api/orders?includeProducts=true');
-        const ordersResult = await ordersResponse.json();
-
-        if (ordersResult.success && ordersResult.data.length > 0) {
-          setOrders(ordersResult.data);
-        } else {
-          // Fallback to legacy API
-          const syncedOrders = await DataSyncHelper.loadAdminData('orders', true);
-          if (syncedOrders.length > 0) {
-            setOrders(syncedOrders);
-          }
-        }
+        await loadOrders();
       } catch (error) {
-        console.warn("⚠️ Error refreshing orders after completion:", error);
       }
 
-      // Also reload customer accounts to reflect ranking updates
+      // Reload accounts nếu cần
       const syncedAccounts = await DataSyncHelper.loadAdminData('accounts', true);
       if (syncedAccounts.length > 0) {
         const accountsWithDates = syncedAccounts.map((account: any) => ({
           ...account,
           purchaseDate: new Date(account.purchaseDate),
-          expiryDate: new Date(account.expiryDate)
+          expiryDate: new Date(account.expiryDate),
         }));
         setCustomerAccounts(accountsWithDates);
-        console.log("🔄 Customer accounts refreshed after order completion");
       }
     });
 
-    // Subscribe to admin-specific order completion events for immediate updates
+    // Sự kiện hoàn tất đơn dành riêng admin (customEvent)
     const handleAdminOrderCompleted = async (event: Event) => {
       const customEvent = event as CustomEvent;
-      console.log("🚨 Admin order completion event received:", customEvent.detail);
 
       const { orderId, orderData } = customEvent.detail;
 
-      // Update orders immediately if we have the full order data
       if (orderData) {
-        setOrders(prevOrders => {
-          const updatedOrders = prevOrders.map(order =>
-            order.id === orderId ? { ...order, ...orderData, status: 'completed' } : order
+        setOrders((prev) => {
+          const updated = prev.map((o) =>
+            o.id === orderId ? { ...o, ...orderData, status: 'completed' } : o
           );
-
-          // If order not found, add it
-          if (!updatedOrders.find(o => o.id === orderId)) {
-            updatedOrders.unshift(orderData);
+          if (!updated.find((o) => o.id === orderId)) {
+            updated.unshift(orderData);
           }
-
-          return updatedOrders;
+          return updated;
         });
       }
 
-      // Trigger full data reload after short delay to ensure API sync
+      // Chờ 1 nhịp rồi reload từ BE cho chắc
       setTimeout(() => {
-        loadDashboardData(true);
-      }, 2000);
+        loadOrders();
+      }, 1000);
     };
 
     window.addEventListener('admin-order-completed', handleAdminOrderCompleted);
@@ -495,36 +480,8 @@ QAI Store - Tài khoản premium uy tín #1
         }
       }
 
-      // Load orders with enhanced JSON API support using dedicated Orders API
-      try {
-        const ordersResponse = await fetch('/api/orders?includeProducts=true');
-        const ordersResult = await ordersResponse.json();
-
-        if (ordersResult.success && ordersResult.data.length > 0) {
-          setOrders(ordersResult.data);
-        } else {
-          // Fallback to legacy data API
-          const syncedOrders = await DataSyncHelper.loadAdminData('orders', forceAPI);
-          if (syncedOrders.length > 0) {
-            setOrders(syncedOrders);
-          } else {
-            const storedOrders = localStorage.getItem('qai_orders');
-            if (storedOrders) {
-              const orders = JSON.parse(storedOrders);
-              setOrders(orders);
-              await DataSyncHelper.syncAdminData('orders', orders);
-            }
-          }
-        }
-      } catch (ordersApiError) {
-        // Fallback to legacy API
-        const syncedOrders = await DataSyncHelper.loadAdminData('orders', forceAPI);
-        if (syncedOrders.length > 0) {
-          setOrders(syncedOrders);
-        }
-      }
-
-      loadProducts();
+      await loadOrders();
+      await loadProducts();
 
       // Load customer accounts with JSON API support
       await loadCustomerAccounts(forceAPI);
@@ -534,13 +491,26 @@ QAI Store - Tài khoản premium uy tín #1
     }
   };
 
+
+
+  const loadOrders = async () => {
+    if (!sessionId) return;
+
+    const orders = await fetchAdminOrdersData(sessionId, {
+      includeProducts: true,
+      sort_by: 'created_at',
+      sort_dir: 'desc',
+    });
+
+    setOrders(orders.data);
+  };
+
   const loadProducts = async () => {
     if (sessionId) {
       const data = await getProductsAdmin(sessionId);
       setProducts(data);
     }
   }
-
 
   const loadCustomerAccounts = async (forceAPI = false) => {
     try {
@@ -852,23 +822,19 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const handleViewOrderDetail = (order: Order) => {
-    console.log("👁️ Opening admin order detail modal for:", order.id);
     setAdminOrderDetailModal({ open: true, order });
   };
 
   const handleCloseOrderDetailModal = () => {
-    console.log("❌ Closing admin order detail modal");
     setAdminOrderDetailModal({ open: false, order: null });
   };
 
   const handleSaveOrderFromModal = (updatedOrder: Order) => {
-    console.log("💾 Saving order from modal:", updatedOrder.id);
     handleSaveOrder(updatedOrder);
     handleCloseOrderDetailModal();
   };
 
   const handleOrderStatusChange = (orderId: string, newStatus: 'pending' | 'processing' | 'completed' | 'cancelled') => {
-    console.log("🔄 Order status change:", { orderId, newStatus });
     const updatedOrders = orders.map(o =>
       o.id === orderId ? { ...o, status: newStatus } : o
     );
@@ -884,7 +850,6 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const handleSaveOrder = (orderData: Order) => {
-    console.log("Saving order with sync", orderData);
     let updatedOrders: Order[];
 
     if (editOrderDialog.order) {
@@ -925,39 +890,51 @@ QAI Store - Tài khoản premium uy tín #1
     DataSyncHelper.syncAdminData('orders', updatedOrders);
   };
 
+
   const handleDeleteOrder = (order: Order) => {
-    console.log("Delete order clicked", { orderId: order.id });
     setDeleteDialog({
       open: true,
       type: 'order',
       item: order,
-      onConfirm: () => {
-        const updatedOrders = orders.filter(o => o.id !== order.id);
-        setOrders(updatedOrders);
+      onConfirm: async () => {
+        try {
+          setIsDeleting(true);
 
-        // Remove from localStorage
-        const storedOrders = localStorage.getItem('qai_orders');
-        if (storedOrders) {
-          const legacyOrders = JSON.parse(storedOrders);
-          const updatedLegacyOrders = legacyOrders.filter((o: any) => o.id !== order.id);
-          localStorage.setItem('qai_orders', JSON.stringify(updatedLegacyOrders));
+          // Nếu id là số hợp lệ -> gọi API xoá trên server
+          if (/^\d+$/.test(order.id)) {
+            if (!sessionId) throw new Error('Thiếu sessionId/token.');
+            await deleteOrder(Number(order.id), sessionId);
+          }
+          // Nếu id không phải số (ORD-xxx) -> coi như đơn local, bỏ qua API nhưng vẫn xoá local
+
+          // Cập nhật state
+          const updatedOrders = orders.filter(o => o.id !== order.id);
+          setOrders(updatedOrders);
+
+
+          toast({
+            title: 'Xóa thành công',
+            description: `Đơn hàng #${order.id} đã được xóa.`,
+            variant: 'destructive',
+          });
+
+          // Đóng dialog
+          setDeleteDialog(prev => ({ ...prev, open: false }));
+        } catch (err: any) {
+          toast({
+            variant: 'destructive',
+            title: 'Xóa thất bại',
+            description: err?.message || 'Không thể xoá đơn hàng.',
+          });
+        } finally {
+          setIsDeleting(false);
         }
-
-        toast({
-          title: "Xóa thành công",
-          description: `Đơn hàng #${order.id} đã được xóa.`,
-          variant: "destructive",
-        });
-
-        // Sync changes across all admin tabs
-        DataSyncHelper.syncAdminData('orders', updatedOrders);
-      }
+      },
     });
   };
 
   // Export functions
   const handleExportUsers = () => {
-    console.log("Exporting users to Excel");
     const success = exportUsersToExcel(users);
     if (success) {
       toast({
@@ -974,7 +951,6 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const handleExportProducts = () => {
-    console.log("Exporting products to Excel");
     const success = exportProductsToExcel(products);
     if (success) {
       toast({
@@ -1677,7 +1653,6 @@ QAI Store - Tài khoản premium uy tín #1
   const getFilteredAndSortedOrders = () => {
     let filtered = orders.filter(order => {
       const matchesSearch =
-        order.id.toLowerCase().includes(orderSearchTerm.toLowerCase()) ||
         order.userEmail.toLowerCase().includes(orderSearchTerm.toLowerCase()) ||
         (order.customerName && order.customerName.toLowerCase().includes(orderSearchTerm.toLowerCase())) ||
         order.products.some(product => product.name?.toLowerCase().includes(orderSearchTerm.toLowerCase()));
@@ -3004,13 +2979,13 @@ QAI Store - Tài khoản premium uy tín #1
                   <Table>
                     <TableHeader className="bg-gradient-to-r from-gray-50 to-blue-50/50">
                       <TableRow>
-                        <TableHead className="w-12 font-semibold">
+                        {/* <TableHead className="w-12 font-semibold">
                           <Checkbox
                             checked={selectedOrders.length > 0 && selectedOrders.length === orders.filter(o => o.status === 'completed').length}
                             onCheckedChange={handleSelectAllOrders}
                             className="border-2 border-gray-400"
                           />
-                        </TableHead>
+                        </TableHead> */}
                         <TableHead className="font-semibold">Mã đơn hàng</TableHead>
                         <TableHead className="font-semibold">Khách hàng</TableHead>
                         <TableHead className="font-semibold">Sản phẩm</TableHead>
@@ -3024,18 +2999,18 @@ QAI Store - Tài khoản premium uy tín #1
                     <TableBody>
                       {filteredOrders.map((order) => (
                         <TableRow key={order.id} className="hover:bg-gradient-to-r hover:from-orange-50/50 hover:to-green-50/50 transition-all duration-200">
-                          <TableCell>
+                          {/* <TableCell>
                             <Checkbox
                               checked={selectedOrders.includes(order.id)}
                               onCheckedChange={(checked) => handleSelectOrder(order.id, checked as boolean)}
                               disabled={order.status !== 'completed'}
                               className={order.status === 'completed' ? 'border-2 border-green-400' : 'opacity-50'}
                             />
-                          </TableCell>
+                          </TableCell> */}
                           <TableCell>
                             <div className="flex items-center space-x-2">
                               <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                                {order.id.slice(-2)}
+                                {/* {order.id.slice(-2)} */}
                               </div>
                               <span className="font-medium">#{order.id}</span>
                             </div>
@@ -3078,7 +3053,7 @@ QAI Store - Tài khoản premium uy tín #1
                           <TableCell>
                             <div className="flex items-center space-x-2">
                               {getStatusBadge(order.status, 'order')}
-                              {order.status === 'pending' && (
+                              {/* {order.status === 'pending' && (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -3087,7 +3062,7 @@ QAI Store - Tài khoản premium uy tín #1
                                 >
                                   Xử lý
                                 </Button>
-                              )}
+                              )} */}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -3112,7 +3087,7 @@ QAI Store - Tài khoản premium uy tín #1
                                   <Send className="w-4 h-4" />
                                 </Button>
                               )}
-                              {order.status === 'pending' && (
+                              {/* {order.status === 'pending' && (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -3122,7 +3097,7 @@ QAI Store - Tài khoản premium uy tín #1
                                   <Zap className="w-3 h-3 mr-1" />
                                   Xử lý
                                 </Button>
-                              )}
+                              )} */}
                               <Button
                                 variant="ghost"
                                 size="sm"

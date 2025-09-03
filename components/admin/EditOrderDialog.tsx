@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { updateStatusOrder } from '@/lib/api'; // <- chỉnh path cho đúng
+import type { OrderStatus } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Order {
   id: string;
@@ -39,6 +42,8 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
       createdAt: new Date().toISOString()
     }
   );
+  const [isSaving, setIsSaving] = useState(false);
+  const { sessionId } = useAuth();
 
   // Reset form data when order prop changes or dialog opens
   useEffect(() => {
@@ -58,10 +63,50 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
     }
   }, [order, open]);
 
-  const handleSave = () => {
-    onSave(formData);
-    onOpenChange(false);
+  const toOrderIdParam = (id: string): string | number => {
+    return /^\d+$/.test(id) ? Number(id) : id;
   };
+
+  const handleSave = async () => {
+    if (!sessionId) return;
+
+    try {
+      setIsSaving(true);
+
+      // Trường hợp EDIT: có order truyền vào
+      if (order) {
+        const statusChanged = formData.status !== order.status;
+
+        if (statusChanged) {
+          const orderIdParam = toOrderIdParam(order.id);
+
+          // Lưu ý: updateStatusOrder phải gửi body: { status }
+          const res = await updateStatusOrder(
+            sessionId,
+            orderIdParam as any,
+            formData.status as OrderStatus
+          );
+
+          // Nếu API trả dữ liệu đơn hàng mới ở res.data thì dùng nó; nếu không có thì vẫn dùng formData
+          const updated = (res && res.data) ? res.data : formData;
+          onSave(updated);
+        } else {
+          // Không đổi status -> không gọi API
+          onSave(formData);
+        }
+      } else {
+        // Trường hợp CREATE: bạn chưa có API tạo, nên chỉ trả formData ra ngoài
+        onSave(formData);
+      }
+
+      onOpenChange(false);
+    } catch (err: any) {
+      alert(err?.message || 'Không thể cập nhật trạng thái đơn hàng');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
 
   const paymentMethods = [
     'momo', 'banking', 'zalopay', 'vnpay', 'paypal', 'credit_card'
@@ -88,7 +133,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
     };
 
     const labels: { [key: string]: string } = {
-      pending: 'Chờ xử lý',
+      // pending: 'Chờ xử lý',
       processing: 'Đang xử lý',
       completed: 'Hoàn thành',
       cancelled: 'Đã hủy'
@@ -131,6 +176,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="userEmail" className="text-right">Email khách hàng</Label>
             <Input
+              disabled
               id="userEmail"
               type="email"
               value={formData.userEmail}
@@ -141,7 +187,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
           </div>
 
           {/* Payment Method */}
-          <div className="grid grid-cols-4 items-center gap-4">
+          {/* <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Phương thức thanh toán</Label>
             <Select
               value={formData.paymentMethod}
@@ -158,7 +204,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           {/* Status */}
           <div className="grid grid-cols-4 items-center gap-4">
@@ -174,7 +220,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">Chờ xử lý</SelectItem>
+                  {/* <SelectItem value="pending">Chờ xử lý</SelectItem> */}
                   <SelectItem value="processing">Đang xử lý</SelectItem>
                   <SelectItem value="completed">Hoàn thành</SelectItem>
                   <SelectItem value="cancelled">Đã hủy</SelectItem>
@@ -188,6 +234,7 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="total" className="text-right">Tổng tiền (VNĐ)</Label>
             <Input
+              disabled
               id="total"
               type="number"
               value={formData.total}
@@ -224,10 +271,10 @@ export function EditOrderDialog({ order, open, onOpenChange, onSave }: EditOrder
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
             Hủy
           </Button>
-          <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">
+          <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700" disabled={isSaving}>
             {order ? 'Cập nhật' : 'Tạo mới'}
           </Button>
         </DialogFooter>

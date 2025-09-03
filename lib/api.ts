@@ -5,6 +5,22 @@ import type { RankingData } from '@/types/RankingData.interface';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+
+interface Order {
+    id: string;
+    userId: string;
+    userEmail: string;
+    customerName?: string;
+    products: { name: string; quantity: number; price: number }[];
+    total: number;
+    status: 'pending' | 'processing' | 'completed' | 'cancelled';
+    paymentMethod: string;
+    createdAt: string;
+    completedAt?: string;
+    discount?: number;
+    originalTotal?: number;
+}
+
 export async function fetchProducts(): Promise<ProductBase[]> {
     const res = await fetch(`${API_URL}/products`, {
         cache: 'no-store',
@@ -745,3 +761,105 @@ export const checkDepositStatus = async (orderId: string, sessionId: string) => 
 
     return res.json(); // trả về { status, coins, updated_at }
 };
+
+type SortBy = 'created_at' | 'total' | 'id';
+type SortDir = 'asc' | 'desc';
+type AdminOrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled';
+
+// ===================== Admin Orders APIs (typed) =====================
+// ---- helpers ----
+async function parseOrThrow<T = any>(res: Response): Promise<T> {
+    let data: any = null;
+    try { data = await res.json(); } catch { /* ignore */ }
+    if (!res.ok) {
+        const msg = data?.message || 'Request failed';
+        throw new Error(msg);
+    }
+    return data as T;
+}
+
+interface FetchAdminOrdersParams {
+    includeProducts?: boolean;   // default true
+    status?: AdminOrderStatus | 'all';
+    q?: string;
+    date_from?: string;          // YYYY-MM-DD
+    date_to?: string;            // YYYY-MM-DD
+    sort_by?: SortBy;            // default created_at
+    sort_dir?: SortDir;          // default desc
+    page?: number;               // default 1
+    per_page?: number;           // default 20
+}
+
+
+// GET /api/admin/orders
+export async function fetchAdminOrdersData(
+    sessionId: string,
+    params: FetchAdminOrdersParams = {}
+) {
+    const qs = new URLSearchParams({
+        includeProducts: String(params.includeProducts ?? true),
+        ...(params.status ? { status: params.status } : {}),
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.date_from ? { date_from: params.date_from } : {}),
+        ...(params.date_to ? { date_to: params.date_to } : {}),
+        ...(params.sort_by ? { sort_by: params.sort_by } : {}),
+        ...(params.sort_dir ? { sort_dir: params.sort_dir } : {}),
+        ...(params.page ? { page: String(params.page) } : {}),
+        ...(params.per_page ? { per_page: String(params.per_page) } : {}),
+    }).toString();
+
+    const res = await fetch(`${API_URL}/admin/orders?${qs}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+
+    return res.json();
+}
+
+export type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled';
+
+export const updateStatusOrder = async (
+    sessionId: string,
+    orderId: string,
+    status: OrderStatus
+) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/orders/${orderId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        // Laravel validate expects an object: { status: "..." }
+        body: JSON.stringify({ status }),
+    });
+
+    // cố gắng parse JSON cho cả success và error
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+        const msg =
+            data?.message ||
+            (data?.errors ? Object.values(data.errors).flat().join(' ') : '') ||
+            'Failed to update order';
+        throw new Error(msg);
+    }
+
+    return data; // { success, data, message? } theo response của bạn
+};
+
+// Xoá item trong giỏ hàng
+export async function deleteOrder(id: number, sessionId: string): Promise<void> {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/orders/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Không thể xoá order');
+    }
+}

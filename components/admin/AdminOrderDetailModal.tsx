@@ -12,16 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Package, 
-  Calendar, 
-  CreditCard, 
-  User, 
-  Mail, 
-  CheckCircle, 
-  Clock, 
-  AlertCircle, 
-  XCircle, 
+import {
+  Package,
+  Calendar,
+  CreditCard,
+  User,
+  Mail,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  XCircle,
   ExternalLink,
   Shield,
   Gift,
@@ -77,22 +77,20 @@ interface AdminOrderDetailModalProps {
   onStatusChange?: (orderId: string, newStatus: 'pending' | 'processing' | 'completed' | 'cancelled') => void;
 }
 
-export default function AdminOrderDetailModal({ 
-  order, 
-  isOpen, 
-  onClose, 
-  onSave, 
-  onStatusChange 
+export default function AdminOrderDetailModal({
+  order,
+  isOpen,
+  onClose,
+  onSave,
+  onStatusChange
 }: AdminOrderDetailModalProps) {
   const [activeTab, setActiveTab] = useState('details');
   const [isEditing, setIsEditing] = useState(false);
   const [editedOrder, setEditedOrder] = useState<Order | null>(null);
-  const [showAccountDetails, setShowAccountDetails] = useState<{[key: string]: boolean}>({});
+  const [showAccountDetails, setShowAccountDetails] = useState<{ [key: string]: boolean }>({});
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [statusHistory, setStatusHistory] = useState<Array<{ status: string; timestamp: string; by: string }>>([]);
   const { toast } = useToast();
-
-  console.log("🔍 AdminOrderDetailModal rendered", { orderId: order?.id, isOpen });
 
   useEffect(() => {
     if (order) {
@@ -130,7 +128,7 @@ export default function AdminOrderDetailModal({
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       cancelled: 'bg-red-100 text-red-800 border-red-200'
     };
-    
+
     return (
       <Badge className={`${variants[status] || 'bg-gray-100 text-gray-800'} border text-sm`}>
         {getStatusIcon(status)}
@@ -189,18 +187,18 @@ export default function AdminOrderDetailModal({
     if (editedOrder) {
       const updatedOrder = { ...editedOrder, status: newStatus };
       setEditedOrder(updatedOrder);
-      
+
       if (onStatusChange) {
         onStatusChange(order.id, newStatus);
       }
-      
+
       // Add to status history
       setStatusHistory(prev => [...prev, {
         status: newStatus,
         timestamp: new Date().toISOString(),
         by: 'Admin'
       }]);
-      
+
       toast({
         title: "Trạng thái đã cập nhật",
         description: `Đơn hàng #${order.id} đã chuyển sang trạng thái: ${newStatus}`
@@ -444,7 +442,7 @@ export default function AdminOrderDetailModal({
                       <p className="font-medium">{order.customerName || order.userEmail}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-3">
                     <Mail className="w-4 h-4 text-gray-500" />
                     <div>
@@ -486,7 +484,7 @@ export default function AdminOrderDetailModal({
                       <p className="text-sm text-green-700">Khả năng mua lại</p>
                     </div>
                   </div>
-                  
+
                   <div className="text-center p-3 bg-purple-50 rounded-lg">
                     <p className="text-lg font-semibold text-purple-700">
                       {analytics.customerLifetimeValue.toLocaleString('vi-VN')}đ
@@ -515,7 +513,7 @@ export default function AdminOrderDetailModal({
                       {order.paymentMethod}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
                     <span className="text-sm font-medium text-gray-700">Trạng thái thanh toán:</span>
                     <Badge className="bg-green-500 text-white">
@@ -523,14 +521,14 @@ export default function AdminOrderDetailModal({
                       Đã thanh toán
                     </Badge>
                   </div>
-                  
+
                   <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
                     <span className="text-sm font-medium text-gray-700">Số tiền:</span>
                     <span className="font-bold text-green-600 text-lg">
                       {order.total.toLocaleString('vi-VN')}đ
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
                     <span className="text-sm font-medium text-gray-700">Thời gian thanh toán:</span>
                     <span className="text-sm font-medium">
@@ -550,7 +548,7 @@ export default function AdminOrderDetailModal({
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
-                      <p className="text-2xl font-bold text-blue-600">#{order.id.slice(-6)}</p>
+                      {/* <p className="text-2xl font-bold text-blue-600">#{order.id.slice(-6)}</p> */}
                       <p className="text-sm text-blue-700">Mã giao dịch</p>
                     </div>
                     <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
@@ -558,7 +556,7 @@ export default function AdminOrderDetailModal({
                       <p className="text-sm text-blue-700">Sản phẩm</p>
                     </div>
                   </div>
-                  
+
                   <div className="p-3 bg-white rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700">Phí xử lý:</span>
@@ -599,7 +597,7 @@ export default function AdminOrderDetailModal({
                     </div>
                     <Badge className="bg-green-500 text-white">Hoàn tất</Badge>
                   </div>
-                  
+
                   <div className="flex items-center space-x-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                       <CreditCard className="w-5 h-5 text-white" />
@@ -610,7 +608,7 @@ export default function AdminOrderDetailModal({
                     </div>
                     <Badge className="bg-blue-500 text-white">Hoàn tất</Badge>
                   </div>
-                  
+
                   <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center">
                       <Package className="w-5 h-5 text-white" />
@@ -659,17 +657,17 @@ export default function AdminOrderDetailModal({
                           )}
                         </Button>
                       </div>
-                      
+
                       {showAccountDetails[account.id] && (
                         <div className="space-y-3 mt-4 pt-4 border-t border-green-200">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <label className="text-sm font-medium text-green-800">Email tài khoản:</label>
                               <div className="flex items-center space-x-2">
-                                <input 
-                                  type="text" 
-                                  value={account.accountEmail} 
-                                  readOnly 
+                                <input
+                                  type="text"
+                                  value={account.accountEmail}
+                                  readOnly
                                   className="flex-1 px-3 py-2 bg-white border border-green-200 rounded text-sm"
                                 />
                                 <Button
@@ -682,14 +680,14 @@ export default function AdminOrderDetailModal({
                                 </Button>
                               </div>
                             </div>
-                            
+
                             <div className="space-y-2">
                               <label className="text-sm font-medium text-green-800">Mật khẩu:</label>
                               <div className="flex items-center space-x-2">
-                                <input 
-                                  type="password" 
-                                  value={account.accountPassword} 
-                                  readOnly 
+                                <input
+                                  type="password"
+                                  value={account.accountPassword}
+                                  readOnly
                                   className="flex-1 px-3 py-2 bg-white border border-green-200 rounded text-sm"
                                 />
                                 <Button
@@ -703,7 +701,7 @@ export default function AdminOrderDetailModal({
                               </div>
                             </div>
                           </div>
-                          
+
                           {account.link && (
                             <div className="mt-3">
                               <Button
