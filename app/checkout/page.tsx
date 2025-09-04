@@ -21,6 +21,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CoinPaymentInterface from '@/components/payment/CoinPaymentInterface';
+import { Textarea } from '@/components/ui/textarea';
 
 // Loading fallback component
 function CheckoutPageSkeleton() {
@@ -70,6 +71,8 @@ function CheckoutPageContent() {
   const [paymentMode] = useState<'coins'>('coins'); // Focus on coin payments only
   const [finalOrderAmount, setFinalOrderAmount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false); // Trạng thái kiểm tra khi đang gửi
+  const MAX_NOTES_LEN = 300;
+  const [orderNotes, setOrderNotes] = useState('');
 
   // Buy now mode state
   const [isBuyNowMode, setIsBuyNowMode] = useState(false);
@@ -80,6 +83,7 @@ function CheckoutPageContent() {
     fullName: user?.name || '',
     email: user?.email || '',
     phone: '',
+    notes: orderNotes?.trim() || '',
     socialContact: ''
   });
   const [agreeTOS, setAgreeTOS] = useState(false);
@@ -241,10 +245,9 @@ function CheckoutPageContent() {
         items: effectiveItems,
         total: finalTotal,
         customerInfo,
+        notes: orderNotes.trim(),         // <<< thêm dòng này
         mode: isBuyNowMode ? 'buynow' : 'cart'
       };
-
-      // console.log("Creating order with data:", orderData);
 
       const newOrderId = await createOrder(orderData);
       setOrderId(newOrderId);
@@ -552,6 +555,29 @@ function CheckoutPageContent() {
                         </p>
                       </div>
 
+                      <div className="space-y-2">
+                        <Label htmlFor="orderNotes">Ghi chú đơn hàng (tùy chọn)</Label>
+                        <div className="relative">
+                          <Textarea
+                            id="orderNotes"
+                            value={orderNotes}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setOrderNotes(val.slice(0, MAX_NOTES_LEN)); // giới hạn 300 ký tự
+                            }}
+                            placeholder="Ví dụ: nếu có gói chính chủ hãy ghi thông tin đăng nhập để bên shop truy cập làm. Định dạng: Tài khoản - mật khẩu - cách đăng nhập - đơn hàng"
+                            rows={4}
+                            className="pr-14"
+                          />
+                          <span className="absolute bottom-2 right-2 text-xs text-gray-400">
+                            {orderNotes.length}/{MAX_NOTES_LEN}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Ghi chú giúp shop xử lý đúng theo yêu cầu của bạn (không bắt buộc).
+                        </p>
+                      </div>
+
                       <Separator />
 
                       {/* Discount Code */}
@@ -635,6 +661,7 @@ function CheckoutPageContent() {
                     isProcessing={isProcessingPayment}
                     orderItems={getEffectiveItems()}
                     appliedDiscount={appliedDiscount}
+                    notes={orderNotes} // 👈 thêm prop này
                   />
                 )}
               </div>

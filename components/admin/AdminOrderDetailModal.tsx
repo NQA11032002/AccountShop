@@ -41,7 +41,8 @@ import {
   History,
   Settings,
   Download,
-  FileText
+  FileText,
+  Contact
 } from 'lucide-react';
 
 interface Order {
@@ -59,6 +60,7 @@ interface Order {
   createdAt: string;
   completedAt?: string;
   shippingAddress?: string;
+  customerPhone?: string;
   notes?: string;
   customerAccounts?: any[];
   analytics?: {
@@ -243,7 +245,7 @@ export default function AdminOrderDetailModal({
             </div>
             <div className="flex items-center space-x-2">
               {getStatusBadge(editedOrder?.status || order.status)}
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsEditing(!isEditing)}
@@ -251,13 +253,13 @@ export default function AdminOrderDetailModal({
               >
                 {isEditing ? <X className="w-4 h-4 mr-1" /> : <Edit className="w-4 h-4 mr-1" />}
                 {isEditing ? "Hủy" : "Chỉnh sửa"}
-              </Button>
-              {isEditing && (
+              </Button> */}
+              {/* {isEditing && (
                 <Button size="sm" onClick={handleSaveOrder} className="bg-green-600 hover:bg-green-700">
                   <Save className="w-4 h-4 mr-1" />
                   Lưu
                 </Button>
-              )}
+              )} */}
             </div>
           </DialogTitle>
         </DialogHeader>
@@ -447,10 +449,12 @@ export default function AdminOrderDetailModal({
                     <Mail className="w-4 h-4 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium">{order.userEmail}</p>
-                      <Button variant="ghost" size="sm" onClick={() => handleCopy(order.userEmail, 'email')}>
-                        {copiedField === 'email' ? '✓ Đã sao chép' : 'Sao chép'}
-                      </Button>
+                      <div className='flex items-center'>
+                        <p className="font-medium">{order.userEmail}</p>
+                        <Button variant="ghost" className='bg-blue-400 hover:bg-blue-500 ml-3' size="sm" onClick={() => handleCopy(order.userEmail, 'email')}>
+                          {copiedField === 'email' ? '✓ Đã sao chép' : 'Sao chép'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
@@ -458,8 +462,18 @@ export default function AdminOrderDetailModal({
                     <div className="flex items-start space-x-3">
                       <MapPin className="w-4 h-4 text-gray-500 mt-1" />
                       <div>
-                        <p className="text-sm text-gray-500">Địa chỉ</p>
+                        <p className="text-sm text-gray-500">Link</p>
                         <p className="font-medium">{order.shippingAddress}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {order.customerPhone && (
+                    <div className="flex items-start space-x-3">
+                      <Contact className="w-4 h-4 text-gray-500 mt-1" />
+                      <div>
+                        <p className="text-sm text-gray-500">Contact/Zalo</p>
+                        <p className="font-medium">{order.customerPhone}</p>
                       </div>
                     </div>
                   )}

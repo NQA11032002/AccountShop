@@ -152,6 +152,8 @@ interface Order {
   userId: string;
   userEmail: string;
   customerName?: string;
+  customerPhone?: string;
+  shippingAddress?: string;
   products: { name: string; quantity: number; price: number }[];
   total: number;
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
@@ -250,8 +252,8 @@ Cảm ơn bạn đã chọn QAI Store! 💙
 
 ---
 QAI Store - Tài khoản premium uy tín #1
-📞 Hotline: 1900-xxx-xxx
-📧 Email: support@qaistore.com`);
+📞 Hotline/Zalo: 038.966.0305
+📧 Email: qastore.cskh@gmail.com`);
   const [sendingEmails, setSendingEmails] = useState(false);
   const [sendingNotifications, setSendingNotifications] = useState(false);
 
@@ -1187,7 +1189,7 @@ QAI Store - Tài khoản premium uy tín #1
           <p style="text-align: center; color: #6b7280; font-size: 14px;">
             Cảm ơn bạn đã chọn QAI Store! 💙<br>
             QAI Store - Tài khoản premium uy tín #1<br>
-            📞 Hotline: 1900-xxx-xxx | 📧 Email: support@qaistore.com
+            📞 Hotline/Zalo: 038.966.0305 | 📧 Email: qaistore.cskh@gmail.com
           </p>
         </div>
       `;
@@ -1332,9 +1334,9 @@ QAI Store - Tài khoản premium uy tín #1
     const baseEmail = productName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
 
     return {
-      accountEmail: `${baseEmail}@example.com`,
-      accountPassword: `Pass${Math.floor(Math.random() * 10000)}!`,
-      accountLink: getProductLink(productName),
+      accountEmail: `examlple@example.com`,
+      accountPassword: `qaistore}!`,
+      accountLink: 'https://example.com',
       duration: '1 tháng'
     };
   };
@@ -1488,8 +1490,8 @@ Cảm ơn bạn đã chọn QAI Store! 💙
 
 ---
 QAI Store - Tài khoản premium uy tín #1
-📞 Hotline: 1900-xxx-xxx
-📧 Email: support@qaistore.com`);
+📞 Hotline/Zalo: 038.966.0305
+📧 Email: qaistore.cskh@gmail.com`);
   };
 
   const handleTestEmail = async () => {
@@ -2935,7 +2937,7 @@ QAI Store - Tài khoản premium uy tín #1
                 </div>
 
                 {/* Send Account Bulk Actions */}
-                <div className="flex flex-col lg:flex-row gap-4 items-center mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl border border-green-200">
+                {/* <div className="flex flex-col lg:flex-row gap-4 items-center mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl border border-green-200">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <Send className="w-5 h-5 text-green-600" />
@@ -2972,7 +2974,7 @@ QAI Store - Tài khoản premium uy tín #1
                       <span className="font-semibold text-blue-600">{orders.filter(o => o.status === 'completed').length}</span> đơn hoàn thành
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Enhanced Orders Table with Send Account Features */}
                 <div className="rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
@@ -2988,6 +2990,8 @@ QAI Store - Tài khoản premium uy tín #1
                         </TableHead> */}
                         <TableHead className="font-semibold">Mã đơn hàng</TableHead>
                         <TableHead className="font-semibold">Khách hàng</TableHead>
+                        <TableHead className="font-semibold">Contact/Zalo</TableHead>
+                        <TableHead className="font-semibold">Link</TableHead>
                         <TableHead className="font-semibold">Sản phẩm</TableHead>
                         <TableHead className="font-semibold">Tổng tiền</TableHead>
                         <TableHead className="font-semibold">Thanh toán</TableHead>
@@ -3019,6 +3023,27 @@ QAI Store - Tài khoản premium uy tín #1
                             <div>
                               <p className="font-medium text-gray-900">{order.customerName || order.userEmail}</p>
                               <p className="text-sm text-gray-500">{order.userEmail}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-gray-900">{order.customerPhone || order.customerPhone}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <a
+                                className="font-medium  text-blue-500 hover:opacity-80"
+                                href={order.shippingAddress}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {order.shippingAddress
+                                  ? order.shippingAddress.length > 30
+                                    ? order.shippingAddress.slice(0, 30) + "..."
+                                    : order.shippingAddress
+                                  : "Không có địa chỉ"}
+                              </a>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -3156,7 +3181,7 @@ QAI Store - Tài khoản premium uy tín #1
                 </div>
 
                 {/* Quick Actions */}
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                   <h4 className="font-semibold text-gray-900 mb-3">Thao tác nhanh</h4>
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -3197,10 +3222,10 @@ QAI Store - Tài khoản premium uy tín #1
                       Xuất báo cáo tháng này
                     </Button>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Email Template Configuration Section */}
-                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl border border-blue-200">
+                {/* <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl border border-blue-200">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-semibold text-gray-900 flex items-center">
                       <MessageSquare className="w-5 h-5 mr-2 text-blue-600" />
@@ -3278,7 +3303,7 @@ QAI Store - Tài khoản premium uy tín #1
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
           </TabsContent>

@@ -123,7 +123,7 @@ export default function FavoritesPage() {
                     style={{ backgroundColor: item.color }}
                   >
                     <img
-                      src={`/images/products/${item.image}`}
+                      src={`https://www.taikhoangpremium.shop/images/products/${item.image}`}
                       alt={item.name}
                       className="w-16 h-16 object-contain filter drop-shadow-lg"
                     />

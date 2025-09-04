@@ -35,6 +35,7 @@ interface CoinPaymentInterfaceProps {
   isProcessing: boolean;
   orderItems: any[];
   appliedDiscount?: any;
+  notes?: string; // 👈 thêm
 }
 
 export default function CoinPaymentInterface({
@@ -42,7 +43,8 @@ export default function CoinPaymentInterface({
   onPayment,
   isProcessing,
   orderItems,
-  appliedDiscount
+  appliedDiscount,
+  notes
 }: CoinPaymentInterfaceProps) {
   const { balance, canAfford, formatCoins } = useWallet();
   const [animationStep, setAnimationStep] = useState(0);
@@ -76,7 +78,7 @@ export default function CoinPaymentInterface({
         customer_name: user?.name || 'Không tên',
         customer_phone: user?.phone || '0123456789',
         shipping_address: 'Mặc định',
-        notes: '',
+        notes: (notes ?? '').trim(), // 👈 dùng ghi chú thật
         total: amount,
         original_total: amount,
         discount: 0,

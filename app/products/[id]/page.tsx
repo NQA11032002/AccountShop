@@ -344,7 +344,7 @@ export default function ProductDetailPage() {
                 className="h-96 flex items-center justify-center relative"
                 style={{ backgroundColor: product.color }}
               >
-                <img className='text-8xl h-1/2 w-1/2 object-contain' src={`/images/products/${product.image}`}></img>
+                <img className='text-8xl h-1/2 w-1/2 object-contain' src={`https://www.taikhoangpremium.shop/images/products/${product.image}`}></img>
               </div>
             </Card>
           </div>

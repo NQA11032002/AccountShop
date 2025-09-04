@@ -35,6 +35,7 @@ interface Order {
   items: any[];
   total: number;
   originalTotal: number;
+  notes?: string;
   discount: number;
   paymentMethod: string;
   paymentStatus: 'pending' | 'processing' | 'completed' | 'failed';
@@ -198,6 +199,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
                 email: order.userEmail,
                 phone: order.customerPhone || ''
               },
+              notes: order.notes || '',                 // ✅ THÊM
               deliveryInfo: order.deliveryInfo,
               discountCode: order.discountCode,
               transactionId: order.transactionId || order.id
@@ -401,7 +403,6 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
   };
 
   const createOrder = async (orderData: any): Promise<string> => {
-    console.log("📦 PaymentContext: Creating order with enhanced synchronization", orderData);
 
     if (!user) {
       throw new Error("User must be logged in to create order");
@@ -420,6 +421,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       discount,
       paymentMethod: selectedPaymentMethod || 'wallet',
       paymentStatus: 'pending',
+      notes: orderData.notes?.trim() || '',             // ✅ THÊM DÒNG NÀY
       customerInfo: orderData.customerInfo,
       discountCode: appliedDiscount?.code,
       transactionId: `TXN_${Date.now()}`
@@ -1090,55 +1092,55 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
   };
 
   const checkRankUpNotification = async (userEmail: string, orderTotal: number, itemCount: number) => {
-    try {
-      console.log("🔔 Checking for rank up notification", { userEmail, orderTotal, itemCount });
+    // try {
+    //   console.log("🔔 Checking for rank up notification", { userEmail, orderTotal, itemCount });
 
-      // Get current order stats
-      const stats = getOrderStats();
-      const { calculateCustomerRank } = await import('@/components/CustomerRankingSystem');
+    //   // Get current order stats
+    //   const stats = getOrderStats();
+    //   const { calculateCustomerRank } = await import('@/components/CustomerRankingSystem');
 
-      // Calculate rank before and after this purchase
-      const previousRank = calculateCustomerRank(stats.totalSpent - orderTotal, stats.totalOrders - 1);
-      const currentRank = calculateCustomerRank(stats.totalSpent, stats.totalOrders);
+    //   // Calculate rank before and after this purchase
+    //   const previousRank = calculateCustomerRank(stats.totalSpent - orderTotal, stats.totalOrders - 1);
+    //   const currentRank = calculateCustomerRank(stats.totalSpent, stats.totalOrders);
 
-      // Check if rank has increased
-      if (currentRank.id !== previousRank.id) {
-        console.log("🎉 RANK UP! From", previousRank.name, "to", currentRank.name);
+    //   // Check if rank has increased
+    //   if (currentRank.id !== previousRank.id) {
+    //     console.log("🎉 RANK UP! From", previousRank.name, "to", currentRank.name);
 
-        // Show celebration toast
-        toast({
-          title: "🎉 Chúc mừng! Bạn đã lên hạng!",
-          description: `Bạn đã lên hạng ${currentRank.name}! Khám phá những ưu đãi mới.`,
-          duration: 8000,
-        });
+    //     // Show celebration toast
+    //     toast({
+    //       title: "🎉 Chúc mừng! Bạn đã lên hạng!",
+    //       description: `Bạn đã lên hạng ${currentRank.name}! Khám phá những ưu đãi mới.`,
+    //       duration: 8000,
+    //     });
 
-        // After a delay, show special rank up notification
-        setTimeout(() => {
-          toast({
-            title: "🎁 Phần thưởng mới đã mở khóa!",
-            description: `Xem ngay các ưu đãi dành riêng cho hạng ${currentRank.name}`,
-            action: (
-              <button
-                onClick={() => {
-                  // Use event to trigger navigation
-                  if (typeof window !== 'undefined') {
-                    window.dispatchEvent(new CustomEvent('navigate-to-ranking', {
-                      detail: { path: '/my-ranking' }
-                    }));
-                  }
-                }}
-                className="bg-brand-blue text-white px-4 py-2 rounded-md text-sm hover:bg-brand-blue/90"
-              >
-                Xem ngay
-              </button>
-            ),
-            duration: 10000,
-          });
-        }, 3000);
-      }
-    } catch (error) {
-      console.error("Error checking rank up:", error);
-    }
+    //     // After a delay, show special rank up notification
+    //     setTimeout(() => {
+    //       toast({
+    //         title: "🎁 Phần thưởng mới đã mở khóa!",
+    //         description: `Xem ngay các ưu đãi dành riêng cho hạng ${currentRank.name}`,
+    //         action: (
+    //           <button
+    //             onClick={() => {
+    //               // Use event to trigger navigation
+    //               if (typeof window !== 'undefined') {
+    //                 window.dispatchEvent(new CustomEvent('navigate-to-ranking', {
+    //                   detail: { path: '/my-ranking' }
+    //                 }));
+    //               }
+    //             }}
+    //             className="bg-brand-blue text-white px-4 py-2 rounded-md text-sm hover:bg-brand-blue/90"
+    //           >
+    //             Xem ngay
+    //           </button>
+    //         ),
+    //         duration: 10000,
+    //       });
+    //     }, 3000);
+    //   }
+    // } catch (error) {
+    //   console.error("Error checking rank up:", error);
+    // }
   };
 
   return (
