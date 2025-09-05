@@ -2850,7 +2850,7 @@ QAI Store - Tài khoản premium uy tín #1
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">
+                  {/* <Card className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
@@ -2860,9 +2860,9 @@ QAI Store - Tài khoản premium uy tín #1
                         <Send className="w-8 h-8 text-purple-200" />
                       </div>
                     </CardContent>
-                  </Card>
+                  </Card> */}
 
-                  <Card className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white">
+                  {/* <Card className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
@@ -2872,7 +2872,7 @@ QAI Store - Tài khoản premium uy tín #1
                         <UserPlus className="w-8 h-8 text-indigo-200" />
                       </div>
                     </CardContent>
-                  </Card>
+                  </Card> */}
 
                   <Card className="bg-gradient-to-r from-red-500 to-pink-500 text-white">
                     <CardContent className="p-4">
