@@ -153,7 +153,7 @@ export default function FavoritesPage() {
                     <h3 className="font-semibold text-brand-charcoal mb-1 group-hover:text-brand-blue transition-colors">
                       {item.name}
                     </h3>
-                    <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
+                    {/* <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p> */}
                   </div>
 
                   <div className="flex items-center justify-between mb-3">

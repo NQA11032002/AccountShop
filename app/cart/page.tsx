@@ -143,7 +143,7 @@ export default function CartPage() {
                     <div className="flex items-start space-x-4">
                       {/* Product Image */}
                       <div className={`w-20 h-20 rounded-lg flex items-center justify-center text-2xl flex-shrink-0`}>
-                        <img src={`/images/products/${item.image}`} alt="Product image" />
+                        <img src={`https://www.taikhoangpremium.shop/images/products/${item.image}`} alt="Product image" />
                       </div>
 
                       {/* Product Info */}
@@ -151,9 +151,9 @@ export default function CartPage() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">
                           {item.product_name}
                         </h3>
-                        <p className="text-sm text-gray-600 mb-2">
+                        {/* <p className="text-sm text-gray-600 mb-2">
                           {item.description}
-                        </p>
+                        </p> */}
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <div className="flex items-center space-x-1">
                             <span>Thời hạn:</span>
