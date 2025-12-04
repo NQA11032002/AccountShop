@@ -11,26 +11,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-
-interface CustomerAccount {
-  id: string;
-  accountEmail: string;
-  accountPassword: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  productType: string;
-  productIcon: string;
-  productColor: string;
-  purchaseDate: Date;
-  expiryDate: Date;
-  status: 'active' | 'expired' | 'suspended';
-  link?: string;
-  orderId: string;
-  duration: string;
-  purchasePrice: number;
-}
-
+import { CustomerAccount } from '@/types/CustomerAccount';
+import { useAuth } from '@/contexts/AuthContext';
+import { createAccount, updateAccount, fetchCategories } from '@/lib/api';
 interface EditCustomerAccountDialogProps {
   account: CustomerAccount | null;
   open: boolean;
@@ -38,93 +21,122 @@ interface EditCustomerAccountDialogProps {
   onSave: (account: CustomerAccount) => void;
 }
 
-const productTypes = [
-  { value: 'Netflix Premium', icon: '🎬', color: 'bg-red-500' },
-  { value: 'Spotify Premium', icon: '🎵', color: 'bg-green-500' },
-  { value: 'ChatGPT Plus', icon: '🤖', color: 'bg-purple-500' },
-  { value: 'YouTube Premium', icon: '📺', color: 'bg-red-600' },
-  { value: 'Adobe Creative Cloud', icon: '🎨', color: 'bg-orange-500' },
-  { value: 'Microsoft Office 365', icon: '📊', color: 'bg-blue-500' },
-  { value: 'Canva Pro', icon: '✨', color: 'bg-purple-600' },
-  { value: 'Figma Pro', icon: '🎯', color: 'bg-indigo-500' }
-];
 
-export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave }: EditCustomerAccountDialogProps) {
+export function EditCustomerAccountDialog({
+  account,
+  open,
+  onOpenChange,
+  onSave
+}: EditCustomerAccountDialogProps) {
+  // formData theo đúng interface CustomerAccount (snake_case)
   const [formData, setFormData] = useState<CustomerAccount>({
-    id: '',
-    accountEmail: '',
-    accountPassword: '',
-    customerName: '',
-    customerEmail: '',
-    customerPhone: '',
-    productType: '',
-    productIcon: '',
-    productColor: '',
-    purchaseDate: new Date(),
-    expiryDate: new Date(),
+    id: 0,
+    account_email: '',
+    account_password: '',
+    customer_name: '',
+    customer_email: '',
+    customer_phone: '',
+    product_type: '',
+    product_icon: '',
+    product_color: '',
+    purchase_date: null,
+    expiry_date: null,
     status: 'active',
     link: '',
-    orderId: '',
-    duration: '',
-    purchasePrice: 0
+    order_id: account?.order_id ?? 0,
+    duration: account?.duration ?? 0,
+    purchase_price: 0
   });
 
+
+  // State Date riêng cho Calendar
   const [purchaseDate, setPurchaseDate] = useState<Date>();
   const [expiryDate, setExpiryDate] = useState<Date>();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { sessionId } = useAuth();
+  const [categories, setCategories] = useState<any[]>([]);  // lưu danh mục
+  const [loadingCategories, setLoadingCategories] = useState<boolean>(true);  // trạng thái tải danh mục
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await fetchCategories();
+        setCategories(data.data);  // Lưu danh mục vào state
+      } catch (error) {
+        setError('Không thể tải danh mục');
+      } finally {
+        setLoadingCategories(false);  // Hoàn thành việc tải danh mục
+      }
+    };
+
+    fetchData();
+  }, []);  // Chỉ gọi 1 lần khi component mou
 
   useEffect(() => {
     if (account) {
       setFormData(account);
-      setPurchaseDate(new Date(account.purchaseDate));
-      setExpiryDate(new Date(account.expiryDate));
+      setPurchaseDate(account.purchase_date ? new Date(account.purchase_date) : new Date());
+      setExpiryDate(account.expiry_date ? new Date(account.expiry_date) : new Date());
     } else {
-      // Reset form for new account
-      const newId = Date.now().toString();
+      const now = new Date();
       setFormData({
-        id: newId,
-        accountEmail: '',
-        accountPassword: '',
-        customerName: '',
-        customerEmail: '',
-        customerPhone: '',
-        productType: '',
-        productIcon: '',
-        productColor: '',
-        purchaseDate: new Date(),
-        expiryDate: new Date(),
+        id: Date.now(),
+        account_email: '',
+        account_password: '',
+        customer_name: '',
+        customer_email: '',
+        customer_phone: '',
+        product_type: '',
+        product_icon: '',
+        product_color: '',
+        purchase_date: now.toISOString().slice(0, 10),
+        expiry_date: now.toISOString().slice(0, 10),
         status: 'active',
         link: '',
-        orderId: `ORD_${newId}`,
-        duration: '',
-        purchasePrice: 0
+        order_id: 0,
+        duration: 0,
+        purchase_price: 0
       });
-      setPurchaseDate(new Date());
-      setExpiryDate(new Date());
+      setPurchaseDate(now);
+      setExpiryDate(now);
     }
   }, [account]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const updatedAccount = {
+    setLoading(true);
+    setError(null);
+
+    const pDate = purchaseDate ?? new Date();
+    const eDate = expiryDate ?? new Date();
+
+    const updatedAccount: CustomerAccount = {
       ...formData,
-      purchaseDate: purchaseDate || new Date(),
-      expiryDate: expiryDate || new Date()
+      purchase_date: pDate.toISOString().slice(0, 10),
+      expiry_date: eDate.toISOString().slice(0, 10)
     };
 
-    onSave(updatedAccount);
-    onOpenChange(false);
+    try {
+      if (sessionId) {
+        if (account) {
+          // Update existing account
+          await updateAccount(sessionId, account.id.toString(), updatedAccount);
+        } else {
+          // Create a new account
+          await createAccount(sessionId, updatedAccount);
+        }
+      }
+
+      onSave(updatedAccount);
+      onOpenChange(false);
+    } catch (err: any) {
+      setError('There was an error saving the account');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleProductTypeChange = (value: string) => {
-    const selectedProduct = productTypes.find(p => p.value === value);
-    setFormData(prev => ({
-      ...prev,
-      productType: value,
-      productIcon: selectedProduct?.icon || '',
-      productColor: selectedProduct?.color || ''
-    }));
-  };
 
   const generateRandomPassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
@@ -132,7 +144,7 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    setFormData(prev => ({ ...prev, accountPassword: password }));
+    setFormData(prev => ({ ...prev, account_password: password }));
   };
 
   return (
@@ -149,13 +161,15 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
             {/* Customer Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Thông tin khách hàng</h3>
-              
+
               <div>
                 <Label htmlFor="customerName">Tên khách hàng *</Label>
                 <Input
                   id="customerName"
-                  value={formData.customerName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                  value={formData.customer_name || ''}
+                  onChange={(e) =>
+                    setFormData(prev => ({ ...prev, customer_name: e.target.value }))
+                  }
                   placeholder="Nguyễn Văn A"
                   required
                 />
@@ -166,8 +180,10 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
                 <Input
                   id="customerEmail"
                   type="email"
-                  value={formData.customerEmail}
-                  onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                  value={formData.customer_email || ''}
+                  onChange={(e) =>
+                    setFormData(prev => ({ ...prev, customer_email: e.target.value }))
+                  }
                   placeholder="customer@example.com"
                   required
                 />
@@ -177,8 +193,10 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
                 <Label htmlFor="customerPhone">Số điện thoại *</Label>
                 <Input
                   id="customerPhone"
-                  value={formData.customerPhone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
+                  value={formData.customer_phone || ''}
+                  onChange={(e) =>
+                    setFormData(prev => ({ ...prev, customer_phone: e.target.value }))
+                  }
                   placeholder="0901234567"
                   required
                 />
@@ -188,14 +206,16 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
             {/* Account Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Thông tin tài khoản</h3>
-              
+
               <div>
                 <Label htmlFor="accountEmail">Email tài khoản *</Label>
                 <Input
                   id="accountEmail"
                   type="email"
-                  value={formData.accountEmail}
-                  onChange={(e) => setFormData(prev => ({ ...prev, accountEmail: e.target.value }))}
+                  value={formData.account_email || ''}
+                  onChange={(e) =>
+                    setFormData(prev => ({ ...prev, account_email: e.target.value }))
+                  }
                   placeholder="account@service.com"
                   required
                 />
@@ -206,8 +226,10 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
                 <div className="flex space-x-2">
                   <Input
                     id="accountPassword"
-                    value={formData.accountPassword}
-                    onChange={(e) => setFormData(prev => ({ ...prev, accountPassword: e.target.value }))}
+                    value={formData.account_password || ''}
+                    onChange={(e) =>
+                      setFormData(prev => ({ ...prev, account_password: e.target.value }))
+                    }
                     placeholder="Password123!"
                     required
                     className="flex-1"
@@ -223,32 +245,57 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
                 </div>
               </div>
 
+              {/* Chọn danh mục */}
               <div>
-                <Label htmlFor="productType">Loại sản phẩm *</Label>
-                <Select value={formData.productType} onValueChange={handleProductTypeChange}>
+                <Label htmlFor="category">Danh mục *</Label>
+                <Select
+                  value={formData.product_type || ''}
+                  onValueChange={(value) =>
+                    setFormData(prev => ({ ...prev, product_type: value }))
+                  }
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn sản phẩm" />
+                    <SelectValue placeholder="Chọn danh mục" />
                   </SelectTrigger>
                   <SelectContent>
-                    {productTypes.map((product) => (
-                      <SelectItem key={product.value} value={product.value}>
-                        <div className="flex items-center space-x-2">
-                          <span>{product.icon}</span>
-                          <span>{product.value}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {loadingCategories ? (
+                      <SelectItem value="loading" disabled>Đang tải...</SelectItem>
+                    ) : error ? (
+                      <SelectItem value="error" disabled>{error}</SelectItem>
+                    ) : (
+                      Array.isArray(categories) && categories.length > 0 ? (
+                        // Lấy toàn bộ categories con
+                        categories.map(parent =>
+                          parent.categories?.map((child: any) => (
+                            <SelectItem
+                              key={child.id}
+                              value={child.name} // hoặc child.name nếu bạn muốn lưu tên
+                            >
+                              {child.name}
+                            </SelectItem>
+                          ))
+                        )
+                      ) : (
+                        <SelectItem value="no-categories" disabled>
+                          Không có danh mục
+                        </SelectItem>
+                      )
+                    )}
                   </SelectContent>
                 </Select>
               </div>
+
+
 
               <div>
                 <Label htmlFor="link">Link dịch vụ</Label>
                 <Input
                   id="link"
                   type="url"
-                  value={formData.link}
-                  onChange={(e) => setFormData(prev => ({ ...prev, link: e.target.value }))}
+                  value={formData.link || ''}
+                  onChange={(e) =>
+                    setFormData(prev => ({ ...prev, link: e.target.value }))
+                  }
                   placeholder="https://service.com"
                 />
               </div>
@@ -266,7 +313,9 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
                     className="w-full justify-start text-left font-normal"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {purchaseDate ? format(purchaseDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
+                    {purchaseDate
+                      ? format(purchaseDate, 'dd/MM/yyyy', { locale: vi })
+                      : 'Chọn ngày'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -275,7 +324,12 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
                     selected={purchaseDate}
                     onSelect={(date) => {
                       setPurchaseDate(date);
-                      setFormData(prev => ({ ...prev, purchaseDate: date || new Date() }));
+                      setFormData(prev => ({
+                        ...prev,
+                        purchase_date: date
+                          ? date.toISOString().slice(0, 10)
+                          : null
+                      }));
                     }}
                     initialFocus
                   />
@@ -292,7 +346,9 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
                     className="w-full justify-start text-left font-normal"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {expiryDate ? format(expiryDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
+                    {expiryDate
+                      ? format(expiryDate, 'dd/MM/yyyy', { locale: vi })
+                      : 'Chọn ngày'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -301,7 +357,12 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
                     selected={expiryDate}
                     onSelect={(date) => {
                       setExpiryDate(date);
-                      setFormData(prev => ({ ...prev, expiryDate: date || new Date() }));
+                      setFormData(prev => ({
+                        ...prev,
+                        expiry_date: date
+                          ? date.toISOString().slice(0, 10)
+                          : null
+                      }));
                     }}
                     initialFocus
                   />
@@ -310,23 +371,36 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
             </div>
 
             <div>
-              <Label htmlFor="duration">Thời hạn</Label>
-              <Select value={formData.duration} onValueChange={(value) => setFormData(prev => ({ ...prev, duration: value }))}>
+              <Label htmlFor="duration">Thời hạn (tháng)</Label>
+              <Select
+                value={formData.duration ? String(formData.duration) : ''}
+                onValueChange={(value) =>
+                  setFormData(prev => ({
+                    ...prev,
+                    duration: value ? Number(value) : null
+                  }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn thời hạn" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1 tháng">1 tháng</SelectItem>
-                  <SelectItem value="3 tháng">3 tháng</SelectItem>
-                  <SelectItem value="6 tháng">6 tháng</SelectItem>
-                  <SelectItem value="12 tháng">12 tháng</SelectItem>
+                  <SelectItem value="1">1 tháng</SelectItem>
+                  <SelectItem value="3">3 tháng</SelectItem>
+                  <SelectItem value="6">6 tháng</SelectItem>
+                  <SelectItem value="12">12 tháng</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
               <Label htmlFor="status">Trạng thái *</Label>
-              <Select value={formData.status} onValueChange={(value: 'active' | 'expired' | 'suspended') => setFormData(prev => ({ ...prev, status: value }))}>
+              <Select
+                value={(formData.status as 'active' | 'expired' | 'suspended') || 'active'}
+                onValueChange={(value: 'active' | 'expired' | 'suspended') =>
+                  setFormData(prev => ({ ...prev, status: value }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
@@ -344,20 +418,34 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
               <Label htmlFor="orderId">Mã đơn hàng</Label>
               <Input
                 id="orderId"
-                value={formData.orderId}
-                onChange={(e) => setFormData(prev => ({ ...prev, orderId: e.target.value }))}
-                placeholder="ORD_001"
+                value={formData.order_id ?? 0}
+                onChange={(e) =>
+                  setFormData(prev => ({
+                    ...prev,
+                    order_id: e.target.value
+                      ? Number(e.target.value)
+                      : 0
+                  }))
+                }
+                placeholder="1001"
                 disabled={!!account}
               />
             </div>
-            
+
             <div>
               <Label htmlFor="purchasePrice">Giá mua *</Label>
               <Input
                 id="purchasePrice"
                 type="number"
-                value={formData.purchasePrice}
-                onChange={(e) => setFormData(prev => ({ ...prev, purchasePrice: Number(e.target.value) }))}
+                value={formData.purchase_price ?? ''}
+                onChange={(e) =>
+                  setFormData(prev => ({
+                    ...prev,
+                    purchase_price: e.target.value
+                      ? Number(e.target.value)
+                      : null
+                  }))
+                }
                 placeholder="89000"
                 required
                 min="0"
@@ -376,8 +464,30 @@ export function EditCustomerAccountDialog({ account, open, onOpenChange, onSave 
             <Button
               type="submit"
               className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white"
+              disabled={loading} // Disable button when loading
             >
-              {account ? 'Cập nhật' : 'Tạo mới'}
+              {loading ? (
+                // Show a loading spinner when the form is being submitted
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin h-5 w-5 mr-3 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" />
+                    <path d="M4 12a8 8 0 1 0 16 0" stroke="currentColor" />
+                  </svg>
+                  {account ? 'Cập nhật' : 'Tạo mới'} {/* Show the label */}
+                </span>
+              ) : (
+                // Display the normal button label
+                <span>{account ? 'Cập nhật' : 'Tạo mới'}</span>
+              )}
             </Button>
           </div>
         </form>

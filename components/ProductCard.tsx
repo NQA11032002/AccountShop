@@ -282,25 +282,17 @@ export default function ProductCard({
           <img
             className="filter drop-shadow-sm"
             src={`https://www.taikhoangpremium.shop/images/products/${product.image}`}
-            alt={product.name}
+            alt={product.image}
           />
         </div>
       </div>
 
-      {/* Status Badge */}
-      {product.badge && (
-        <div className="absolute top-5 right-5 z-10">
-          <Badge className={`${product.badge_color} text-white px-3 py-1.5 text-xs font-bold rounded-lg shadow-md transform group-hover:scale-105 transition-transform duration-300`}>
-            {product.badge}
-          </Badge>
-        </div>
-      )}
 
       {/* Favorite Button */}
       {showFavoriteButton && (
         <button
           onClick={handleToggleFavorite}
-          className={`absolute z-50 cursor-grab top-14 right-5 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 shadow-md  ${isFavorite(product.id)
+          className={`absolute z-50 cursor-grab border top-14 right-5 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 shadow-md  ${isFavorite(product.id)
             ? 'bg-red-500 text-white hover:bg-red-600'
             : 'bg-white/90 text-gray-600 hover:text-red-500 hover:bg-white'
             }`}
@@ -310,19 +302,30 @@ export default function ProductCard({
       )}
 
       {/* Stock Status */}
-      <div className="absolute top-24 right-5 z-10">
-        <Badge variant={product.in_stock ? "default" : "destructive"} className="text-xs px-2 py-1 rounded-md shadow-sm">
-          {product.in_stock ? (
-            <><span className="mr-1">✓</span>Còn hàng</>
-          ) : (
-            <><span className="mr-1">⚠️</span>Hết hàng</>
-          )
+      <div className='flex justify-end absolute right-5 top-5'>
 
-          }
-        </Badge>
+        {/* Status Badge */}
+        {product.badge && (
+          <div className="z-10 mr-3">
+            <Badge className={`${product.badge_color} text-white px-3 py-1 text-xs font-bold rounded-lg shadow-md transform group-hover:scale-105 transition-transform duration-300`}>
+              {product.badge}
+            </Badge>
+          </div>
+        )}
+        <div className=" z-10">
+          <Badge variant={product.in_stock ? "default" : "destructive"} className="text-xs px-2 py-1 rounded-md shadow-sm">
+            {product.in_stock ? (
+              <><span className="mr-1">✓</span>Còn hàng</>
+            ) : (
+              <><span className="mr-1">⚠️</span>Hết hàng</>
+            )
+
+            }
+          </Badge>
+        </div>
+
 
       </div>
-
       {/* Savings Badge */}
       {featuredDuration.original_price && savings > 0 && (
         <div className="absolute top-32 right-5 z-10">
@@ -333,9 +336,10 @@ export default function ProductCard({
       )}
 
       <CardContent className={`${config.padding} pt-20 lg:pt-24 flex flex-col relative z-10 min-h-auto justify-between`}>
-        <div className="flex-grow">
+        <div className="flex-grow overflow-hidden">
           {/* Product Title */}
-          <h3 className={`${config.textSize} font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2`}>
+          <h3 className={`${config.textSize} font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300 line-clamp-1`}
+          >
             {product.name}
           </h3>
 

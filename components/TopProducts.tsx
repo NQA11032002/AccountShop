@@ -10,13 +10,13 @@ import ProductCard from '@/components/ProductCard';
 import { useProducts } from '@/lib/products';
 
 const PRODUCT_CATEGORIES = [
-  { id: 'streaming', name: 'Streaming', icon: '📺' },
-  { id: 'music', name: 'Âm nhạc', icon: '🎵' },
-  { id: 'ai', name: 'AI Tools', icon: '🤖' },
-  { id: 'design', name: 'Thiết kế', icon: '🎨' },
-  { id: 'productivity', name: 'Văn phòng', icon: '💼' },
-  { id: 'storage', name: 'Lưu trữ', icon: '☁️' },
-  { id: 'education', name: 'Học tập', icon: '📚' }
+  { id: '1', name: 'Học Tâp, Khóa Học', icon: '📚' },
+  { id: '2', name: 'Phần Mềm, Công Cụ AI', icon: '🤖' },
+  { id: '3', name: 'Giải Trí & Xem Phim', icon: '🎵' },
+  { id: '4', name: 'Thiết Kế & Đồ Họa', icon: '🎨' },
+  { id: '5', name: 'Bảo Mật, VPN', icon: '💼' },
+  { id: '6', name: 'Dung Lượng Lưu Trữ', icon: '☁️' },
+  { id: '7', name: 'Key & Window', icon: '📺' }
 ];
 
 export default function TopProducts() {
@@ -24,9 +24,18 @@ export default function TopProducts() {
 
   const { products, loading, error } = useProducts();
 
-  const filteredProducts = selectedCategory === 'all' ? products : products.filter(product =>
-    product.category.toLowerCase().replace(' ', '-') === selectedCategory
-  );
+  const filteredProducts =
+    selectedCategory === 'all'
+      ? products
+      : products.filter((product) => {
+        const categorySlug = product.category?.parent_id?.toString() ?? '';
+        return categorySlug === selectedCategory.toString();
+      });
+
+  // Sắp xếp theo doanh số (nếu có thuộc tính sales hoặc rating)
+  const sortedProducts = [...filteredProducts].sort((a, b) => b.sales - a.sales);
+
+
 
   return (
     <section className="py-16 bg-white">
@@ -38,7 +47,7 @@ export default function TopProducts() {
             Sản phẩm bán chạy nhất
           </div>
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Top 6 Tài Khoản Hot Nhất
+            Top Tài Khoản Hot Nhất
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Những tài khoản được khách hàng tin tưởng và mua nhiều nhất, chất lượng đảm bảo 100%
@@ -46,7 +55,7 @@ export default function TopProducts() {
         </div>
 
         {/* Category Filter */}
-        <div className="flex flex-wrap justify-center gap-3 mb-10">
+        {/* <div className="flex flex-wrap justify-center gap-3 mb-10">
           <Button
             variant={selectedCategory === 'all' ? 'default' : 'outline'}
             onClick={() => setSelectedCategory('all')}
@@ -71,11 +80,11 @@ export default function TopProducts() {
               {category.name}
             </Button>
           ))}
-        </div>
+        </div> */}
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => (
+          {filteredProducts.slice(0, 6).map((product) => (
             <ProductCard
               key={product.id}
               product={product}

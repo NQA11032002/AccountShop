@@ -2,6 +2,7 @@ import { ProductBase } from './products';
 import { Review } from '@/types/reviews.interface';
 import { CartItem } from '@/types/cart.interface';
 import type { RankingData } from '@/types/RankingData.interface';
+import type { userOnetimecode } from '@/types/Onetimecode';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -886,3 +887,178 @@ export async function sendOrderEmail(
     }
     return data; // { success: true, message: 'Email scheduled to send' }
 }
+
+export const getOnetimecodes = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/onetimecodes`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch user coins');
+    }
+
+    return res.json(); // trả về { coins: number }
+};
+
+export const getListOnetimecodes = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/get-onetimecodes`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch user coins');
+    }
+
+    return res.json(); // trả về { coins: number }
+};
+
+
+export const insertOnetimecode = async (sessionId: string, UserOnetimecode: userOnetimecode) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/store-onetimecodes`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(UserOnetimecode),
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch user coins');
+    }
+
+    return res.json(); // trả về { coins: number }
+};
+
+export const updateOnetimecode = async (sessionId: string, UserOnetimecode: userOnetimecode) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/update-onetimecodes`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(UserOnetimecode),
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch user coins');
+    }
+
+    return res.json(); // trả về { coins: number }
+};
+
+// Xoá item trong giỏ hàng
+export async function deleteOnetimecode(id: number, sessionId: string): Promise<void> {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/destroy-onetimecodes`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Không thể xoá order');
+    }
+}
+
+
+export const getListAccounts = async (sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch user coins');
+    }
+
+    return res.json(); // trả về { coins: number }
+};
+
+export const createAccount = async (sessionId: string, accountData: object) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(accountData), // Send the account data in the body
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to create account');
+    }
+
+    return res.json(); // Returns the created account
+};
+
+export const getAccountById = async (sessionId: string, accountId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts/${accountId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch account');
+    }
+
+    return res.json(); // Returns the account details
+};
+
+export const updateAccount = async (sessionId: string, accountId: string, accountData: object) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts/${accountId}`, {
+        method: 'PUT', // Or use PATCH if you prefer partial updates
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(accountData), // Send the updated account data
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update account');
+    }
+
+    return res.json(); // Returns the updated account
+};
+
+export const deleteAccount = async (sessionId: string, accountId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts/${accountId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to delete account');
+    }
+
+    return res.json(); // Returns a success message or empty response
+};

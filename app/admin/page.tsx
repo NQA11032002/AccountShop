@@ -89,6 +89,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { EditUserDialog } from '@/components/admin/EditUserDialog';
 import { EditProductDialog } from '@/components/admin/EditProductDialog';
+import { EditCodeDialog } from '@/components/admin/EditCodeDialog';
 import { EditOrderDialog } from '@/components/admin/EditOrderDialog';
 import { EditCustomerAccountDialog } from '@/components/admin/EditCustomerAccountDialog';
 import { DeleteConfirmDialog } from '@/components/admin/DeleteConfirmDialog';
@@ -121,7 +122,11 @@ import {
 } from '@/lib/api';
 import { Product } from '@/types/product.interface';
 import { deleteOrder } from '@/lib/api';
-import { sendOrderEmail } from '@/lib/api';
+import { sendOrderEmail, getOnetimecodes, getListAccounts, deleteAccount } from '@/lib/api';
+import { Onetimecode, userOnetimecode } from '@/types/Onetimecode';
+import * as XLSX from "xlsx";
+import { CustomerAccount } from '@/types/CustomerAccount';
+import { createAccount, updateAccount } from '@/lib/api';
 
 // interface User {
 //   id: string;
@@ -164,28 +169,7 @@ interface Order {
   originalTotal?: number;
 }
 
-interface CustomerAccount {
-  id: string;
-  accountEmail: string;
-  accountPassword: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  productType: string;
-  productIcon: string;
-  productColor: string;
-  purchaseDate: Date;
-  expiryDate: Date;
-  status: 'active' | 'expired' | 'suspended';
-  link?: string;
-  orderId: string;
-  duration: string;
-  purchasePrice: number;
-  // New ranking fields
-  totalSpent?: number;
-  totalOrders?: number;
-  customerRank?: CustomerRank;
-}
+
 import { deleteAdminUser } from '@/lib/api'; // Import hàm xóa người dùng từ api.ts
 
 export default function AdminDashboard() {
@@ -198,9 +182,12 @@ export default function AdminDashboard() {
   const [userWallets, setUserWallets] = useState<any[]>([]);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingRole, setIsCheckingRole] = useState(true); // để kiểm tra loading
+  const [onetimecodes, setOnetimecodes] = useState<userOnetimecode[]>([]);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Dialog states
   const [editUserDialog, setEditUserDialog] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
+  const [editCodeDialog, setEditCodeDialog] = useState<{ open: boolean; code: userOnetimecode | null }>({ open: false, code: null });
   const [editProductDialog, setEditProductDialog] = useState<{ open: boolean; product: Product | null }>({ open: false, product: null });
   const [editOrderDialog, setEditOrderDialog] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
   const [editAccountDialog, setEditAccountDialog] = useState<{ open: boolean; account: CustomerAccount | null }>({ open: false, account: null });
@@ -215,7 +202,7 @@ export default function AdminDashboard() {
   // Customer Accounts State
   const [accountSearchTerm, setAccountSearchTerm] = useState('');
   const [accountFilterType, setAccountFilterType] = useState<string>('all');
-  const [accountSortBy, setAccountSortBy] = useState<'purchaseDate' | 'expiryDate' | 'customerName' | 'productType'>('purchaseDate');
+  const [accountSortBy, setAccountSortBy] = useState<'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday'>('purchaseDate');
   const [accountSortOrder, setAccountSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Orders State
@@ -389,6 +376,8 @@ QAI Store - Tài khoản premium uy tín #1
       }
     });
 
+    // 📥 Hàm xử lý import Excel
+
 
     // Khi BE/Realtime phát sự kiện hoàn tất đơn
     const unsubscribeOrderCompletion = DataSyncHelper.subscribeToOrderCompletion(async (_orderData) => {
@@ -481,19 +470,27 @@ QAI Store - Tài khoản premium uy tín #1
 
           setUsers(usersWithStats);
         }
+
+        await loadProducts();
+        await loadOnetimecode();
+        await loadCustomerAccounts(sessionId);
+        await loadOrders();
+
       }
 
-      await loadOrders();
-      await loadProducts();
-
-      // Load customer accounts with JSON API support
-      await loadCustomerAccounts(forceAPI);
 
     } catch (error) {
       console.error('❌ Error loading dashboard data:', error);
     }
   };
 
+  const loadOnetimecode = async () => {
+    if (!sessionId) return;
+
+    const onetimecode = await getOnetimecodes(sessionId);
+
+    setOnetimecodes(onetimecode.data);
+  };
 
 
   const loadOrders = async () => {
@@ -515,120 +512,17 @@ QAI Store - Tài khoản premium uy tín #1
     }
   }
 
-  const loadCustomerAccounts = async (forceAPI = false) => {
+  const loadCustomerAccounts = async (sessionId: string) => {
     try {
-      // Load from JSON API first
-      const syncedAccounts = await DataSyncHelper.loadAdminData('accounts', forceAPI);
-      if (syncedAccounts.length > 0) {
-        const accountsWithDates = syncedAccounts.map((account: any) => ({
-          ...account,
-          purchaseDate: new Date(account.purchaseDate),
-          expiryDate: new Date(account.expiryDate)
-        }));
-        setCustomerAccounts(accountsWithDates);
-        return;
-      }
+      // 1. Thử load trực tiếp từ Laravel API
+      const apiAccounts = await getListAccounts(sessionId);
+
+      setCustomerAccounts(apiAccounts);
+
+      return;
     } catch (error) {
-      console.error('❌ Error loading customer accounts from API:', error);
+      console.error('❌ Error loading customer accounts from Laravel API:', error);
     }
-
-    // Generate sample customer accounts data
-    const sampleAccounts: CustomerAccount[] = [
-      {
-        id: 'acc_001',
-        accountEmail: 'netflix_user@example.com',
-        accountPassword: 'SecurePass123!',
-        customerName: 'Nguyễn Văn A',
-        customerEmail: 'nguyenvana@gmail.com',
-        customerPhone: '0901234567',
-        productType: 'Netflix Premium',
-        productIcon: '🎬',
-        productColor: 'bg-red-500',
-        purchaseDate: new Date('2024-01-15'),
-        expiryDate: new Date('2024-07-15'),
-        status: 'active',
-        link: 'https://netflix.com',
-        orderId: 'ORD_001',
-        duration: '6 tháng',
-        purchasePrice: 89000
-      },
-      {
-        id: 'acc_002',
-        accountEmail: 'spotify_user@example.com',
-        accountPassword: 'MusicLover2024',
-        customerName: 'Trần Thị B',
-        customerEmail: 'tranthib@gmail.com',
-        customerPhone: '0907654321',
-        productType: 'Spotify Premium',
-        productIcon: '🎵',
-        productColor: 'bg-green-500',
-        purchaseDate: new Date('2024-02-01'),
-        expiryDate: new Date('2024-05-01'),
-        status: 'expired',
-        link: 'https://spotify.com',
-        orderId: 'ORD_002',
-        duration: '3 tháng',
-        purchasePrice: 39000
-      },
-      {
-        id: 'acc_003',
-        accountEmail: 'chatgpt_user@example.com',
-        accountPassword: 'AI_Power2024',
-        customerName: 'Lê Văn C',
-        customerEmail: 'levanc@gmail.com',
-        customerPhone: '0912345678',
-        productType: 'ChatGPT Plus',
-        productIcon: '🤖',
-        productColor: 'bg-purple-500',
-        purchaseDate: new Date('2024-03-10'),
-        expiryDate: new Date('2024-04-10'),
-        status: 'expired',
-        link: 'https://chat.openai.com',
-        orderId: 'ORD_003',
-        duration: '1 tháng',
-        purchasePrice: 120000
-      },
-      {
-        id: 'acc_004',
-        accountEmail: 'youtube_user@example.com',
-        accountPassword: 'VideoTime123',
-        customerName: 'Phạm Thị D',
-        customerEmail: 'phamthid@gmail.com',
-        customerPhone: '0934567890',
-        productType: 'YouTube Premium',
-        productIcon: '📺',
-        productColor: 'bg-red-600',
-        purchaseDate: new Date('2024-04-01'),
-        expiryDate: new Date('2024-10-01'),
-        status: 'active',
-        link: 'https://youtube.com',
-        orderId: 'ORD_004',
-        duration: '6 tháng',
-        purchasePrice: 67000
-      },
-      {
-        id: 'acc_005',
-        accountEmail: 'adobe_user@example.com',
-        accountPassword: 'Creative2024!',
-        customerName: 'Hoàng Văn E',
-        customerEmail: 'hoangvane@gmail.com',
-        customerPhone: '0923456789',
-        productType: 'Adobe Creative Cloud',
-        productIcon: '🎨',
-        productColor: 'bg-orange-500',
-        purchaseDate: new Date('2024-01-20'),
-        expiryDate: new Date('2024-07-20'),
-        status: 'active',
-        link: 'https://adobe.com',
-        orderId: 'ORD_005',
-        duration: '6 tháng',
-        purchasePrice: 145000
-      }
-    ];
-
-    setCustomerAccounts(sampleAccounts);
-    // Sync to new system
-    await DataSyncHelper.syncAdminData('accounts', sampleAccounts);
   };
 
 
@@ -662,9 +556,109 @@ QAI Store - Tài khoản premium uy tín #1
     expiredCustomerAccounts: customerAccounts.filter(acc => acc.status === 'expired').length
   };
 
+  // 📥 Xử lý nhập Excel
+
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // const file = e.target.files?.[0];
+    // if (!file) return;
+
+    // setIsImporting(true);
+    // const reader = new FileReader();
+
+    // reader.onload = (evt) => {
+    //   const data = evt.target?.result;
+    //   const workbook = XLSX.read(data, { type: "binary" });
+    //   const sheetName = workbook.SheetNames[0];
+    //   const sheet = workbook.Sheets[sheetName];
+
+    //   // ✅ Đọc từng dòng thô (để tránh lỗi dấu tiếng Việt hoặc khoảng trắng)
+    //   const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+    //   if (rows.length < 2) {
+    //     alert("❌ Không có dữ liệu trong file Excel");
+    //     setIsImporting(false);
+    //     return;
+    //   }
+
+    //   // Lấy tiêu đề và loại bỏ khoảng trắng dư thừa
+    //   const headers = rows[0].map((h: string) => h.trim().replace(/\s+/g, " "));
+    //   const dataRows = rows.slice(1);
+
+    //   // Tạo JSON đúng key
+    //   const jsonData = dataRows.map((row) => {
+    //     const obj: Record<string, any> = {};
+    //     headers.forEach((key, i) => {
+    //       obj[key] = row[i] ?? "";
+    //     });
+    //     return obj;
+    //   });
+
+    //   console.log("📄 Dữ liệu thô đọc được:", jsonData);
+
+    //   // 🧠 Hàm parse ngày hỗ trợ cả dạng text (25/9) lẫn số serial
+    //   const parseDate = (value: any): Date => {
+    //     if (!value) return new Date();
+    //     if (typeof value === "number") {
+    //       const d = XLSX.SSF.parse_date_code(value);
+    //       return new Date(d.y, d.m - 1, d.d);
+    //     }
+    //     if (typeof value === "string") {
+    //       const [day, month, year] = value.split(/[\/\-\.]/).map(Number);
+    //       return new Date(year || 2024, (month || 1) - 1, day || 1);
+    //     }
+    //     return new Date();
+    //   };
+
+    //   // ✅ Map đúng cấu trúc CustomerAccount
+    //   const parsedAccounts: CustomerAccount[] = jsonData.map((row) => {
+    //     const rawStatus = (row["Trạng Thái"] || "").toString().trim().toLowerCase();
+    //     const rawProductType = (row["Loại"] || "Khác").toString().trim();
+
+    //     const status: "active" | "expired" | "suspended" =
+    //       rawStatus === "hết hạn"
+    //         ? "expired"
+    //         : rawStatus === "tạm khóa"
+    //           ? "suspended"
+    //           : "active";
+
+    //     return {
+    //       id: crypto.randomUUID(),
+    //       accountEmail: row["Tài khoản"] || "",
+    //       accountPassword: row["Password"] || "",
+    //       customerName: "",
+    //       customerEmail: "",
+    //       customerPhone: "",
+    //       productType: rawProductType,
+    //       productIcon: "💼",
+    //       productColor: "#4F46E5",
+    //       purchaseDate: parseDate(row["Ngày mua"]),
+    //       expiryDate: parseDate(row["Hết hạn"]),
+    //       status,
+    //       link: "",
+    //       orderId: "",
+    //       duration: "1 tháng",
+    //       purchasePrice: 0,
+    //       totalSpent: 0,
+    //       totalOrders: 0,
+    //       customerRank: undefined,
+    //     };
+    //   });
+
+    //   console.log("✅ Dữ liệu sau khi map:", parsedAccounts);
+
+    //   setCustomerAccounts(parsedAccounts);
+    //   setIsImporting(false);
+    // };
+
+    // reader.readAsBinaryString(file);
+  };
+
+
   // CRUD Operations
   const handleEditUser = (user: User | null) => {
     setEditUserDialog({ open: true, user });
+
+    if (sessionId)
+      loadCustomerAccounts(sessionId);
   };
 
   const handleSaveUser = (userData: User) => {
@@ -713,6 +707,35 @@ QAI Store - Tài khoản premium uy tín #1
 
     // Sync changes across all admin tabs
     DataSyncHelper.syncAdminData('users', updatedUsers);
+  };
+
+  // CRUD Operations
+  const handleEditCode = (code: userOnetimecode | null) => {
+    setEditCodeDialog({ open: true, code });
+  };
+
+  const handleSaveCode = (codeData: userOnetimecode) => {
+    let updatedCodes: userOnetimecode[];
+
+    if (editCodeDialog.code) {
+      updatedCodes = onetimecodes.map(u => u.id === codeData.id ? codeData : u);
+      setOnetimecodes(updatedCodes);
+
+      toast({
+        title: "Cập nhật thành công",
+        description: `Thông tin người dùng ${codeData.name} đã được cập nhật.`,
+      });
+    } else {
+      // Add new user
+      const newCode = { ...codeData };
+      updatedCodes = [...onetimecodes, newCode];
+      setOnetimecodes(updatedCodes);
+
+      toast({
+        title: "Tạo mới thành công",
+        description: `Người dùng ${codeData.name} đã được tạo.`,
+      });
+    }
   };
 
   const [error, setError] = useState<string>('');
@@ -1010,8 +1033,8 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   // Helper functions for customer accounts
-  const handleCopyCredential = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopyCredential = (text: string | null) => {
+    navigator.clipboard.writeText(text ?? '');
     toast({
       title: "Đã sao chép!",
       description: "Thông tin đã được sao chép vào clipboard.",
@@ -1065,55 +1088,55 @@ QAI Store - Tài khoản premium uy tín #1
 
   // Customer Account Management Functions
   const handleEditAccount = (account: CustomerAccount | null) => {
-    console.log("Edit account clicked", { accountId: account?.id });
     setEditAccountDialog({ open: true, account });
   };
 
-  const handleSaveAccount = (accountData: CustomerAccount) => {
-    console.log("Saving account with sync", accountData);
-    let updatedAccounts: CustomerAccount[];
-
-    if (editAccountDialog.account) {
-      // Update existing account
-      updatedAccounts = customerAccounts.map(a => a.id === accountData.id ? accountData : a);
-      setCustomerAccounts(updatedAccounts);
-      toast({
-        title: "Cập nhật thành công",
-        description: `Tài khoản ${accountData.accountEmail} đã được cập nhật.`,
-      });
-    } else {
-      // Add new account
-      const newAccount = { ...accountData, id: Date.now().toString() };
-      updatedAccounts = [...customerAccounts, newAccount];
-      setCustomerAccounts(updatedAccounts);
-      toast({
-        title: "Tạo mới thành công",
-        description: `Tài khoản ${accountData.accountEmail} đã được tạo.`,
-      });
+  // Function for saving updated or new account
+  const handleSaveAccount = async (updatedAccount: CustomerAccount) => {
+    try {
+      setLoading(true);
+      if (sessionId) {
+        // Reload the customer accounts after save
+        await loadCustomerAccounts(sessionId);
+      }
+    } catch (error) {
+      setError('There was an error saving the account');
+    } finally {
+      setLoading(false);
     }
-
-    // Sync changes across all admin tabs
-    DataSyncHelper.syncAdminData('accounts', updatedAccounts);
   };
 
+
   const handleDeleteAccount = (account: CustomerAccount) => {
-    console.log("Delete account clicked", { accountId: account.id });
+    // Đoạn code dưới đây giả sử bạn đã có một dialog để xác nhận xóa tài khoản
     setDeleteDialog({
       open: true,
       type: 'account',
       item: account,
-      onConfirm: () => {
-        const updatedAccounts = customerAccounts.filter(a => a.id !== account.id);
-        setCustomerAccounts(updatedAccounts);
-        toast({
-          title: "Xóa thành công",
-          description: `Tài khoản ${account.accountEmail} đã được xóa.`,
-          variant: "destructive",
-        });
+      onConfirm: async () => {
+        try {
+          // Gọi API xóa tài khoản
+          if (sessionId) {
+            await deleteAccount(sessionId, account.id.toString());
 
-        // Sync changes across all admin tabs
-        DataSyncHelper.syncAdminData('accounts', updatedAccounts);
-      }
+            // Cập nhật lại danh sách tài khoản sau khi xóa
+            const updatedAccounts = customerAccounts.filter(a => a.id !== account.id);
+            setCustomerAccounts(updatedAccounts);
+            toast({
+              title: "Xóa thành công",
+              description: `Tài khoản ${account.account_email} đã được xóa.`,
+              variant: "destructive",  // Chỉnh sửa tùy theo toast lib bạn đang dùng
+            });
+          }
+        } catch (error) {
+          // Hiển thị lỗi nếu có sự cố khi xóa
+          toast({
+            title: "Lỗi khi xóa tài khoản",
+            description: 'Có lỗi xảy ra khi xóa tài khoản.',
+            variant: "destructive",  // Chỉnh sửa tùy theo toast lib bạn đang dùng
+          });
+        }
+      },
     });
   };
 
@@ -1570,54 +1593,108 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const handleViewAccountDetail = (account: CustomerAccount) => {
-    console.log("View account detail", { accountId: account.id });
-    // You can implement a detailed view modal here if needed
-    toast({
-      title: "Chi tiết tài khoản",
-      description: `Xem chi tiết tài khoản ${account.accountEmail}`,
-    });
+    // console.log("View account detail", { accountId: account.id });
+    // // You can implement a detailed view modal here if needed
+    // toast({
+    //   title: "Chi tiết tài khoản",
+    //   description: `Xem chi tiết tài khoản ${account.accountEmail}`,
+    // });
+  };
+  // Helper: bỏ dấu + lowercase + trim
+  // Helper bỏ dấu như bạn đã có
+  const normalizeString = (str: string) => {
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
   };
 
-  // Filtering, Sorting and Pagination Functions
   const getFilteredAndSortedAccounts = () => {
-    let filtered = customerAccounts.filter(account => {
-      const matchesSearch =
-        account.customerName.toLowerCase().includes(accountSearchTerm.toLowerCase()) ||
-        account.customerEmail.toLowerCase().includes(accountSearchTerm.toLowerCase()) ||
-        account.productType.toLowerCase().includes(accountSearchTerm.toLowerCase()) ||
-        account.accountEmail.toLowerCase().includes(accountSearchTerm.toLowerCase());
+    const searchTerm = accountSearchTerm.toLowerCase();
+    const rawSearch = accountSearchTerm.trim();
 
-      const matchesFilter = accountFilterType === 'all' || account.productType === accountFilterType;
+    const searchTokens = normalizeString(rawSearch).split(/\s+/); // tách theo khoảng trắng
+
+    let filtered = customerAccounts.filter((account) => {
+      const name = normalizeString(account.customer_name || "");
+      const customerEmail = normalizeString(account.customer_email || "");
+      const accountEmail = normalizeString(account.account_email || "");
+
+      // Gộp các trường muốn tìm kiếm vào một chuỗi
+      const haystack = `${name} ${customerEmail} ${accountEmail}`;
+
+      // Tất cả từ khóa phải xuất hiện trong chuỗi gộp
+      const matchesSearch = searchTokens.every((token) =>
+        haystack.includes(token)
+      );
+
+      const matchesFilter =
+        accountFilterType === "all" ||
+        account.product_type === accountFilterType;
 
       return matchesSearch && matchesFilter;
     });
 
     // Sort the filtered results
     filtered.sort((a, b) => {
-      let aValue: any, bValue: any;
+      let aValue: string | number = "";
+      let bValue: string | number = "";
 
       switch (accountSortBy) {
-        case 'purchaseDate':
-          aValue = new Date(a.purchaseDate).getTime();
-          bValue = new Date(b.purchaseDate).getTime();
+        case "purchaseDate":
+          aValue = a.purchase_date ? new Date(a.purchase_date).getTime() : 0;
+          bValue = b.purchase_date ? new Date(b.purchase_date).getTime() : 0;
           break;
-        case 'expiryDate':
-          aValue = new Date(a.expiryDate).getTime();
-          bValue = new Date(b.expiryDate).getTime();
+
+        case "expiryDate":
+          // sort bình thường theo ngày hết hạn
+          aValue = a.expiry_date ? new Date(a.expiry_date).getTime() : 0;
+          bValue = b.expiry_date ? new Date(b.expiry_date).getTime() : 0;
           break;
-        case 'customerName':
-          aValue = a.customerName.toLowerCase();
-          bValue = b.customerName.toLowerCase();
+
+        case "expiryToday": {
+          // ưu tiên những account hết hạn đúng hôm nay
+          const today = new Date();
+          const y = today.getFullYear();
+          const m = today.getMonth();
+          const d = today.getDate();
+
+          const isToday = (dateStr: string | null) => {
+            if (!dateStr) return false;
+            const dt = new Date(dateStr);
+            return (
+              dt.getFullYear() === y &&
+              dt.getMonth() === m &&
+              dt.getDate() === d
+            );
+          };
+
+          const aIsToday = isToday(a.expiry_date) ? 0 : 1;
+          const bIsToday = isToday(b.expiry_date) ? 0 : 1;
+
+          aValue = aIsToday;
+          bValue = bIsToday;
           break;
-        case 'productType':
-          aValue = a.productType.toLowerCase();
-          bValue = b.productType.toLowerCase();
+        }
+
+        case "customerName":
+          aValue = (a.customer_name || "").toLowerCase();
+          bValue = (b.customer_name || "").toLowerCase();
           break;
+
+        case "productType":
+          aValue = (a.product_type || "").toLowerCase();
+          bValue = (b.product_type || "").toLowerCase();
+          break;
+
         default:
           return 0;
       }
 
-      if (accountSortOrder === 'asc') {
+      if (aValue === bValue) return 0;
+
+      if (accountSortOrder === "asc") {
         return aValue > bValue ? 1 : -1;
       } else {
         return aValue < bValue ? 1 : -1;
@@ -1627,19 +1704,23 @@ QAI Store - Tài khoản premium uy tín #1
     return filtered;
   };
 
+
+
   const getPaginatedAccounts = () => {
     const filtered = getFilteredAndSortedAccounts();
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
+
     return {
       accounts: filtered.slice(startIndex, endIndex),
       totalItems: filtered.length,
-      totalPages: Math.ceil(filtered.length / itemsPerPage)
+      totalPages: Math.ceil(filtered.length / itemsPerPage),
     };
   };
 
+
   const getUniqueProductTypes = () => {
-    return Array.from(new Set(customerAccounts.map(acc => acc.productType)));
+    return Array.from(new Set(customerAccounts.map(acc => acc.product_type)));
   };
 
   const handleSort = (column: 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType') => {
@@ -1775,9 +1856,10 @@ QAI Store - Tài khoản premium uy tín #1
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Modern Floating Navigation */}
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 p-2">
-            <TabsList className="grid w-full grid-cols-5 bg-transparent gap-2 h-auto p-0">
+            <TabsList className="grid w-full grid-cols-6 bg-transparent gap-2 h-auto p-0">
               <TabsTrigger
                 value="overview"
+                disabled={role != 'admin'}
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0"
               >
                 <div className="relative">
@@ -1825,6 +1907,7 @@ QAI Store - Tài khoản premium uy tín #1
 
               <TabsTrigger
                 value="deposits"
+                disabled={role != 'admin'}
                 className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0"
               >
                 <div className="relative">
@@ -1832,6 +1915,18 @@ QAI Store - Tài khoản premium uy tín #1
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full blur-lg opacity-0 group-data-[state=active]:opacity-60 transition-opacity duration-300"></div>
                 </div>
                 <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Nạp tiền</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="2fa"
+                disabled={role != 'admin'}
+                className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0"
+              >
+                <div className="relative">
+                  <Monitor className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full blur-lg opacity-0 group-data-[state=active]:opacity-60 transition-opacity duration-300"></div>
+                </div>
+                <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Code 2FA</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -2367,6 +2462,7 @@ QAI Store - Tài khoản premium uy tín #1
                             <Download className="w-4 h-4 mr-2" />
                             Xuất Excel
                           </Button>
+
                           <Button onClick={() => handleEditProduct(null)} className="bg-green-600 hover:bg-green-700">
                             <Plus className="w-4 h-4 mr-2" />
                             Thêm sản phẩm
@@ -2378,6 +2474,7 @@ QAI Store - Tài khoản premium uy tín #1
                       <Table>
                         <TableHeader>
                           <TableRow>
+                            <TableHead>ID</TableHead>
                             <TableHead>Sản phẩm</TableHead>
                             <TableHead>Danh mục</TableHead>
                             <TableHead>Giá</TableHead>
@@ -2468,7 +2565,7 @@ QAI Store - Tài khoản premium uy tín #1
                           </div>
                           <Input
                             type="text"
-                            placeholder="🔍 Tìm kiếm theo tên khách hàng, email, sản phẩm..."
+                            placeholder="🔍 Tìm kiếm theo tên khách hàng"
                             value={accountSearchTerm}
                             onChange={(e) => setAccountSearchTerm(e.target.value)}
                             className="pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all duration-300"
@@ -2483,17 +2580,30 @@ QAI Store - Tài khoản premium uy tín #1
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="all">Tất cả sản phẩm</SelectItem>
-                              {getUniqueProductTypes().map((type) => (
-                                <SelectItem key={type} value={type}>{type}</SelectItem>
-                              ))}
+                              {getUniqueProductTypes()
+                                .filter((type): type is string => type !== null && type !== undefined) // <- lọc null
+                                .map((type) => (
+                                  <SelectItem key={type} value={type}>
+                                    {type}
+                                  </SelectItem>
+                                ))}
                             </SelectContent>
                           </Select>
 
-                          <Select value={`${accountSortBy}-${accountSortOrder}`} onValueChange={(value) => {
-                            const [sortBy, sortOrder] = value.split('-') as [typeof accountSortBy, typeof accountSortOrder];
-                            setAccountSortBy(sortBy);
-                            setAccountSortOrder(sortOrder);
-                          }}>
+                          <Select
+                            value={`${accountSortBy}-${accountSortOrder}`}
+                            onValueChange={(value) => {
+                              const [sortBy, sortOrder] = value.split("-") as [string, string];
+
+                              if (sortBy === "expiryToday") {
+                                setAccountSortBy("expiryToday");
+                                setAccountSortOrder("asc"); // không cần desc cho hôm nay
+                              } else {
+                                setAccountSortBy(sortBy as any);
+                                setAccountSortOrder(sortOrder as "asc" | "desc");
+                              }
+                            }}
+                          >
                             <SelectTrigger className="w-44 border-2 border-gray-200 hover:border-brand-emerald transition-colors duration-300 rounded-lg">
                               <SortAsc className="w-4 h-4 mr-2" />
                               <SelectValue placeholder="Sắp xếp theo" />
@@ -2501,8 +2611,9 @@ QAI Store - Tài khoản premium uy tín #1
                             <SelectContent>
                               <SelectItem value="purchaseDate-desc">Ngày mua (Mới nhất)</SelectItem>
                               <SelectItem value="purchaseDate-asc">Ngày mua (Cũ nhất)</SelectItem>
-                              <SelectItem value="expiryDate-desc">Ngày hết hạn (Xa nhất)</SelectItem>
-                              <SelectItem value="expiryDate-asc">Ngày hết hạn (Gần nhất)</SelectItem>
+                              <SelectItem value="expiryToday-asc">Ngày hết hạn (Hôm nay)</SelectItem>
+                              <SelectItem value="expiryDate-desc">Ngày hết hạn (Gần nhất)</SelectItem>
+                              <SelectItem value="expiryDate-asc">Ngày hết hạn (Xa nhất)</SelectItem>
                               <SelectItem value="customerName-asc">Tên A-Z</SelectItem>
                               <SelectItem value="customerName-desc">Tên Z-A</SelectItem>
                             </SelectContent>
@@ -2512,6 +2623,30 @@ QAI Store - Tài khoản premium uy tín #1
                             <Download className="w-4 h-4 mr-2" />
                             Xuất Excel
                           </Button>
+                          {/* <Button onChange={handleImportExcel}
+                            className="bg-gradient-to-r from-brand-gray to-brand-blue hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white shadow-lg rounded-lg px-4">
+                            <FileText className="w-4 h-4 mr-2" />
+                            Nhập Excel
+                          </Button> */}
+
+                          <input
+                            type="file"
+                            accept=".xlsx, .xls, .csv"
+                            onChange={handleImportExcel}
+                            id="excelInput"
+                            hidden
+                          />
+
+                          <Button
+                            onClick={() => document.getElementById("excelInput")?.click()}
+                            disabled={isImporting}
+                            className="bg-gradient-to-r from-brand-gray to-brand-blue text-white shadow-md hover:opacity-90 rounded-lg px-4"
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            {isImporting ? "Đang nhập..." : "Nhập Excel"}
+                          </Button>
+
+
 
                           <Button
                             onClick={() => handleEditAccount(null)}
@@ -2528,6 +2663,7 @@ QAI Store - Tài khoản premium uy tín #1
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-gradient-to-r from-gray-50 to-blue-50/50 border-b-2 border-gray-100">
+                              <TableHead className="w-[5%] py-3 px-4 font-semibold text-gray-700">ID</TableHead>
                               <TableHead className="w-[20%] py-3 px-4 font-semibold text-gray-700">Tài khoản</TableHead>
                               <TableHead
                                 className="w-[12%] py-3 px-3 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
@@ -2542,7 +2678,7 @@ QAI Store - Tài khoản premium uy tín #1
                                   )}
                                 </div>
                               </TableHead>
-                              <TableHead className="w-[10%] py-3 px-3 font-semibold text-gray-700">Hạng</TableHead>
+                              {/* <TableHead className="w-[10%] py-3 px-3 font-semibold text-gray-700">Hạng</TableHead> */}
                               <TableHead
                                 className="w-[10%] py-3 px-3 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
                                 onClick={() => handleSort('purchaseDate')}
@@ -2596,14 +2732,21 @@ QAI Store - Tài khoản premium uy tín #1
                               >
                                 <TableCell className="py-4 px-4">
                                   <div className="space-y-2">
+                                    <div className="truncate">{account.id}</div>
+                                  </div>
+                                </TableCell>
+
+                                <TableCell className="py-4 px-4">
+                                  <div className="space-y-2">
                                     <div className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                                      <div className="truncate">{account.accountEmail}</div>
+                                      <div className="truncate">{account.account_email}</div>
+                                      <div className="truncate">{account.account_password}</div>
                                     </div>
                                     <div className="flex items-center space-x-1">
                                       <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => handleCopyCredential(account.accountEmail)}
+                                        onClick={() => handleCopyCredential(account.account_email ?? '')}
                                         className="h-6 px-2 text-xs"
                                       >
                                         <Copy className="w-3 h-3 mr-1" />
@@ -2612,7 +2755,7 @@ QAI Store - Tài khoản premium uy tín #1
                                       <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => handleCopyCredential(account.accountPassword)}
+                                        onClick={() => handleCopyCredential(account.account_password)}
                                         className="h-6 px-2 text-xs"
                                       >
                                         <Copy className="w-3 h-3 mr-1" />
@@ -2622,10 +2765,18 @@ QAI Store - Tài khoản premium uy tín #1
                                   </div>
                                 </TableCell>
                                 <TableCell className="py-4 px-3">
-                                  <div className="font-semibold text-gray-800 text-sm truncate">{account.customerName}</div>
-                                  <div className="text-xs text-gray-500 truncate">{account.customerEmail}</div>
+                                  <div className="font-semibold text-gray-800 text-sm truncate">{account.customer_name}</div>
+                                  <div className="text-xs text-gray-500 truncate">{account.account_email}</div>
+                                  <a
+                                    href={account.link || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:underline text-medium font-bold"
+                                  >
+                                    Xem link
+                                  </a>
                                 </TableCell>
-                                <TableCell className="py-4 px-3">
+                                {/* <TableCell className="py-4 px-3">
                                   {account.customerRank && (
                                     <div className="flex items-center space-x-1">
                                       <div
@@ -2646,17 +2797,19 @@ QAI Store - Tài khoản premium uy tín #1
                                       </Badge>
                                     </div>
                                   )}
-                                </TableCell>
+                                </TableCell> */}
                                 <TableCell className="py-4 px-3">
                                   <div className="flex items-center space-x-1">
                                     <Calendar className="w-3 h-3 text-brand-blue flex-shrink-0" />
-                                    <span className="text-xs font-medium">{formatDate(account.purchaseDate)}</span>
+                                    <span className="text-xs font-medium">  {formatDate(account.purchase_date ? new Date(account.purchase_date) : new Date())}
+                                    </span>
                                   </div>
                                 </TableCell>
                                 <TableCell className="py-4 px-3">
                                   <div className="flex items-center space-x-1">
                                     <Clock className="w-3 h-3 text-orange-500 flex-shrink-0" />
-                                    <span className="text-xs font-medium">{formatDate(account.expiryDate)}</span>
+                                    <span className="text-xs font-medium">  {formatDate(account.expiry_date ? new Date(account.expiry_date) : new Date())}
+                                    </span>
                                   </div>
                                 </TableCell>
                                 <TableCell className="py-4 px-3">
@@ -2667,17 +2820,16 @@ QAI Store - Tài khoản premium uy tín #1
                                 </TableCell>
                                 <TableCell className="py-4 px-3">
                                   <Badge
-                                    variant="outline"
-                                    className="text-xs px-1 py-0 font-medium border border-brand-purple/30 text-brand-purple bg-brand-purple/5"
+                                    className="text-xs px-1 py-0 font-medium  bg-transparent text-purple-600 hover:text-white"
                                   >
-                                    {account.productType}
+                                    {account.product_type}
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="py-4 px-3">
                                   <div className="flex items-center space-x-1">
                                     <DollarSign className="w-3 h-3 text-green-600 flex-shrink-0" />
                                     <span className="font-semibold text-green-700 text-xs">
-                                      {account.purchasePrice.toLocaleString('vi-VN')}đ
+                                      {account.purchase_price?.toLocaleString()}đ
                                     </span>
                                   </div>
                                 </TableCell>
@@ -3314,6 +3466,91 @@ QAI Store - Tài khoản premium uy tín #1
           </TabsContent>
 
 
+          {/* 2fa Tab */}
+          <TabsContent value="2fa">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Quản lý code 2FA</CardTitle>
+                  <div className="flex items-center space-x-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        placeholder="Tìm kiếm mail code..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 w-64"
+                      />
+                    </div>
+
+                    <Button onClick={() => handleEditCode(null)} className="bg-green-600 hover:bg-green-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Thêm code
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Email GPT</TableHead>
+                      <TableHead>EMail User</TableHead>
+                      <TableHead>Tên người dùng </TableHead>
+                      <TableHead>IP Truy cập</TableHead>
+                      <TableHead>Số lần lấy</TableHead>
+                      <TableHead>Ngày</TableHead>
+                      <TableHead>Trạng thái</TableHead>
+                      <TableHead>Thao tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {onetimecodes.filter(code =>
+                      code?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      code?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map((code) => (
+
+                      <TableRow key={code.id}>
+                        <TableCell>
+                          {code.id}
+                        </TableCell>
+                        <TableCell>{code.onetimecode.email}</TableCell>
+                        <TableCell>{code.email}</TableCell>
+                        <TableCell>{code.name}</TableCell>
+                        <TableCell>{code.ip}</TableCell>
+                        <TableCell >{code.count_logined}</TableCell>
+                        <TableCell >{code.date_logined}</TableCell>
+                        <TableCell>{code.current_date_login}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {/* <Button variant="ghost" size="sm" title="Xem chi tiết">
+                              <Eye className="w-4 h-4" />
+                            </Button> */}
+                            <Button variant="ghost" size="sm" title="Chỉnh sửa">
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            {role == 'admin' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+
+                                title="Xóa"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
 
         {/* Dialogs */}
@@ -3341,6 +3578,13 @@ QAI Store - Tài khoản premium uy tín #1
           open={editProductDialog.open}
           onOpenChange={(open) => setEditProductDialog({ ...editProductDialog, open })}
           onSave={handleSaveProduct}
+        />
+
+        <EditCodeDialog
+          code={editCodeDialog.code}
+          open={editCodeDialog.open}
+          onOpenChange={(open) => setEditCodeDialog({ ...editCodeDialog, open })}
+          onSave={handleSaveCode}
         />
 
         <EditOrderDialog
