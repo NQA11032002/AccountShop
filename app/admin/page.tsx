@@ -90,6 +90,7 @@ import { useToast } from '@/hooks/use-toast';
 import { EditUserDialog } from '@/components/admin/EditUserDialog';
 import { EditProductDialog } from '@/components/admin/EditProductDialog';
 import { EditCodeDialog } from '@/components/admin/EditCodeDialog';
+import { EditOnetimeCodeDialog } from '@/components/admin/EditOnetimeCodeDialog';
 import { EditOrderDialog } from '@/components/admin/EditOrderDialog';
 import { EditCustomerAccountDialog } from '@/components/admin/EditCustomerAccountDialog';
 import { DeleteConfirmDialog } from '@/components/admin/DeleteConfirmDialog';
@@ -127,6 +128,17 @@ import { Onetimecode, userOnetimecode } from '@/types/Onetimecode';
 import * as XLSX from "xlsx";
 import { CustomerAccount } from '@/types/CustomerAccount';
 import { createAccount, updateAccount } from '@/lib/api';
+import { updateOnetimecode, insertOnetimecode, deleteOnetimecode, updateMasterOnetimecode, createOnetimecode } from '@/lib/api'; // Import hàm updateUser
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // interface User {
 //   id: string;
@@ -188,6 +200,7 @@ export default function AdminDashboard() {
   // Dialog states
   const [editUserDialog, setEditUserDialog] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
   const [editCodeDialog, setEditCodeDialog] = useState<{ open: boolean; code: userOnetimecode | null }>({ open: false, code: null });
+  const [editOnetimeCode, setEditOnetimeCodeDialog] = useState<{ open: boolean; code: Onetimecode | null }>({ open: false, code: null });
   const [editProductDialog, setEditProductDialog] = useState<{ open: boolean; product: Product | null }>({ open: false, product: null });
   const [editOrderDialog, setEditOrderDialog] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
   const [editAccountDialog, setEditAccountDialog] = useState<{ open: boolean; account: CustomerAccount | null }>({ open: false, account: null });
@@ -258,6 +271,8 @@ QAI Store - Tài khoản premium uy tín #1
   const [trafficData, setTrafficData] = useState<any[]>([]);
   const [revenueComparisonData, setRevenueComparisonData] = useState<any[]>([]);
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<userOnetimecode | null>(null);
 
   const handleLogout = async () => {
     await logout();
@@ -709,34 +724,129 @@ QAI Store - Tài khoản premium uy tín #1
     DataSyncHelper.syncAdminData('users', updatedUsers);
   };
 
+  const handleDeleteCode = async () => {
+    if (!sessionId || !deleteTarget) return;
+
+    try {
+      await deleteOnetimecode(deleteTarget.id, sessionId);
+      setOnetimecodes(prev => prev.filter(item => item.id !== deleteTarget.id));
+
+      toast({
+        title: "Đã xoá",
+        description: `Đã xoá khách hàng ${deleteTarget.name || deleteTarget.email}.`,
+      });
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Lỗi",
+        description: err.message || "Không thể xoá.",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+    }
+  };
+
+
   // CRUD Operations
   const handleEditCode = (code: userOnetimecode | null) => {
     setEditCodeDialog({ open: true, code });
   };
 
-  const handleSaveCode = (codeData: userOnetimecode) => {
-    let updatedCodes: userOnetimecode[];
 
-    if (editCodeDialog.code) {
-      updatedCodes = onetimecodes.map(u => u.id === codeData.id ? codeData : u);
-      setOnetimecodes(updatedCodes);
+  const handleSaveCode = async (codeData: userOnetimecode) => {
+    try {
 
+      // Nếu có ID → update
+      if (editCodeDialog.code && editCodeDialog.code.id !== 0) {
+        const result = await updateOnetimecode(sessionId!, codeData);
+
+        setOnetimecodes(prev =>
+          prev.map(item => (item.id === result.data.id ? result.data : item))
+        );
+
+        toast({
+          title: "Cập nhật thành công",
+          description: `Email ${result.data.email} đã được cập nhật.`,
+        });
+      }
+
+      // Nếu id = 0 => Thêm mới
+      else {
+        const result = await insertOnetimecode(sessionId!, codeData);
+
+        setOnetimecodes(prev => [...prev, result.data]);
+
+        toast({
+          title: "Tạo mới thành công",
+          description: `Email ${result.data.email} đã được thêm.`,
+        });
+      }
+
+      // Tắt dialog sau khi thành công
+      setEditCodeDialog({ open: false, code: null });
+
+    } catch (err: any) {
       toast({
-        title: "Cập nhật thành công",
-        description: `Thông tin người dùng ${codeData.name} đã được cập nhật.`,
-      });
-    } else {
-      // Add new user
-      const newCode = { ...codeData };
-      updatedCodes = [...onetimecodes, newCode];
-      setOnetimecodes(updatedCodes);
-
-      toast({
-        title: "Tạo mới thành công",
-        description: `Người dùng ${codeData.name} đã được tạo.`,
+        variant: "destructive",
+        title: "Lỗi",
+        description: err.message || "Không thể lưu dữ liệu.",
       });
     }
   };
+
+  const defaultCode: Onetimecode = {
+    id: 1,
+    email: '',
+    secret: ''
+  };
+
+  // CRUD Operations
+  const handleOnetimeCode = (code: Onetimecode | null) => {
+    setEditOnetimeCodeDialog({ open: true, code });
+  };
+
+  const handleSaveOnetimeCode = async (codeData: Onetimecode) => {
+    try {
+
+      // Nếu có ID → update
+      if (editOnetimeCode.code && editOnetimeCode.code.id !== 0) {
+        const result = await updateMasterOnetimecode(sessionId!, codeData);
+
+        setOnetimecodes(prev =>
+          prev.map(item => (item.email === result.data.email ? result.data : item))
+        );
+
+        toast({
+          title: "Cập nhật thành công",
+          description: `Email ${result.data.email} đã được cập nhật.`,
+        });
+      }
+
+      // Nếu id = 0 => Thêm mới
+      else {
+        const result = await createOnetimecode(sessionId!, codeData);
+
+        setOnetimecodes(prev => [...prev, result.data]);
+
+        toast({
+          title: "Tạo mới thành công",
+          description: `Email ${result.data.email} đã được thêm.`,
+        });
+      }
+
+      // Tắt dialog sau khi thành công
+      setEditCodeDialog({ open: false, code: null });
+
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Lỗi",
+        description: err.message || "Không thể lưu dữ liệu.",
+      });
+    }
+  };
+
 
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -3471,7 +3581,7 @@ QAI Store - Tài khoản premium uy tín #1
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Quản lý code 2FA</CardTitle>
+                  <CardTitle>Quản lý người dùng lấy code</CardTitle>
                   <div className="flex items-center space-x-2">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -3485,7 +3595,17 @@ QAI Store - Tài khoản premium uy tín #1
 
                     <Button onClick={() => handleEditCode(null)} className="bg-green-600 hover:bg-green-700">
                       <Plus className="w-4 h-4 mr-2" />
-                      Thêm code
+                      Thêm người dùng
+                    </Button>
+
+                    <Button onClick={() => handleOnetimeCode(null)} className="bg-cyan-600 hover:bg-cyan-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Thêm 2FA
+                    </Button>
+
+                    <Button onClick={() => handleOnetimeCode(defaultCode)} className="bg-indigo-500 hover:bg-indigo-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Cập nhật 2FA
                     </Button>
                   </div>
                 </div>
@@ -3515,28 +3635,41 @@ QAI Store - Tài khoản premium uy tín #1
                         <TableCell>
                           {code.id}
                         </TableCell>
-                        <TableCell>{code.onetimecode.email}</TableCell>
+                        <TableCell>{code.onetimecode?.email}</TableCell>
                         <TableCell>{code.email}</TableCell>
                         <TableCell>{code.name}</TableCell>
                         <TableCell>{code.ip}</TableCell>
                         <TableCell >{code.count_logined}</TableCell>
-                        <TableCell >{code.date_logined}</TableCell>
-                        <TableCell>{code.current_date_login}</TableCell>
+                        <TableCell >{code.current_date_login}</TableCell>
+                        <TableCell>
+                          {code.status == '1' ? (
+                            <span className="px-2 py-1 text-xs rounded-full bg-green-600 text-white">
+                              Hoạt động
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs rounded-full bg-red-600 text-white">
+                              Tạm dừng
+                            </span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             {/* <Button variant="ghost" size="sm" title="Xem chi tiết">
                               <Eye className="w-4 h-4" />
                             </Button> */}
                             <Button variant="ghost" size="sm" title="Chỉnh sửa">
-                              <Edit className="w-4 h-4" />
+                              <Edit onClick={() => handleEditCode(code)} className="w-4 h-4" />
                             </Button>
                             {role == 'admin' && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
-
                                 title="Xóa"
+                                onClick={() => {
+                                  setDeleteTarget(code);
+                                  setDeleteDialogOpen(true);
+                                }}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -3585,6 +3718,14 @@ QAI Store - Tài khoản premium uy tín #1
           open={editCodeDialog.open}
           onOpenChange={(open) => setEditCodeDialog({ ...editCodeDialog, open })}
           onSave={handleSaveCode}
+        />
+
+
+        <EditOnetimeCodeDialog
+          code={editOnetimeCode.code}
+          open={editOnetimeCode.open}
+          onOpenChange={(open) => setEditOnetimeCodeDialog({ ...editOnetimeCode, open })}
+          onSave={handleSaveOnetimeCode}
         />
 
         <EditOrderDialog
@@ -3819,7 +3960,39 @@ QAI Store - Tài khoản premium uy tín #1
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-red-600">
+                Xác nhận xoá
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Bạn có chắc chắn muốn xoá
+                {" "}
+                <span className="font-semibold">
+                  {deleteTarget?.name || deleteTarget?.email}
+                </span>
+                ?
+                <br />
+                Hành động này không thể hoàn tác.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Huỷ</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleDeleteCode}
+              >
+                Xoá
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
       </div>
     </div >
+
   );
 }

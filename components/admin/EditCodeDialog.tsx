@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { userOnetimecode, Onetimecode } from '@/types/Onetimecode';
-import { updateOnetimecode, getListOnetimecodes } from '@/lib/api'; // Import hàm updateUser
+import { updateOnetimecode, getListOnetimecodes, insertOnetimecode } from '@/lib/api'; // Import hàm updateUser
 import { useAuth } from '@/contexts/AuthContext';
 
 interface EditCodeDialogProps {
@@ -36,7 +36,7 @@ export function EditCodeDialog({ code, open, onOpenChange, onSave }: EditCodeDia
         count_logined: '',
         date_logined: '',
         current_date_login: '',
-        status: '',
+        status: '1',          // 👈 cho mặc định là "Hoạt động"
         onetimecode: defaultCode
     };
 
@@ -45,15 +45,26 @@ export function EditCodeDialog({ code, open, onOpenChange, onSave }: EditCodeDia
 
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
-    const { sessionId } = useAuth();
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [editingCode, setEditingCode] = useState<userOnetimecode | null>(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const { sessionId, role } = useAuth(); // ví dụ
+
 
     // Reset form data when user prop changes or dialog opens
     useEffect(() => {
         if (open) {
-            setFormData(code || defaultUserOnetimecode);
+            if (code) {
+                setFormData({
+                    ...code,
+                    status: code.status == '1' || code.status === '1' ? '1' : '0', // 👈 chuẩn hoá
+                } as userOnetimecode);
+            } else {
+                setFormData(defaultUserOnetimecode);
+            }
             loadOnetimecode();
         }
-
     }, [code, open]);
 
     const loadOnetimecode = async () => {
@@ -77,28 +88,24 @@ export function EditCodeDialog({ code, open, onOpenChange, onSave }: EditCodeDia
 
     const handleSave = async () => {
         setLoading(true);
-        setError('');
+        setError("");
 
         if (!sessionId) {
-            setError('Session ID is missing.');
+            setError("Session ID is missing.");
             setLoading(false);
             return;
         }
 
         try {
-            // Call updateAdminUser API to update user
-            const updatedUser = await updateOnetimecode(sessionId, formData);
-
-
-            onSave(updatedUser); // Call onSave to update the user in the parent component
-
-            onOpenChange(false); // Close the dialog after update
+            onSave(formData);
+            onOpenChange(false);
         } catch (err: any) {
-            setError(err.message || 'Error saving user');
+            setError(err.message);
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,6 +131,20 @@ export function EditCodeDialog({ code, open, onOpenChange, onSave }: EditCodeDia
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className="col-span-3"
                             placeholder="example@xxx.com"
+                        />
+                    </div>
+
+
+                    {/* Tên khách hàng */}
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name" className="text-right">khách hàng</Label>
+                        <Input
+                            id="name"
+                            type="text"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            className="col-span-3"
+                            placeholder="Nhập tên khách hàng"
                         />
                     </div>
 
@@ -163,20 +184,21 @@ export function EditCodeDialog({ code, open, onOpenChange, onSave }: EditCodeDia
 
 
                     {/* Status */}
+                    {/* Status */}
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Trạng thái</Label>
                         <Select
-                            value={formData.status}
-                            onValueChange={(value: '0' | '1') =>
-                                setFormData({ ...formData, status: value })
+                            value={formData.status?.toString() ?? ""}   // 👈 ép về string
+                            onValueChange={(value) =>
+                                setFormData({ ...formData, status: value as '0' | '1' })
                             }
                         >
                             <SelectTrigger className="col-span-3">
-                                <SelectValue />
+                                <SelectValue placeholder="Chọn trạng thái" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="active">Hoạt động</SelectItem>
-                                <SelectItem value="inactive">Không hoạt động</SelectItem>
+                                <SelectItem value="1">Hoạt động</SelectItem>
+                                <SelectItem value="0">Tạm dừng</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

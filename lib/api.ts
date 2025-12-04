@@ -2,7 +2,7 @@ import { ProductBase } from './products';
 import { Review } from '@/types/reviews.interface';
 import { CartItem } from '@/types/cart.interface';
 import type { RankingData } from '@/types/RankingData.interface';
-import type { userOnetimecode } from '@/types/Onetimecode';
+import type { userOnetimecode, Onetimecode } from '@/types/Onetimecode';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -942,7 +942,7 @@ export const insertOnetimecode = async (sessionId: string, UserOnetimecode: user
 };
 
 export const updateOnetimecode = async (sessionId: string, UserOnetimecode: userOnetimecode) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/update-onetimecodes`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/update-onetimecodes/${UserOnetimecode.id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -961,7 +961,7 @@ export const updateOnetimecode = async (sessionId: string, UserOnetimecode: user
 
 // Xoá item trong giỏ hàng
 export async function deleteOnetimecode(id: number, sessionId: string): Promise<void> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/destroy-onetimecodes`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/destroy-onetimecodes/${id}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${sessionId}`,
@@ -975,6 +975,63 @@ export async function deleteOnetimecode(id: number, sessionId: string): Promise<
     }
 }
 
+
+
+/** Thêm mới onetimecode */
+export const createOnetimecode = async (sessionId: string, payload: Onetimecode) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/onetimecodes`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Không thể tạo onetimecode");
+    }
+
+    return res.json();
+};
+
+/** Cập nhật onetimecode */
+export const updateMasterOnetimecode = async (sessionId: string, payload: Onetimecode) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/onetimecodes/${encodeURIComponent(payload.email)}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Không thể cập nhật onetimecode");
+    }
+
+    return res.json();
+};
+
+/** Xoá onetimecode */
+export const deleteMasterOnetimecode = async (sessionId: string, id: number) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/onetimecodes/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionId}`,
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Không thể xoá onetimecode");
+    }
+
+    return res.json();
+};
 
 export const getListAccounts = async (sessionId: string) => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts`, {
