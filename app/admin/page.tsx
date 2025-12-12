@@ -595,7 +595,6 @@ QAI Store - Tài khoản premium uy tín #1
     try {
       const res = await getListChatgpts(sessionId);
 
-      console.log("chatgpts", res.data);
       // API: { success: true, data: [...] }
       setChatgpts(res.data || []);  // <-- ĐÚNG
     } catch (error) {
