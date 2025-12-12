@@ -3373,7 +3373,7 @@ QAI Store - Tài khoản premium uy tín #1
                                 </TableCell>
                                 <TableCell className="py-4 px-3">
                                   <div className="font-semibold text-gray-800 text-sm truncate">{account.customer_name}</div>
-                                  <div className="text-xs text-gray-500 truncate">{account.account_email}</div>
+                                  <div className="text-xs text-gray-500 truncate">{account?.customer_email || account?.customer_phone || ""}</div>
                                   <a
                                     href={account.link || "#"}
                                     target="_blank"
