@@ -222,7 +222,6 @@ export function EditCustomerAccountDialog({
                 <Label htmlFor="customerEmail">Email khách hàng *</Label>
                 <Input
                   id="customerEmail"
-                  type="email"
                   value={formData.customer_email || ''}
                   onChange={(e) =>
                     setFormData(prev => ({ ...prev, customer_email: e.target.value }))
