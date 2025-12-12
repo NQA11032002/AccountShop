@@ -13,6 +13,9 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { CustomerAccount } from '@/types/CustomerAccount';
 import { useAuth } from '@/contexts/AuthContext';
+import { getListChatgpts } from "@/lib/api";
+import { Badge } from "@/components/ui/badge";
+
 import { createAccount, updateAccount, fetchCategories } from '@/lib/api';
 interface EditCustomerAccountDialogProps {
   account: CustomerAccount | null;
@@ -45,7 +48,9 @@ export function EditCustomerAccountDialog({
     link: '',
     order_id: account?.order_id ?? 0,
     duration: account?.duration ?? 0,
-    purchase_price: 0
+    purchase_price: 0,
+    chatgpt_id: null
+
   });
 
 
@@ -57,6 +62,13 @@ export function EditCustomerAccountDialog({
   const { sessionId } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);  // lưu danh mục
   const [loadingCategories, setLoadingCategories] = useState<boolean>(true);  // trạng thái tải danh mục
+  const [chatgptOptions, setChatgptOptions] = useState<any[]>([]);
+  const [loadingChatgpt, setLoadingChatgpt] = useState<boolean>(false);
+  const STATUS_STYLE: Record<number, { label: string; color: string }> = {
+    0: { label: "Hết hạn", color: "bg-red-100 text-red-700 border-red-300" },
+    1: { label: "Hoạt động", color: "bg-green-100 text-green-700 border-green-300" },
+    2: { label: "Gia hạn", color: "bg-yellow-100 text-yellow-700 border-yellow-300" },
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,12 +108,30 @@ export function EditCustomerAccountDialog({
         link: '',
         order_id: 0,
         duration: 0,
-        purchase_price: 0
+        purchase_price: 0,
+        chatgpt_id: null
       });
       setPurchaseDate(now);
       setExpiryDate(now);
     }
   }, [account]);
+
+  const loadChatGPTList = async () => {
+    if (!sessionId) return;
+    try {
+      setLoadingChatgpt(true);
+      const res = await getListChatgpts(sessionId); // không filter category / status
+
+
+      // Laravel paginate → real data nằm trong res.data.data
+      setChatgptOptions(res.data || []);
+
+    } catch (err) {
+      console.error("Không thể tải danh sách ChatGPT:", err);
+    } finally {
+      setLoadingChatgpt(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,6 +164,19 @@ export function EditCustomerAccountDialog({
       setError('There was an error saving the account');
     } finally {
       setLoading(false);
+    }
+  };
+  const getStatusLabel = (status: number | string) => {
+    const s = Number(status);
+    switch (s) {
+      case 0:
+        return "Hết hạn";
+      case 1:
+        return "Hoạt động";
+      case 2:
+        return "Gia hạn";
+      default:
+        return "Không xác định";
     }
   };
 
@@ -201,6 +244,19 @@ export function EditCustomerAccountDialog({
                   required
                 />
               </div>
+
+              <div>
+                <Label htmlFor="link">Link dịch vụ</Label>
+                <Input
+                  id="link"
+                  type="url"
+                  value={formData.link || ''}
+                  onChange={(e) =>
+                    setFormData(prev => ({ ...prev, link: e.target.value }))
+                  }
+                  placeholder="https://service.com"
+                />
+              </div>
             </div>
 
             {/* Account Information */}
@@ -247,13 +303,23 @@ export function EditCustomerAccountDialog({
 
               {/* Chọn danh mục */}
               <div>
-                <Label htmlFor="category">Danh mục *</Label>
+                <Label>Danh mục *</Label>
                 <Select
                   value={formData.product_type || ''}
-                  onValueChange={(value) =>
-                    setFormData(prev => ({ ...prev, product_type: value }))
-                  }
+                  onValueChange={async (value) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      product_type: value,
+                      // nếu không phải Chat GPT thì clear luôn chatgpt_id
+                      chatgpt_id: value === "Chat GPT" ? prev.chatgpt_id : null,
+                    }));
+
+                    if (value === "Chat GPT") {
+                      await loadChatGPTList();
+                    }
+                  }}
                 >
+
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn danh mục" />
                   </SelectTrigger>
@@ -263,42 +329,62 @@ export function EditCustomerAccountDialog({
                     ) : error ? (
                       <SelectItem value="error" disabled>{error}</SelectItem>
                     ) : (
-                      Array.isArray(categories) && categories.length > 0 ? (
-                        // Lấy toàn bộ categories con
-                        categories.map(parent =>
-                          parent.categories?.map((child: any) => (
-                            <SelectItem
-                              key={child.id}
-                              value={child.name} // hoặc child.name nếu bạn muốn lưu tên
-                            >
-                              {child.name}
-                            </SelectItem>
-                          ))
-                        )
-                      ) : (
-                        <SelectItem value="no-categories" disabled>
-                          Không có danh mục
-                        </SelectItem>
+                      categories.map(parent =>
+                        parent.categories?.map((child: any) => (
+                          <SelectItem key={child.id} value={child.name}>
+                            {child.name}
+                          </SelectItem>
+                        ))
                       )
                     )}
                   </SelectContent>
                 </Select>
               </div>
+              {formData.product_type === "Chat GPT" && (
+                <div className="mt-4">
+                  <Label>Chọn tài khoản ChatGPT *</Label>
 
+                  <Select
+                    value={formData.chatgpt_id ? String(formData.chatgpt_id) : ""}
+                    onValueChange={(value) =>
+                      setFormData(prev => ({ ...prev, chatgpt_id: Number(value) }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn tài khoản" />
+                    </SelectTrigger>
 
+                    <SelectContent>
+                      {loadingChatgpt ? (
+                        <SelectItem value="loading" disabled>
+                          Đang tải danh sách...
+                        </SelectItem>
+                      ) : chatgptOptions.length > 0 ? (
+                        chatgptOptions.map((item: any) => (
+                          <SelectItem key={item.id} value={String(item.id)}>
+                            <div className="flex items-center justify-between w-full">
+                              <span>{item.email} — {item.category}</span>
 
-              <div>
-                <Label htmlFor="link">Link dịch vụ</Label>
-                <Input
-                  id="link"
-                  type="url"
-                  value={formData.link || ''}
-                  onChange={(e) =>
-                    setFormData(prev => ({ ...prev, link: e.target.value }))
-                  }
-                  placeholder="https://service.com"
-                />
-              </div>
+                              <Badge
+                                variant="outline"
+                                className={`${STATUS_STYLE[item.status].color} ml-2`}
+                              >
+                                {STATUS_STYLE[item.status].label}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+
+                        ))
+                      ) : (
+                        <SelectItem value="no-data" disabled>
+                          Không có tài khoản ChatGPT nào
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
             </div>
           </div>
 

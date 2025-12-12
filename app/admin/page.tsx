@@ -89,12 +89,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { EditUserDialog } from '@/components/admin/EditUserDialog';
 import { EditProductDialog } from '@/components/admin/EditProductDialog';
+import { EditChatGPTDialog } from '@/components/admin/EditChatGPTDialog';
 import { EditCodeDialog } from '@/components/admin/EditCodeDialog';
 import { EditOnetimeCodeDialog } from '@/components/admin/EditOnetimeCodeDialog';
 import { EditOrderDialog } from '@/components/admin/EditOrderDialog';
 import { EditCustomerAccountDialog } from '@/components/admin/EditCustomerAccountDialog';
 import { DeleteConfirmDialog } from '@/components/admin/DeleteConfirmDialog';
 import AdminOrderDetailModal from '@/components/admin/AdminOrderDetailModal';
+import { UserChatGPTDialog } from '@/components/admin/UserChatGPTDialog';
 import DepositApprovals from '@/components/admin/DepositApprovals';
 import { exportUsersToExcel, exportProductsToExcel, exportOrdersToExcel, exportDetailedOrdersToExcel } from '@/lib/excelExport';
 import DataSyncHelper from '@/lib/syncHelper';
@@ -112,7 +114,7 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
 } from 'recharts';
 import {
   CustomerRankDisplay,
@@ -128,7 +130,7 @@ import { Onetimecode, userOnetimecode } from '@/types/Onetimecode';
 import * as XLSX from "xlsx";
 import { CustomerAccount } from '@/types/CustomerAccount';
 import { createAccount, updateAccount } from '@/lib/api';
-import { updateOnetimecode, insertOnetimecode, deleteOnetimecode, updateMasterOnetimecode, createOnetimecode } from '@/lib/api'; // Import hàm updateUser
+import { updateOnetimecode, insertOnetimecode, deleteOnetimecode, updateMasterOnetimecode, createOnetimecode, getListChatgpts, deleteChatgpt, createChatgpt, updateChatgpt } from '@/lib/api'; // Import hàm updateUser
 import {
   AlertDialog,
   AlertDialogAction,
@@ -139,6 +141,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { ChatgptPayload } from '@/types/chatgpt.interface';
+import { useMemo } from "react";
+
+import { Label } from "@radix-ui/react-label";
 
 // interface User {
 //   id: string;
@@ -188,6 +194,12 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<User[]>([]);
+  const [chatgpts, setChatgpts] = useState<ChatgptPayload[]>([]);
+  // filter states
+  const [statusFilter, setStatusFilter] = useState<"all" | 0 | 1 | 2>("all");
+  const [onlySmallTeam, setOnlySmallTeam] = useState(false);      // count_user <= 5
+  const [onlyEndToday, setOnlyEndToday] = useState(false);        // end_date = hôm nay
+  const [categoryFilter, setCategoryFilter] = useState<"all" | "Plus" | "Business">("all");
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [customerAccounts, setCustomerAccounts] = useState<CustomerAccount[]>([]);
@@ -196,12 +208,17 @@ export default function AdminDashboard() {
   const [isCheckingRole, setIsCheckingRole] = useState(true); // để kiểm tra loading
   const [onetimecodes, setOnetimecodes] = useState<userOnetimecode[]>([]);
   const [isImporting, setIsImporting] = useState(false);
+  const [advancedFilter, setAdvancedFilter] = useState<
+    "all" | "smallTeam" | "endToday" | "smallTeamAndEndToday"
+  >("all");
 
   // Dialog states
   const [editUserDialog, setEditUserDialog] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
   const [editCodeDialog, setEditCodeDialog] = useState<{ open: boolean; code: userOnetimecode | null }>({ open: false, code: null });
   const [editOnetimeCode, setEditOnetimeCodeDialog] = useState<{ open: boolean; code: Onetimecode | null }>({ open: false, code: null });
   const [editProductDialog, setEditProductDialog] = useState<{ open: boolean; product: Product | null }>({ open: false, product: null });
+  const [editChatGPTDialog, setEditChatGPTDialog] = useState<{ open: boolean; product: ChatgptPayload | null }>({ open: false, product: null });
+  const [editUserChatGPTDialog, setUserChatGPTDialog] = useState<{ open: boolean; product: ChatgptPayload | null }>({ open: false, product: null });
   const [editOrderDialog, setEditOrderDialog] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
   const [editAccountDialog, setEditAccountDialog] = useState<{ open: boolean; account: CustomerAccount | null }>({ open: false, account: null });
   const [adminOrderDetailModal, setAdminOrderDetailModal] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
@@ -270,7 +287,9 @@ QAI Store - Tài khoản premium uy tín #1
   const [analyticsData, setAnalyticsData] = useState<any[]>([]);
   const [trafficData, setTrafficData] = useState<any[]>([]);
   const [revenueComparisonData, setRevenueComparisonData] = useState<any[]>([]);
-
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ChatgptPayload | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<userOnetimecode | null>(null);
 
@@ -285,6 +304,49 @@ QAI Store - Tài khoản premium uy tín #1
     setSessionId('');
     router.push('/admin/login');
   };
+
+  const handleDeleteChatgpt = (item: ChatgptPayload) => {
+    setSelectedItem(item);
+    setConfirmOpen(true);
+  };
+
+  const confirmDeleteChatgpt = async () => {
+    if (!selectedItem) return;
+    if (!sessionId) {
+      return;
+    }
+
+    setDeletingId(selectedItem.id);
+
+    try {
+      const res = await deleteChatgpt(sessionId, selectedItem.id);
+
+      if (res?.success) {
+        toast({
+          title: `Xóa tài khoản`,
+          description: `Xóa ${selectedItem.email} thành công.`,
+        });
+        setChatgpts((prev: ChatgptPayload[]) =>
+          prev.filter((acc) => acc.id !== selectedItem.id)
+        );
+      } else {
+        toast({
+          title: `Xóa tài khoản`,
+          description: `Lỗi không thể xóa ${selectedItem.email} lúc này.`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: `Xóa tài khoản`,
+        description: `Có lỗi xảy ra trong quá trình xóa.`,
+      });
+    } finally {
+      setDeletingId(null);
+      setConfirmOpen(false);
+      setSelectedItem(null);
+    }
+  };
+
 
 
   useEffect(() => {
@@ -371,6 +433,7 @@ QAI Store - Tài khoản premium uy tín #1
     fetchRoleAndRedirect();
   }, [sessionId, router]);
 
+
   // Subscribe to data synchronization changes
   useEffect(() => {
     const unsubscribe = DataSyncHelper.subscribeToAdminChanges((type, data) => {
@@ -441,7 +504,6 @@ QAI Store - Tài khoản premium uy tín #1
 
     // Subscribe to global order sync events
     const unsubscribeGlobalSync = DataSyncHelper.subscribeToGlobalOrderSync((eventData) => {
-      console.log(`🌐 Global order sync event received:`, eventData);
 
       if (eventData.type === 'completion') {
         // Force refresh all order-related data
@@ -490,7 +552,7 @@ QAI Store - Tài khoản premium uy tín #1
         await loadOnetimecode();
         await loadCustomerAccounts(sessionId);
         await loadOrders();
-
+        await loadChatGPTS();
       }
 
 
@@ -527,6 +589,54 @@ QAI Store - Tài khoản premium uy tín #1
     }
   }
 
+  const loadChatGPTS = async () => {
+    if (!sessionId) return;
+
+    try {
+      const res = await getListChatgpts(sessionId);
+
+      console.log("chatgpts", res.data);
+      // API: { success: true, data: [...] }
+      setChatgpts(res.data || []);  // <-- ĐÚNG
+    } catch (error) {
+      console.error("Failed to load chatgpts:", error);
+      setChatgpts([]); // fallback để tránh undefined
+    }
+  };
+
+
+  const filteredChatgpts = useMemo(() => {
+    const today = new Date().toLocaleDateString("en-CA"); // ví dụ: 2025-12-10
+    return chatgpts.filter((item) => {
+
+      // --- Advanced Filter ---
+      if (advancedFilter === "smallTeam" && item.count_user >= 5) {
+        return false;
+      }
+
+      if (advancedFilter === "endToday") {
+        const endDate = item.end_date?.slice(0, 10);
+
+
+        if (endDate !== today) return false;
+      }
+
+
+      // --- Status & Category filter giữ nguyên ---
+      if (statusFilter !== "all" && item.status !== statusFilter) {
+        return false;
+      }
+
+      if (categoryFilter !== "all" && item.category !== categoryFilter) {
+        return false;
+      }
+
+      return true;
+    });
+
+  }, [chatgpts, advancedFilter, statusFilter, categoryFilter]);
+
+
   const loadCustomerAccounts = async (sessionId: string) => {
     try {
       // 1. Thử load trực tiếp từ Laravel API
@@ -540,6 +650,48 @@ QAI Store - Tài khoản premium uy tín #1
     }
   };
 
+
+  const getStatusColorChatGPT = (status: number) => {
+    let label = "";
+    let color = "";
+
+    switch (status) {
+      case 0:
+        label = "Hết hạn";
+        color = "bg-red-500";
+        break;
+      case 1:
+        label = "Hoạt động";
+        color = "bg-green-500";
+        break;
+      case 2:
+        label = "Gia hạn";
+        color = "bg-yellow-500 text-black"; // vàng nên dùng text đen
+        break;
+      default:
+        label = "Không xác định";
+        color = "bg-gray-400";
+        break;
+    }
+  }
+
+  const getStatusBadgeChatGPT = (
+    status: number | boolean,
+    type?: "product" | "chatgpt"
+  ) => {
+    const s = Number(status);
+
+    switch (s) {
+      case 1:
+        return "Hoạt động";
+      case 0:
+        return "Tạm dừng";
+      case 2:
+        return "Gia hạn";
+      default:
+        return "Không xác định";
+    }
+  };
 
   const getStatusBadge = (status: string, type: 'user' | 'product' | 'order') => {
     const variants: { [key: string]: string } = {
@@ -921,6 +1073,67 @@ QAI Store - Tài khoản premium uy tín #1
 
   };
 
+  const handleUserChatGPT = (product: ChatgptPayload | null) => {
+    setUserChatGPTDialog({ open: true, product });
+  };
+
+  const handleEditChatGPT = (product: ChatgptPayload | null) => {
+    setEditChatGPTDialog({ open: true, product });
+  };
+
+
+  const handleSaveChatGPT = async (productData: ChatgptPayload) => {
+    if (!sessionId) {
+      // Handle the case where sessionId is null
+      toast({
+        title: "Lỗi",
+        description: "Phiên làm việc không hợp lệ.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      let updatedProducts: ChatgptPayload[];
+
+      if (editChatGPTDialog.product) {
+        // Ensure that id is a valid string or number
+        const updatedProduct = await updateChatgpt(sessionId, productData.id.toString(), productData); // Ensure ID is string
+
+        updatedProducts = chatgpts.map(p =>
+          p.id === updatedProduct.id ? updatedProduct : p
+        );
+        setChatgpts(updatedProducts);
+
+        toast({
+          title: "Cập nhật thành công",
+          description: `Sản phẩm ${updatedProduct.email} đã được cập nhật.`,
+        });
+      } else {
+        // Ensure that the ID is correctly passed as a string (even if it's a number)
+        const newProduct = await createChatgpt(sessionId, productData);
+
+        updatedProducts = [...chatgpts, newProduct];
+        setChatgpts(updatedProducts);
+
+        toast({
+          title: "Tạo mới thành công",
+          description: `Sản phẩm ${newProduct.email} đã được tạo.`,
+        });
+      }
+
+      await loadChatGPTS();
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Đã xảy ra lỗi khi lưu sản phẩm.",
+        variant: "destructive",
+      });
+      console.error("Error saving product:", error);
+    }
+  };
+
+
   const handleDeleteProduct = (product: Product) => {
 
     setDeleteDialog({
@@ -985,6 +1198,7 @@ QAI Store - Tài khoản premium uy tín #1
     });
   };
 
+
   const handleSaveOrder = (orderData: Order) => {
     let updatedOrders: Order[];
 
@@ -1025,6 +1239,8 @@ QAI Store - Tài khoản premium uy tín #1
     // Sync changes across all admin tabs
     DataSyncHelper.syncAdminData('orders', updatedOrders);
   };
+
+
 
 
   const handleDeleteOrder = (order: Order) => {
@@ -1068,6 +1284,7 @@ QAI Store - Tài khoản premium uy tín #1
       },
     });
   };
+
 
   // Export functions
   const handleExportUsers = () => {
@@ -1183,6 +1400,31 @@ QAI Store - Tài khoản premium uy tín #1
       month: '2-digit',
       year: 'numeric'
     }).format(date);
+  };
+
+  const safeFormatDate = (value: string | Date | null | undefined) => {
+    if (!value) return "-";
+
+    let d: Date;
+
+    if (value instanceof Date) {
+      d = value;
+    } else {
+      // trường hợp đặc biệt: "15T00:00:00.000000Z/04/2024"
+      if (typeof value === "string" && value.includes("/") && value.includes("T")) {
+        const parts = value.split("/");
+        const day = parts[0].split("T")[0];
+        const month = parts[1];
+        const year = parts[2];
+        d = new Date(`${year}-${month}-${day}`);
+      } else {
+        d = new Date(value);
+      }
+    }
+
+    if (isNaN(d.getTime())) return "-";
+
+    return formatDate(d);
   };
 
   const getDaysUntilExpiry = (expiryDate: Date) => {
@@ -1732,7 +1974,7 @@ QAI Store - Tài khoản premium uy tín #1
       const accountEmail = normalizeString(account.account_email || "");
 
       // Gộp các trường muốn tìm kiếm vào một chuỗi
-      const haystack = `${name} ${customerEmail} ${accountEmail}`;
+      const haystack = `${customerEmail}`;
 
       // Tất cả từ khóa phải xuất hiện trong chuỗi gộp
       const matchesSearch = searchTokens.every((token) =>
@@ -2550,7 +2792,7 @@ QAI Store - Tài khoản premium uy tín #1
 
               {/* Sub Navigation */}
               <Tabs defaultValue="products" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="products" className="flex items-center space-x-2">
                     <Package className="w-4 h-4" />
                     <span>Quản lý sản phẩm</span>
@@ -2559,7 +2801,262 @@ QAI Store - Tài khoản premium uy tín #1
                     <UserCheck className="w-4 h-4" />
                     <span>Tài khoản khách hàng</span>
                   </TabsTrigger>
+                  <TabsTrigger value="chatgpts" className="flex items-center space-x-2">
+                    <Package className="w-4 h-4" />
+                    <span>Quản lý Chat GPT</span>
+                  </TabsTrigger>
                 </TabsList>
+
+
+                {/* Products Management */}
+                <TabsContent value="chatgpts">
+                  <Card>
+
+
+
+                    <CardHeader>
+
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Quản lý tài khoản ChatGPT</CardTitle>
+
+                        <div className="flex items-center space-x-2">
+                          <div className="flex flex-wrap gap-4 items-end">
+
+                            {/* Filter status */}
+                            <div className="space-y-1">
+                              <Select
+                                value={String(statusFilter)}
+                                onValueChange={(value) => {
+                                  if (value === "all") setStatusFilter("all");
+                                  else setStatusFilter(Number(value) as 0 | 1 | 2);
+                                }}
+                              >
+                                <SelectTrigger className="w-[150px]">
+                                  <SelectValue placeholder="Chọn trạng thái" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                                  <SelectItem value="2">Gia hạn</SelectItem>
+                                  <SelectItem value="1">Hoạt động</SelectItem>
+                                  <SelectItem value="0">Hết hạn</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Filter category */}
+                            <div className="space-y-1">
+                              <Select
+                                value={categoryFilter}
+                                onValueChange={(value) =>
+                                  setCategoryFilter(value as "all" | "Plus" | "Business")
+                                }
+                              >
+                                <SelectTrigger className="w-[150px]">
+                                  <SelectValue placeholder="Chọn danh mục" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">Tất cả loại</SelectItem>
+                                  <SelectItem value="Plus">Plus</SelectItem>
+                                  <SelectItem value="Business">Business</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Filter count_user <= 5 */}
+                            <div className="space-y-1">
+                              <Select
+                                value={advancedFilter}
+                                onValueChange={(value) =>
+                                  setAdvancedFilter(value as typeof advancedFilter)
+                                }
+                              >
+                                <SelectTrigger className="w-[200px]">
+                                  <SelectValue placeholder="Chọn bộ lọc" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">Tất cả</SelectItem>
+                                  <SelectItem value="smallTeam">Còn trống</SelectItem>
+                                  <SelectItem value="endToday">Hết hạn hôm nay</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+
+                          </div>
+                          <Button onClick={() => handleEditChatGPT(null)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Thêm tài khoản
+                          </Button>
+                        </div>
+                      </div>
+
+                    </CardHeader>
+
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>2FA</TableHead>
+                            <TableHead>Ngày bắt đầu</TableHead>
+                            <TableHead>Ngày kết thúc</TableHead>
+                            <TableHead>Số user</TableHead>
+                            <TableHead>Loại</TableHead>
+                            <TableHead>Trạng thái</TableHead>
+                            <TableHead>Thao tác</TableHead>
+                          </TableRow>
+                        </TableHeader>
+
+                        <TableBody>
+                          {filteredChatgpts?.map((item) => (
+                            <TableRow key={item.id}>
+                              <TableCell className="font-medium">{item.id}</TableCell>
+
+                              {/* Email tài khoản */}
+                              <TableCell className="py-4 px-4">
+                                <div className="space-y-2">
+                                  <div className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                    <div className="truncate">{item.email}</div>
+                                    <div className="truncate">{item.password}</div>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleCopyCredential(item.email ?? '')}
+                                      className="h-6 px-2 text-xs"
+                                    >
+                                      <Copy className="w-3 h-3 mr-1" />
+                                      Email
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleCopyCredential(item.password)}
+                                      className="h-6 px-2 text-xs"
+                                    >
+                                      <Copy className="w-3 h-3 mr-1" />
+                                      Pass
+                                    </Button>
+                                  </div>
+                                </div>
+                              </TableCell>
+
+                              {/* 2FA: nếu null thì hiển thị dấu - */}
+                              <TableCell>{item.two_fa || "-"}</TableCell>
+
+                              {/* Ngày bắt đầu / kết thúc */}
+                              <TableCell>{safeFormatDate(item.start_date)}</TableCell>
+                              <TableCell>{safeFormatDate(item.end_date)}</TableCell>
+
+                              {/* Số user đang dùng tài khoản này */}
+                              <TableCell>{item.count_user}</TableCell>
+
+                              {/* Danh mục */}
+                              <TableCell>
+                                <span
+                                  className={`
+                                  px-2 py-1 rounded  font-medium
+                                  ${item.category === 'plus' ? 'text-white bg-yellow-500' : ''}
+                                  ${item.category === 'business' ? 'text-white bg-blue-500' : ''}
+                                `}
+                                >
+                                  {item.category}
+                                </span>
+                              </TableCell>
+
+                              {/* Trạng thái: dùng helper getStatusBadge hoặc tự xử lý */}
+                              <TableCell>
+                                <span
+                                  className={`px-3 py-1 rounded-full  font-medium text-sm 
+                                  ${item.status == 0 ? 'text-white bg-red-500' : ''}
+                                  ${item.status == 1 ? 'text-white bg-blue-500' : ''}
+                                  ${item.status == 2 ? 'text-white bg-yellow-500' : ''}`}
+                                >
+                                  {getStatusBadgeChatGPT(item.status)}
+                                </span>
+                              </TableCell>
+
+                              {/* Thao tác */}
+                              <TableCell>
+                                <div className="flex items-center space-x-2">
+                                  <Button variant="ghost" size="sm" title="Xem chi tiết" onClick={() => handleUserChatGPT(item)}>
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEditChatGPT(item)}
+                                    title="Chỉnh sửa"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    onClick={() => handleDeleteChatgpt(item)}
+                                    title="Xóa sản phẩm"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+
+                <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2 text-red-600">
+                        Xác nhận xóa tài khoản
+                      </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-2">
+                      <p className="text-gray-800">
+                        Bạn có chắc chắn muốn xóa tài khoản:
+                      </p>
+                      <p className="font-semibold text-gray-900">
+                        {selectedItem?.email}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Hành động này không thể hoàn tác.
+                      </p>
+                    </div>
+
+                    <DialogFooter className="mt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => setConfirmOpen(false)}
+                        disabled={deletingId !== null}
+                      >
+                        Hủy
+                      </Button>
+
+                      <Button
+                        variant="destructive"
+                        onClick={confirmDeleteChatgpt}
+                        disabled={deletingId !== null}
+                      >
+                        {deletingId !== null ? "Đang xóa..." : "Xóa"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+
+
 
                 {/* Products Management */}
                 <TabsContent value="products">
@@ -2598,6 +3095,7 @@ QAI Store - Tài khoản premium uy tín #1
                         <TableBody>
                           {products.map((product) => (
                             <TableRow key={product.id}>
+                              <TableCell className="font-medium">{product.id}</TableCell>
                               <TableCell className="font-medium">{product.name}</TableCell>
                               <TableCell>{product.category.name}</TableCell>
                               <TableCell>{product.price.toLocaleString('vi-VN')}đ</TableCell>
@@ -3695,6 +4193,8 @@ QAI Store - Tài khoản premium uy tín #1
           onStatusChange={handleOrderStatusChange}
         />
 
+
+
         <EditUserDialog
           user={
             editUserDialog.user
@@ -3712,6 +4212,22 @@ QAI Store - Tài khoản premium uy tín #1
           onOpenChange={(open) => setEditProductDialog({ ...editProductDialog, open })}
           onSave={handleSaveProduct}
         />
+
+
+        <UserChatGPTDialog
+          account={editUserChatGPTDialog.product}
+          open={editUserChatGPTDialog.open}
+          onOpenChange={(open) => setUserChatGPTDialog({ ...editUserChatGPTDialog, open })}
+          onSave={handleSaveChatGPT}
+        />
+
+        <EditChatGPTDialog
+          account={editChatGPTDialog.product}
+          open={editChatGPTDialog.open}
+          onOpenChange={(open) => setEditChatGPTDialog({ ...editChatGPTDialog, open })}
+          onSave={handleSaveChatGPT}
+        />
+
 
         <EditCodeDialog
           code={editCodeDialog.code}

@@ -21,4 +21,6 @@ export interface CustomerAccount {
     order_id: number | null;    // trong DB nên để int
     duration: number | null;    // số ngày / tháng…
     purchase_price: number | null;
+    chatgpt_id: number | null;
+
 }

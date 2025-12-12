@@ -3,6 +3,7 @@ import { Review } from '@/types/reviews.interface';
 import { CartItem } from '@/types/cart.interface';
 import type { RankingData } from '@/types/RankingData.interface';
 import type { userOnetimecode, Onetimecode } from '@/types/Onetimecode';
+import type { ChatgptPayload } from '@/types/chatgpt.interface';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -1118,4 +1119,99 @@ export const deleteAccount = async (sessionId: string, accountId: string) => {
     }
 
     return res.json(); // Returns a success message or empty response
+};
+
+
+const base = process.env.NEXT_PUBLIC_API_URL;
+
+const headers = (sessionId: string) => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${sessionId}`,
+});
+
+const handle = async (res: Response) => {
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Request failed");
+    }
+    return res.json();
+};
+
+/** GET /admin/chatgpts (có thể truyền ?page=&category=&status=) */
+export const getListChatgpts = async (
+    sessionId: string,
+    params?: { page?: number; category?: string; status?: number | string }
+) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set("page", String(params.page));
+    if (params?.category) qs.set("category", params.category);
+    if (params?.status !== undefined) qs.set("status", String(params.status));
+
+    const res = await fetch(
+        `${base}/admin/chatgpts${qs.toString() ? `?${qs.toString()}` : ""}`,
+        { method: "GET", headers: headers(sessionId), cache: "no-store" }
+    );
+    return handle(res); // trả về cấu trúc paginate từ Laravel
+};
+
+/** GET /admin/chatgpts/:id */
+export const getChatgptById = async (sessionId: string, id: string | number) => {
+    const res = await fetch(`${base}/admin/chatgpts/${id}`, {
+        method: "GET",
+        headers: headers(sessionId),
+        cache: "no-store",
+    });
+    return handle(res); // trả về chi tiết bản ghi
+};
+
+
+
+/** POST /admin/chatgpts */
+export const createChatgpt = async (
+    sessionId: string,
+    payload: ChatgptPayload
+) => {
+    const res = await fetch(`${base}/admin/chatgpts`, {
+        method: "POST",
+        headers: headers(sessionId),
+        body: JSON.stringify(payload),
+    });
+    return handle(res); // trả về bản ghi vừa tạo
+};
+
+
+/** PUT /admin/chatgpts/:id */
+export const updateChatgpt = async (
+    sessionId: string,
+    id: string | number,
+    payload: ChatgptPayload
+) => {
+    const res = await fetch(`${base}/admin/chatgpts/${id}`, {
+        method: "PUT",
+        headers: headers(sessionId),
+        body: JSON.stringify(payload),
+    });
+    return handle(res); // trả về bản ghi sau cập nhật
+};
+
+/** DELETE /admin/chatgpts/:id */
+export const deleteChatgpt = async (sessionId: string, id: string | number) => {
+    const res = await fetch(`${base}/admin/chatgpts/${id}`, {
+        method: "DELETE",
+        headers: headers(sessionId),
+    });
+    // Laravel trả 204 No Content hoặc JSON; ta xử lý cả hai
+    if (res.status === 204) return { success: true };
+    return handle(res);
+};
+
+/** GET /admin/chatgpts/:id/accounts */
+export const getAccountsByChatgptId = async (sessionId: string, id: string | number) => {
+    const res = await fetch(`${base}/admin/chatgpts/${id}/accounts`, {
+        method: "GET",
+        headers: headers(sessionId),
+        cache: "no-store",
+    });
+
+    return handle(res);
 };
