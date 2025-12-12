@@ -212,8 +212,6 @@ export function UserChatGPTDialog({
                         </Table>
                     </CardContent>
                 )}
-
-
             </DialogContent>
         </Dialog>
     );
