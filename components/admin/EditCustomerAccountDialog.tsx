@@ -227,7 +227,6 @@ export function EditCustomerAccountDialog({
                     setFormData(prev => ({ ...prev, customer_email: e.target.value }))
                   }
                   placeholder="customer@example.com"
-                  required
                 />
               </div>
 
@@ -240,7 +239,6 @@ export function EditCustomerAccountDialog({
                     setFormData(prev => ({ ...prev, customer_phone: e.target.value }))
                   }
                   placeholder="0901234567"
-                  required
                 />
               </div>
 
