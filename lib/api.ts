@@ -712,6 +712,7 @@ export const getOnetimeCode = async (emailAccount: string, emailUser: string) =>
 };
 
 
+
 export const checkRole = async (sessionId: string) => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/check-role`, {
         method: 'POST',
@@ -1214,4 +1215,20 @@ export const getAccountsByChatgptId = async (sessionId: string, id: string | num
     });
 
     return handle(res);
+};
+
+
+export const getOnetimeCodeAdmin = async (id: Number, sessionId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/chatgpts/get-code/${id}`, {
+        method: "GET",
+        headers: headers(sessionId),
+        cache: "no-store",
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to fetch onetimecode');
+    }
+
+    return res.json();
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Users,
@@ -130,7 +130,7 @@ import { Onetimecode, userOnetimecode } from '@/types/Onetimecode';
 import * as XLSX from "xlsx";
 import { CustomerAccount } from '@/types/CustomerAccount';
 import { createAccount, updateAccount } from '@/lib/api';
-import { updateOnetimecode, insertOnetimecode, deleteOnetimecode, updateMasterOnetimecode, createOnetimecode, getListChatgpts, deleteChatgpt, createChatgpt, updateChatgpt } from '@/lib/api'; // Import hàm updateUser
+import { updateOnetimecode, insertOnetimecode, deleteOnetimecode, updateMasterOnetimecode, createOnetimecode, getListChatgpts, deleteChatgpt, createChatgpt, updateChatgpt, getOnetimeCodeAdmin } from '@/lib/api'; // Import hàm updateUser
 import {
   AlertDialog,
   AlertDialogAction,
@@ -189,6 +189,7 @@ interface Order {
 
 
 import { deleteAdminUser } from '@/lib/api'; // Import hàm xóa người dùng từ api.ts
+import { copyFile } from 'fs';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -211,6 +212,18 @@ export default function AdminDashboard() {
   const [advancedFilter, setAdvancedFilter] = useState<
     "all" | "smallTeam" | "endToday" | "smallTeamAndEndToday"
   >("all");
+  const [code, setCode] = useState('');
+  const [expiresIn, setExpiresIn] = useState(0); // seconds left
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [isCopying, setIsCopying] = useState(false);
+  type OtpState = {
+    code: string
+    expiresIn: number
+    status: boolean
+    timer?: NodeJS.Timeout
+  }
+
+  const [otpMap, setOtpMap] = useState<Record<number, OtpState>>({});
 
   // Dialog states
   const [editUserDialog, setEditUserDialog] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
@@ -1039,6 +1052,77 @@ QAI Store - Tài khoản premium uy tín #1
       }
     });
   };
+  const [status, setStatus] = useState(false);
+
+  const handleOnetimeCodeAdmin = async (id: number) => {
+    if (!sessionId) return;
+
+    // Nếu dòng này đang countdown thì chặn
+    if (otpMap[id]?.expiresIn > 0) {
+      toast({
+        title: "⏳ Vui lòng đợi",
+        description: `Bạn phải đợi ${otpMap[id].expiresIn} giây nữa để lấy mã mới.`,
+      });
+      return;
+    }
+
+    try {
+      const result = await getOnetimeCodeAdmin(id, sessionId);
+
+      if (result.status) {
+        // Clear timer cũ nếu có
+        if (otpMap[id]?.timer) {
+          clearInterval(otpMap[id].timer);
+        }
+
+        const timer = setInterval(() => {
+          setOtpMap(prev => {
+            const current = prev[id];
+            if (!current) return prev;
+
+            if (current.expiresIn <= 1) {
+              clearInterval(current.timer);
+              const clone = { ...prev };
+              delete clone[id];
+              return clone;
+            }
+
+            return {
+              ...prev,
+              [id]: {
+                ...current,
+                expiresIn: current.expiresIn - 1,
+              },
+            };
+          });
+        }, 1000);
+
+        // Set state cho đúng dòng
+        setOtpMap(prev => ({
+          ...prev,
+          [id]: {
+            code: result.otp,
+            expiresIn: result.expires_in,
+            status: true,
+            timer,
+          },
+        }));
+      } else {
+        toast({
+          title: "⚠️ Lấy code không thành công",
+          description: "Email tài khoản hoặc của Anh/Chị chưa được đăng ký bên shop!",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({
+        title: "⚠️ Lấy code không thành công",
+        description: "Có lỗi xảy ra trong quá trình lấy code",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   const handleEditProduct = (product: Product | null) => {
     setEditProductDialog({ open: true, product });
@@ -2910,8 +2994,11 @@ QAI Store - Tài khoản premium uy tín #1
                         </TableHeader>
 
                         <TableBody>
-                          {filteredChatgpts?.map((item) => (
-                            <TableRow key={item.id}>
+
+                          {filteredChatgpts.map(item => {
+                            const otp = otpMap[item.id];
+
+                            return (<TableRow key={item.id}>
                               <TableCell className="font-medium">{item.id}</TableCell>
 
                               {/* Email tài khoản */}
@@ -2931,6 +3018,7 @@ QAI Store - Tài khoản premium uy tín #1
                                       <Copy className="w-3 h-3 mr-1" />
                                       Email
                                     </Button>
+
                                     <Button
                                       size="sm"
                                       variant="outline"
@@ -2940,6 +3028,39 @@ QAI Store - Tài khoản premium uy tín #1
                                       <Copy className="w-3 h-3 mr-1" />
                                       Pass
                                     </Button>
+
+                                    {/* Submit Button */}
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-6 px-2 text-xs"
+                                      onClick={() => handleOnetimeCodeAdmin(item.id)}
+                                      disabled={otp?.expiresIn > 0}
+                                    >
+                                      {otp?.expiresIn > 0
+                                        ? `Vui lòng đợi ${otp.expiresIn}s`
+                                        : 'Lấy Code'}
+                                    </Button>
+
+                                    <div>
+                                      {otp?.status && (
+                                        <div className="flex gap-2 items-center">
+                                          <span className="bg-violet-500 text-white text-sm px-1 rounded">
+                                            {otp.code}
+                                          </span>
+
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-6 px-2 text-xs"
+                                            onClick={() => handleCopyCredential(otp.code)}
+                                          >
+                                            Sao chép
+                                          </Button>
+                                        </div>
+                                      )}
+
+                                    </div>
                                   </div>
                                 </div>
                               </TableCell>
@@ -3005,8 +3126,9 @@ QAI Store - Tài khoản premium uy tín #1
                                   </Button>
                                 </div>
                               </TableCell>
-                            </TableRow>
-                          ))}
+                            </TableRow>)
+                          })}
+
                         </TableBody>
                       </Table>
                     </CardContent>
@@ -4104,6 +4226,9 @@ QAI Store - Tài khoản premium uy tín #1
                       <Plus className="w-4 h-4 mr-2" />
                       Cập nhật 2FA
                     </Button>
+
+
+
                   </div>
                 </div>
               </CardHeader>
