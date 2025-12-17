@@ -2224,59 +2224,71 @@ QAI Store - Tài khoản premium uy tín #1
           <div className="absolute -bottom-2 left-10 w-20 h-20 bg-blue-300/15 rounded-full animate-pulse delay-500"></div>
         </div>
 
-        <div className="relative px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              {/* Enhanced Logo */}
-              <div className="relative group">
-                <div className="w-16 h-16 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-2xl border border-white/20 group-hover:scale-110 transition-transform duration-300">
-                  <Shield className="w-8 h-8 text-white drop-shadow-lg" />
+        <div className="relative px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Left: Logo + Title */}
+            <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+              {/* Logo */}
+              <div className="relative group shrink-0">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-2xl border border-white/20 sm:group-hover:scale-110 transition-transform duration-300 relative z-10">
+                  <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white drop-shadow-lg" />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/30 to-pink-400/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+                {/* Glow (kept absolute, purely decorative) */}
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/30 to-pink-400/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
 
-              {/* Enhanced Title */}
-              <div className="space-y-1">
-                <h1 className="text-4xl font-black text-white drop-shadow-2xl">
+              {/* Title */}
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white drop-shadow-2xl truncate">
                   <span className="bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent">
                     QAI Admin Panel
                   </span>
                 </h1>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
-                  <p className="text-white/90 font-medium tracking-wide">Management Dashboard</p>
-                  <div className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white font-semibold border border-white/30">
+
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg" />
+                  <p className="text-white/90 font-medium tracking-wide text-sm sm:text-base">
+                    Management Dashboard
+                  </p>
+                  <div className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] sm:text-xs text-white font-semibold border border-white/30">
                     LIVE
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Enhanced User Section */}
-            <div className="flex items-center space-x-6">
-              <div className="text-right">
-                <p className="text-lg font-bold text-white drop-shadow-lg">{user.name}</p>
-                <div className="flex items-center space-x-2">
-                  <div className="px-2 py-1 bg-gradient-to-r from-yellow-400/80 to-orange-400/80 rounded-md text-xs font-bold text-white shadow-lg">
-                    {user.role.replace('_', ' ').toUpperCase()}
+            {/* Right: User + Avatar + Logout */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 lg:gap-6">
+              <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4">
+                {/* User info */}
+                <div className="min-w-0">
+                  <p className="text-base sm:text-lg font-bold text-white drop-shadow-lg truncate max-w-[220px] sm:max-w-[280px]">
+                    {user.name}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="px-2 py-1 bg-gradient-to-r from-yellow-400/80 to-orange-400/80 rounded-md text-[10px] sm:text-xs font-bold text-white shadow-lg">
+                      {user.role.replace("_", " ").toUpperCase()}
+                    </div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                   </div>
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                </div>
+
+                {/* Avatar */}
+                <div className="relative group shrink-0">
+                  <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-4 ring-white/30 shadow-2xl group-hover:ring-white/50 transition-all duration-300 relative z-10">
+                    <AvatarFallback className="bg-gradient-to-br from-white/90 to-white/70 text-purple-600 font-black text-base sm:text-lg">
+                      {user.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </div>
 
-              <div className="relative group">
-                <Avatar className="w-12 h-12 ring-4 ring-white/30 shadow-2xl group-hover:ring-white/50 transition-all duration-300">
-                  <AvatarFallback className="bg-gradient-to-br from-white/90 to-white/70 text-purple-600 font-black text-lg">
-                    {user.name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </div>
-
+              {/* Logout */}
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-red-500/80 hover:border-red-400 hover:text-white transition-all duration-300 font-semibold shadow-lg hover:shadow-2xl hover:scale-105"
+                className="w-full sm:w-auto justify-center bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-red-500/80 hover:border-red-400 hover:text-white transition-all duration-300 font-semibold shadow-lg hover:shadow-2xl sm:hover:scale-105"
               >
                 <LogOut className="w-5 h-5 mr-2" />
                 Đăng xuất
@@ -2284,86 +2296,82 @@ QAI Store - Tài khoản premium uy tín #1
             </div>
           </div>
         </div>
+
       </header>
 
       {/* Enhanced Modern Navigation */}
-      <div className="relative -mt-6 px-8 z-10">
+      <div className="relative mt-7 px-8 z-10">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Modern Floating Navigation */}
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 p-2">
-            <TabsList className="grid w-full grid-cols-6 bg-transparent gap-2 h-auto p-0">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 bg-transparent gap-2 h-auto p-0">
               <TabsTrigger
                 value="overview"
-                disabled={role != 'admin'}
-                className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
-                <div className="relative">
-                  <BarChart3 className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full blur-lg opacity-0 group-data-[state=active]:opacity-60 transition-opacity duration-300"></div>
-                </div>
-                <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Tổng quan</span>
+                <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Tổng quan
+                </span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="users"
-                disabled={role != 'admin'}
-                className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
-                <div className="relative">
-                  <Users className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full blur-lg opacity-0 group-data-[state=active]:opacity-60 transition-opacity duration-300"></div>
-                </div>
-                <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Người dùng</span>
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Người dùng
+                </span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="inventory-accounts"
-                disabled={role != 'admin'}
-                className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
-                <div className="relative">
-                  <Package className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full blur-lg opacity-0 group-data-[state=active]:opacity-60 transition-opacity duration-300"></div>
-                </div>
-                <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Kho & Tài khoản {user.role}</span>
+                <Package className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Kho &amp; Tài khoản
+                </span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="orders"
-                disabled={role != 'admin'}
-                className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-pink-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-pink-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
-                <div className="relative">
-                  <ShoppingCart className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-rose-400 rounded-full blur-lg opacity-0 group-data-[state=active]:opacity-60 transition-opacity duration-300"></div>
-                </div>
-                <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Đơn hàng & Gửi TK</span>
+                <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Đơn hàng &amp; Gửi TK
+                </span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="deposits"
-                disabled={role != 'admin'}
-                className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
-                <div className="relative">
-                  <DollarSign className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full blur-lg opacity-0 group-data-[state=active]:opacity-60 transition-opacity duration-300"></div>
-                </div>
-                <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Nạp tiền</span>
+                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Nạp tiền
+                </span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="2fa"
-                disabled={role != 'admin'}
-                className="group flex flex-col items-center space-y-2 px-6 py-4 rounded-2xl transition-all duration-300 hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
               >
-                <div className="relative">
-                  <Monitor className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full blur-lg opacity-0 group-data-[state=active]:opacity-60 transition-opacity duration-300"></div>
-                </div>
-                <span className="font-semibold text-sm group-data-[state=active]:drop-shadow-lg">Code 2FA</span>
+                <Monitor className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Code 2FA
+                </span>
               </TabsTrigger>
             </TabsList>
+
           </div>
         </Tabs>
       </div >
@@ -2451,46 +2459,62 @@ QAI Store - Tài khoản premium uy tín #1
                       <span>Doanh thu 6 tháng gần đây</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6">
                     <ChartContainer
                       config={{
-                        revenue: {
-                          label: "Doanh thu",
-                          color: "hsl(var(--chart-1))",
-                        },
+                        revenue: { label: "Doanh thu", color: "hsl(var(--chart-1))" },
                       }}
-                      className="h-64"
+                      className="h-56 sm:h-64 lg:h-72 w-full"
                     >
-                      <AreaChart data={analyticsData}>
-                        <defs>
-                          <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                        <YAxis
-                          axisLine={false}
-                          tickLine={false}
-                          tickFormatter={(value) => `${Math.floor(value / 1000000)}M`}
-                        />
-                        <ChartTooltip
-                          content={<ChartTooltipContent
-                            formatter={(value) => [`${Number(value).toLocaleString('vi-VN')}đ`, 'Doanh thu']}
-                          />}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="revenue"
-                          stroke="#3B82F6"
-                          fillOpacity={1}
-                          fill="url(#colorRevenue)"
-                          strokeWidth={3}
-                        />
-                      </AreaChart>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={analyticsData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                              <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                            </linearGradient>
+                          </defs>
+
+                          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+
+                          <XAxis
+                            dataKey="name"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 12 }}
+                            interval="preserveStartEnd"
+                            minTickGap={20}
+                          />
+
+                          <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 12 }}
+                            width={40}
+                            tickFormatter={(value) => `${Math.floor(Number(value) / 1_000_000)}M`}
+                          />
+
+                          <ChartTooltip
+                            content={
+                              <ChartTooltipContent
+                                formatter={(value) => [`${Number(value).toLocaleString("vi-VN")}đ`, "Doanh thu"]}
+                              />
+                            }
+                          />
+
+                          <Area
+                            type="monotone"
+                            dataKey="revenue"
+                            stroke="#3B82F6"
+                            fillOpacity={1}
+                            fill="url(#colorRevenue)"
+                            strokeWidth={3}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
                     </ChartContainer>
                   </CardContent>
+
                 </Card>
 
                 {/* Monthly Comparison */}
@@ -2501,45 +2525,64 @@ QAI Store - Tài khoản premium uy tín #1
                       <span>So sánh doanh thu theo tháng</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6">
                     <ChartContainer
                       config={{
-                        value: {
-                          label: "Doanh thu",
-                          color: "hsl(var(--chart-2))",
-                        },
+                        value: { label: "Doanh thu", color: "hsl(var(--chart-2))" },
                       }}
-                      className="h-64"
+                      className="h-56 sm:h-64 lg:h-72 w-full"
                     >
-                      <BarChart data={revenueComparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                        <YAxis
-                          axisLine={false}
-                          tickLine={false}
-                          tickFormatter={(value) => `${Math.floor(value / 1000000)}M`}
-                        />
-                        <ChartTooltip
-                          content={<ChartTooltipContent
-                            formatter={(value) => [`${Number(value).toLocaleString('vi-VN')}đ`, 'Doanh thu']}
-                          />}
-                        />
-                        <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                          {revenueComparisonData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Bar>
-                      </BarChart>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={revenueComparisonData}
+                          margin={{ top: 16, right: 12, left: 0, bottom: 0 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+
+                          <XAxis
+                            dataKey="name"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 12 }}
+                            interval="preserveStartEnd"
+                            minTickGap={24}
+                          />
+
+                          <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 12 }}
+                            width={40}
+                            tickFormatter={(value) => `${Math.floor(Number(value) / 1_000_000)}M`}
+                          />
+
+                          <ChartTooltip
+                            content={
+                              <ChartTooltipContent
+                                formatter={(value) => [`${Number(value).toLocaleString("vi-VN")}đ`, "Doanh thu"]}
+                              />
+                            }
+                          />
+
+                          <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                            {revenueComparisonData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
                     </ChartContainer>
 
                     {/* Comparison metrics */}
-                    <div className="grid grid-cols-3 gap-4 mt-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-5 sm:mt-6">
                       {revenueComparisonData.map((item, index) => (
-                        <div key={index} className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div key={index} className="text-center p-3 sm:p-4 bg-gray-50 rounded-lg">
                           <div className="text-sm text-gray-600">{item.name}</div>
-                          <div className="text-lg font-bold" style={{ color: item.color }}>
-                            {item.value.toLocaleString('vi-VN')}đ
+
+                          <div className="text-base sm:text-lg font-bold break-words" style={{ color: item.color }}>
+                            {item.value.toLocaleString("vi-VN")}đ
                           </div>
+
                           {index === 1 && (
                             <div className="text-xs text-green-600 mt-1">
                               +{(((item.value - revenueComparisonData[0].value) / revenueComparisonData[0].value) * 100).toFixed(1)}%
@@ -2549,6 +2592,7 @@ QAI Store - Tài khoản premium uy tín #1
                       ))}
                     </div>
                   </CardContent>
+
                 </Card>
               </div>
 
@@ -2562,45 +2606,54 @@ QAI Store - Tài khoản premium uy tín #1
                       <span>Lưu lượng truy cập 7 ngày gần đây</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6">
                     <ChartContainer
                       config={{
-                        visitors: {
-                          label: "Lượt truy cập",
-                          color: "hsl(var(--chart-3))",
-                        },
-                        pageViews: {
-                          label: "Lượt xem trang",
-                          color: "hsl(var(--chart-4))",
-                        },
+                        visitors: { label: "Lượt truy cập", color: "hsl(var(--chart-3))" },
+                        pageViews: { label: "Lượt xem trang", color: "hsl(var(--chart-4))" },
                       }}
-                      className="h-64"
+                      className="h-56 sm:h-64 lg:h-72 w-full"
                     >
-                      <LineChart data={trafficData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                        <YAxis axisLine={false} tickLine={false} />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <ChartLegend content={<ChartLegendContent />} />
-                        <Line
-                          type="monotone"
-                          dataKey="visitors"
-                          stroke="#8B5CF6"
-                          strokeWidth={3}
-                          dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
-                          activeDot={{ r: 6, stroke: '#8B5CF6', strokeWidth: 2 }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="pageViews"
-                          stroke="#06B6D4"
-                          strokeWidth={3}
-                          dot={{ fill: '#06B6D4', strokeWidth: 2, r: 4 }}
-                          activeDot={{ r: 6, stroke: '#06B6D4', strokeWidth: 2 }}
-                        />
-                      </LineChart>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={trafficData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+
+                          <XAxis
+                            dataKey="name"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 12 }}
+                            interval="preserveStartEnd"
+                            minTickGap={24}
+                          />
+
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} width={40} />
+
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <ChartLegend content={<ChartLegendContent />} />
+
+                          <Line
+                            type="monotone"
+                            dataKey="visitors"
+                            stroke="#8B5CF6"
+                            strokeWidth={3}
+                            dot={{ fill: "#8B5CF6", strokeWidth: 2, r: 3 }}
+                            activeDot={{ r: 5, stroke: "#8B5CF6", strokeWidth: 2 }}
+                          />
+
+                          <Line
+                            type="monotone"
+                            dataKey="pageViews"
+                            stroke="#06B6D4"
+                            strokeWidth={3}
+                            dot={{ fill: "#06B6D4", strokeWidth: 2, r: 3 }}
+                            activeDot={{ r: 5, stroke: "#06B6D4", strokeWidth: 2 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </ChartContainer>
                   </CardContent>
+
                 </Card>
 
                 {/* Traffic Metrics */}
@@ -2650,25 +2703,40 @@ QAI Store - Tài khoản premium uy tín #1
               {/* Recent Activities */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="bg-gradient-to-br from-white to-blue-50 border border-blue-100">
-                  <CardHeader>
-                    <CardTitle className="text-blue-800">Đơn hàng gần đây</CardTitle>
+                  <CardHeader className="pb-2 sm:pb-4">
+                    <CardTitle className="text-blue-800 text-lg sm:text-xl">Đơn hàng gần đây</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
+
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="space-y-3 sm:space-y-4">
                       {orders.slice(0, 5).map((order) => (
-                        <div key={order.id} className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <div
+                          key={order.id}
+                          className="
+            flex flex-col sm:flex-row sm:items-center sm:justify-between
+            gap-3 p-3 sm:p-4
+            bg-white rounded-xl shadow-sm border border-blue-100
+            hover:shadow-md transition-shadow
+          "
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shrink-0">
                               <ShoppingCart className="w-5 h-5 text-white" />
                             </div>
-                            <div>
+
+                            <div className="min-w-0">
                               <p className="font-medium text-gray-900">#{order.id}</p>
-                              <p className="text-sm text-gray-600">{order.userEmail}</p>
+                              <p className="text-sm text-gray-600 truncate max-w-[260px] sm:max-w-[340px]">
+                                {order.userEmail}
+                              </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-900">{order.total.toLocaleString('vi-VN')}đ</p>
-                            {getStatusBadge(order.status, 'order')}
+
+                          <div className="text-left sm:text-right sm:flex">
+                            <p className="font-medium text-gray-900">
+                              {order.total.toLocaleString("vi-VN")}đ
+                            </p>
+                            <p>{getStatusBadge(order.status, "order")}</p>
                           </div>
                         </div>
                       ))}
@@ -2676,28 +2744,52 @@ QAI Store - Tài khoản premium uy tín #1
                   </CardContent>
                 </Card>
 
+
                 <Card className="bg-gradient-to-br from-white to-purple-50 border border-purple-100">
-                  <CardHeader>
-                    <CardTitle className="text-purple-800">Sản phẩm bán chạy</CardTitle>
+                  <CardHeader className="pb-2 sm:pb-4">
+                    <CardTitle className="text-purple-800 text-lg sm:text-xl">
+                      Sản phẩm bán chạy
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
+
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="space-y-3 sm:space-y-4">
                       {products.slice(0, 5).map((product) => (
-                        <div key={product.id} className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-purple-100 hover:shadow-md transition-shadow">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <div
+                          key={product.id}
+                          className="
+            flex flex-col sm:flex-row sm:items-center sm:justify-between
+            gap-3 p-3 sm:p-4
+            bg-white rounded-xl shadow-sm border border-purple-100
+            hover:shadow-md transition-shadow
+          "
+                        >
+                          {/* Left */}
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
                               <Package className="w-5 h-5 text-white" />
                             </div>
-                            <div>
-                              <p className="font-medium text-gray-900">{product.name}</p>
-                              <p className="text-sm text-gray-600">{product.category.name}</p>
+
+                            <div className="min-w-0">
+                              <p className="font-medium text-gray-900 line-clamp-1">
+                                {product.name}
+                              </p>
+                              <p className="text-sm text-gray-600 truncate max-w-[260px] sm:max-w-[340px]">
+                                {product.category.name}
+                              </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-900">{product.sales} đã bán</p>
-                            <div className="flex items-center space-x-1">
+
+                          {/* Right */}
+                          <div className="text-left sm:text-right">
+                            <p className="font-medium text-gray-900">
+                              {product.sales} đã bán
+                            </p>
+                            <div className="flex items-center gap-1 sm:justify-end">
                               <TrendingUp className="w-4 h-4 text-green-500" />
-                              <span className="text-sm text-green-600">★{product.rating}</span>
+                              <span className="text-sm text-green-600">
+                                ★{product.rating}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -2705,6 +2797,7 @@ QAI Store - Tài khoản premium uy tín #1
                     </div>
                   </CardContent>
                 </Card>
+
               </div>
             </div>
           </TabsContent>

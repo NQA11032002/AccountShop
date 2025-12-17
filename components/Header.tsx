@@ -217,86 +217,106 @@ export default function Header() {
   })();
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between h-16 border-b border-gray-200">
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        {/* TOP BAR */}
+        <div className="flex items-center justify-between h-16 gap-3">
           {/* Left - Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-              <img src="/images/logo.png" alt="" />
+          <Link href="/" className="flex items-center gap-3 shrink-0 group">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden bg-white">
+              <img src="/images/logo.png" alt="QAI STORE" className="w-full h-full object-contain" />
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-xl font-bold text-gray-800 leading-tight">QAI STORE</h1>
-              <p className="text-gray-400 text-sm">SHOP TÀI KHOẢN</p>
-            </div>
-          </div>
 
-          {/* Center - Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center flex-1 max-w-lg mx-8">
+            <div className="flex flex-col leading-tight">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-800 group-hover:text-brand-blue transition">
+                QAI STORE
+              </h1>
+              <p className="text-[11px] sm:text-sm text-gray-400 group-hover:text-gray-500 transition">
+                SHOP TÀI KHOẢN
+              </p>
+            </div>
+          </Link>
+
+          {/* Center - Search (Desktop/Tablet) */}
+          <form
+            onSubmit={handleSearchSubmit}
+            className="hidden md:flex items-center flex-1 max-w-xl mx-2 lg:mx-8"
+          >
             <div className="relative w-full">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
               <Input
                 type="text"
                 placeholder="Tìm kiếm tài khoản, khóa học, phần mềm..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-12 pr-4 py-3 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition-all duration-300"
+                className="pl-12 pr-12 py-3 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition"
               />
-              <Button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-brand-blue hover:bg-brand-blue/90 p-2 rounded-md">
+              <Button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-blue hover:bg-brand-blue/90 p-2 rounded-md"
+              >
                 <Search className="w-4 h-4 text-white" />
               </Button>
             </div>
           </form>
 
-          {/* Right - Contact Info & Cart */}
-          <div className="flex items-center space-x-6 text-gray-800 text-sm">
-            {/* Location */}
-            <div className="hidden lg:flex items-center space-x-2">
+          {/* Right - Actions */}
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-5 shrink-0">
+            {/* Location (Desktop only) */}
+            <div className="hidden xl:flex items-center gap-2 text-gray-800 text-sm">
               <MapPin className="w-4 h-4 text-brand-blue" />
-              <div>
+              <div className="leading-tight">
                 <p className="text-xs text-gray-500">Địa Chỉ</p>
                 <p className="font-medium">96 Ngô Tất Thành</p>
               </div>
             </div>
 
-            {/* Phone */}
-            <div className="hidden lg:flex items-center space-x-2">
+            {/* Phone (Desktop only) */}
+            <div className="hidden xl:flex items-center gap-2 text-gray-800 text-sm">
               <Phone className="w-4 h-4 text-brand-blue" />
-              <div>
+              <div className="leading-tight">
                 <p className="text-xs text-gray-500">Hotline</p>
                 <p className="font-medium">038.966.0305</p>
               </div>
             </div>
 
             {/* Cart */}
-            <Button variant="ghost" onClick={handleCartClick} className="relative text-gray-800 hover:bg-gray-100 p-3 rounded-lg">
+            <Button
+              variant="ghost"
+              onClick={handleCartClick}
+              className="relative text-gray-800 hover:bg-gray-100 p-2 sm:p-3 rounded-lg"
+            >
               <ShoppingCart className="w-5 h-5" />
               <span className="ml-2 hidden sm:inline">Giỏ hàng</span>
               {realtimeCartCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold transition-all duration-300 transform hover:scale-110">
-                  {realtimeCartCount > 99 ? '99+' : realtimeCartCount}
+                <Badge className="absolute -top-1 -right-1 min-w-6 h-6 px-1 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
+                  {realtimeCartCount > 99 ? "99+" : realtimeCartCount}
                 </Badge>
               )}
             </Button>
 
-            {/* User Account */}
+            {/* User */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="text-gray-800 hover:bg-gray-100 p-2 rounded-lg">
-                    <Avatar className="w-6 h-6">
+                    <Avatar className="w-7 h-7">
                       <AvatarImage src={user.avatar} alt={user.name} />
                       <AvatarFallback className="text-xs bg-gray-100 text-gray-800 border border-gray-300">
-                        {user.name?.charAt(0)?.toUpperCase?.() ?? 'U'}
+                        {user.name?.charAt(0)?.toUpperCase?.() ?? "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="ml-2 hidden sm:inline text-sm">{user.name}</span>
+                    <span className="ml-2 hidden md:inline text-sm max-w-[120px] truncate">
+                      {user.name}
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 bg-white/95 backdrop-blur-md border-white/20 text-gray-800 shadow-xl rounded-xl">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-64 bg-white/95 backdrop-blur-md border-white/20 text-gray-800 shadow-xl rounded-xl"
+                >
                   <DropdownMenuItem asChild>
-                    <Link href="/wallet" className="flex items-center px-4 py-3 hover:bg-green-50 rounded-lg cursor-grab">
+                    <Link href="/wallet" className="flex items-center px-4 py-3 hover:bg-green-50 rounded-lg">
                       <Wallet className="mr-3 h-4 w-4 text-green-600" />
                       <div>
                         <span>Ví của tôi</span>
@@ -305,38 +325,41 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg cursor-grab">
+                    <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg">
                       <Shield className="mr-3 h-4 w-4 text-purple-600" />
                       <span>Tài khoản của tôi</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/my-ranking" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg cursor-grab">
+                    <Link href="/my-ranking" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
                       <Crown className="mr-3 h-4 w-4 text-purple-600" />
                       <span>Hạng của tôi</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/orders" className="flex items-center px-4 py-3 hover:bg-blue-50 rounded-lg cursor-grab">
+                    <Link href="/orders" className="flex items-center px-4 py-3 hover:bg-blue-50 rounded-lg">
                       <ShoppingCart className="mr-3 h-4 w-4 text-blue-600" />
                       <span>Đơn hàng của tôi</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg cursor-grab">
+                    <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
                       <Heart className="mr-3 h-4 w-4 text-purple-600" />
                       <span>Yêu thích</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-100" />
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center px-4 py-3 border-t hover:bg-red-100 text-red-600  cursor-grab">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center px-4 py-3 border-t hover:bg-red-100 text-red-600"
+                  >
                     <LogOut className="mr-3 h-4 w-4" />
                     <span>Đăng xuất</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link href="/login">
+              <Link href="/login" className="hidden sm:block">
                 <Button variant="ghost" className="text-gray-800 hover:bg-gray-100 text-sm rounded-lg px-4 py-2">
                   <User className="w-4 h-4 mr-2" />
                   Đăng nhập
@@ -344,49 +367,76 @@ export default function Header() {
               </Link>
             )}
 
-            {/* Mobile menu button */}
-            <Button variant="ghost" size="sm" onClick={toggleMenu} className="lg:hidden text-gray-800 hover:bg-gray-100 p-2 rounded-lg">
+            {/* Mobile menu */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleMenu}
+              className="lg:hidden text-gray-800 hover:bg-gray-100 p-2 rounded-lg"
+              aria-label="Toggle menu"
+            >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
         </div>
 
-        {/* Bottom Navigation Bar */}
-        <nav className="hidden lg:flex items-center justify-center h-12 space-x-8">
+        {/* Mobile Search (below top bar) */}
+        <div className="md:hidden pb-3">
+          <form onSubmit={handleSearchSubmit}>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Tìm kiếm tài khoản, khóa học, phần mềm..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="pl-9 pr-3 py-2 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500"
+              />
+            </div>
+          </form>
+        </div>
+
+        {/* Desktop Nav */}
+        <nav className="hidden lg:flex items-center justify-center h-12 gap-2 xl:gap-6">
           {navigation.map((item) => (
             <div key={item.name} className="relative group">
-              {item.name === 'Danh mục sản phẩm' ? (
+              {item.name === "Danh mục sản phẩm" ? (
                 <>
-                  <Link href={item.href} className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition-all duration-200 flex items-center">
+                  <Link
+                    href={item.href}
+                    className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition flex items-center"
+                  >
                     {item.name}
                     <ChevronDown className="w-4 h-4 ml-1 group-hover:rotate-180 transition-transform duration-300" />
                   </Link>
 
-                  {/* Mega Menu Dropdown */}
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-screen max-w-5xl bg-white/95 backdrop-blur-lg rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 mt-1">
+                  {/* Mega menu */}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-[min(100vw-24px,1000px)] bg-white/95 backdrop-blur-lg rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 mt-2">
                     <div className="p-6">
                       {loadingCategories ? (
-                        <div className="py-12 text-center text-gray-500">Đang tải danh mục...</div>
+                        <div className="py-10 text-center text-gray-500">Đang tải danh mục...</div>
                       ) : categoriesError ? (
-                        <div className="py-12 text-center text-red-500">Không tải được danh mục</div>
+                        <div className="py-10 text-center text-red-500">Không tải được danh mục</div>
                       ) : (
-                        <div className="grid grid-cols-3 gap-6">
-                          {groupedCategories.slice(0, 6).map(({ parent, children }: any) => (
+                        <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
+                          {groupedCategories.slice(0, 6).map(({ parent, children }) => (
                             <div key={parent.id} className="space-y-3">
-                              <div className="flex items-center space-x-3 pb-2 border-b border-gray-200">
+                              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
                                 <div className="w-8 h-8 bg-gradient-to-br from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center shadow-sm">
                                   <span className="text-white text-sm">📂</span>
                                 </div>
-                                <h3 className="font-semibold text-gray-800 text-xs uppercase tracking-wider">{parent.name}</h3>
+                                <h3 className="font-semibold text-gray-800 text-xs uppercase tracking-wider">
+                                  {parent.name}
+                                </h3>
                               </div>
 
                               <ul className="space-y-1">
-                                {children.length > 0 ? (
-                                  children.slice(0, 4).map((child: any) => (
+                                {children?.length > 0 ? (
+                                  children.slice(0, 5).map((child) => (
                                     <li key={child.id}>
                                       <Link
                                         href={`/products?category=${encodeURIComponent(child.slug ?? String(child.id))}`}
-                                        className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition-all duration-200 hover:translate-x-1"
+                                        className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition hover:translate-x-1"
                                       >
                                         {child.name}
                                       </Link>
@@ -396,20 +446,20 @@ export default function Header() {
                                   <li>
                                     <Link
                                       href={`/products?category=${encodeURIComponent(parent.slug ?? String(parent.id))}`}
-                                      className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition-all duration-200 hover:translate-x-1"
+                                      className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition hover:translate-x-1"
                                     >
                                       {parent.name}
                                     </Link>
                                   </li>
                                 )}
 
-                                {children.length > 4 && (
+                                {children?.length > 5 && (
                                   <li>
                                     <Link
                                       href={`/products?category=${encodeURIComponent(parent.slug ?? String(parent.id))}`}
                                       className="block text-xs text-blue-600 font-medium px-2 py-1.5 hover:text-blue-700"
                                     >
-                                      + {children.length - 4} mục khác
+                                      + {children.length - 5} mục khác
                                     </Link>
                                   </li>
                                 )}
@@ -419,27 +469,36 @@ export default function Header() {
                         </div>
                       )}
 
-                      {/* Streamlined Footer */}
-                      <div className="mt-6 pt-4 border-t border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <p className="text-gray-500 text-sm">Khám phá hàng trăm sản phẩm chất lượng</p>
-                          <div className="flex space-x-3">
-                            <Link href="/products" className="inline-block">
-                              <Button size="sm" className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white text-xs px-4 py-2 shadow-md">
-                                Xem tất cả
-                              </Button>
-                            </Link>
-                            <Button variant="outline" size="sm" className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs px-4 py-2">
-                              Hỗ trợ
+                      <div className="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between gap-3">
+                        <p className="text-gray-500 text-sm hidden sm:block">
+                          Khám phá hàng trăm sản phẩm chất lượng
+                        </p>
+                        <div className="flex gap-3">
+                          <Link href="/products">
+                            <Button
+                              size="sm"
+                              className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white text-xs px-4 py-2 shadow-md"
+                            >
+                              Xem tất cả
                             </Button>
-                          </div>
+                          </Link>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs px-4 py-2"
+                          >
+                            Hỗ trợ
+                          </Button>
                         </div>
                       </div>
                     </div>
                   </div>
                 </>
               ) : (
-                <Link href={item.href} className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition-all duration-200 flex items-center">
+                <Link
+                  href={item.href}
+                  className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition flex items-center"
+                >
                   {item.name}
                 </Link>
               )}
@@ -447,64 +506,63 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Mobile Navigation */}
+        {/* Mobile/Tablet Drawer */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 bg-white px-4 py-6 space-y-4">
-            {/* Mobile Search */}
-            <form onSubmit={handleSearchSubmit} className="md:hidden">
-              <div className="relative">
-                <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Tìm kiếm tài khoản, khóa học, phần mềm..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500"
-                />
-              </div>
-            </form>
-
-            {/* Mobile Navigation Links */}
+          <div className="lg:hidden border-t border-gray-200 bg-white px-3 sm:px-4 py-5 space-y-4">
             <nav className="space-y-2">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="block py-3 text-gray-700 hover:text-brand-blue font-medium text-base rounded-lg hover:bg-gray-100 px-4 transition-colors duration-200"
+                  className="block py-3 text-gray-700 hover:text-brand-blue font-medium text-base rounded-lg hover:bg-gray-100 px-4 transition"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
 
-              {/* Mobile: show top-level categories */}
-              {!loadingCategories && categories.length > 0 && (
+              {!user && (
+                <Link
+                  href="/login"
+                  className="block py-3 text-gray-700 font-medium text-base rounded-lg hover:bg-gray-100 px-4"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Đăng nhập
+                </Link>
+              )}
+
+              {/* Top-level categories on mobile */}
+              {!loadingCategories && categories?.length > 0 && (
                 <>
-                  <div className="pt-4 border-t border-gray-100 text-xs text-gray-500">Danh mục</div>
-                  {categories.filter(c => !c.parent_id || Number(c.parent_id) === 0).slice(0, 8).map((top) => (
-                    <Link
-                      key={top.id}
-                      href={`/products?category=${encodeURIComponent(top.slug ?? String(top.id))}`}
-                      className="block py-2 px-4 text-gray-700 rounded-lg hover:bg-gray-100"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {top.name}
-                    </Link>
-                  ))}
+                  <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 px-4">
+                    Danh mục
+                  </div>
+                  {categories
+                    .filter((c) => !c.parent_id || Number(c.parent_id) === 0)
+                    .slice(0, 10)
+                    .map((top) => (
+                      <Link
+                        key={top.id}
+                        href={`/products?category=${encodeURIComponent(top.slug ?? String(top.id))}`}
+                        className="block py-2 px-4 text-gray-700 rounded-lg hover:bg-gray-100"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {top.name}
+                      </Link>
+                    ))}
                 </>
               )}
             </nav>
 
-            {/* Mobile Contact Info */}
             <div className="pt-4 border-t border-gray-200 space-y-3">
-              <div className="flex items-center space-x-3 text-gray-800">
+              <div className="flex items-center gap-3 text-gray-800">
                 <MapPin className="w-4 h-4 text-brand-blue" />
                 <div>
                   <p className="text-xs text-gray-500">Vận chuyển</p>
                   <p className="font-medium text-sm">31 Nguyễn Đình Khởi</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3 text-gray-800">
+              <div className="flex items-center gap-3 text-gray-800">
                 <Phone className="w-4 h-4 text-brand-blue" />
                 <div>
                   <p className="text-xs text-gray-500">Hotline</p>
@@ -516,5 +574,6 @@ export default function Header() {
         )}
       </div>
     </header>
+
   );
 }

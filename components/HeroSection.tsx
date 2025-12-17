@@ -106,10 +106,10 @@ export default function HeroSection() {
               <div className="product-card bg-red-600 text-white p-6 animate-float">
                 <div className="space-y-3">
                   <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
-                    <span className="text-red-600 font-bold text-sm">N</span>
+                    <span className="text-red-600 font-bold text-sm">C</span>
                   </div>
-                  <h3 className="font-bold text-lg">Netflix Premium</h3>
-                  <p className="text-red-100 text-sm">4K Ultra HD</p>
+                  <h3 className="font-bold text-lg">Capcut Pro</h3>
+                  <p className="text-red-100 text-sm">Mở khóa tính năng</p>
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-bold">50K</span>
                     <Badge className="bg-white text-red-600">Bán chạy</Badge>
@@ -126,7 +126,7 @@ export default function HeroSection() {
                   <h3 className="font-bold text-lg">Spotify Premium</h3>
                   <p className="text-green-100 text-sm">Không quảng cáo</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold">30K</span>
+                    <span className="text-2xl font-bold">350k</span>
                     <Badge className="bg-white text-green-500">Hot</Badge>
                   </div>
                 </div>
@@ -139,9 +139,9 @@ export default function HeroSection() {
                     <span className="text-purple-600 font-bold text-sm">AI</span>
                   </div>
                   <h3 className="font-bold text-lg">ChatGPT Plus</h3>
-                  <p className="text-purple-100 text-sm">GPT-4 Unlimited</p>
+                  <p className="text-purple-100 text-sm">không giới hạn tin nhắn</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold">120K</span>
+                    <span className="text-2xl font-bold">79k</span>
                     <Badge className="bg-white text-purple-600">Mới</Badge>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export default function HeroSection() {
                   <h3 className="font-bold text-lg">YouTube Premium</h3>
                   <p className="text-red-100 text-sm">Không quảng cáo</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold">40K</span>
+                    <span className="text-2xl font-bold">70K</span>
                     <Badge className="bg-white text-red-500">Ưu đãi</Badge>
                   </div>
                 </div>
@@ -164,13 +164,13 @@ export default function HeroSection() {
             </div>
 
             {/* Floating Stats */}
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 lg:left-0 lg:transform-none">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl animate-scale-in animation-delay-800">
-                <div className="grid grid-cols-3 gap-6 text-center">
-                  {stats.map((stat, index) => (
+            <div className="mt-6 sm:mt-8 lg:mt-0 lg:absolute lg:-bottom-12 lg:left-0 lg:translate-x-0">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20 shadow-xl animate-scale-in lg:animation-delay-800">
+                <div className="grid grid-cols-3 gap-3 sm:gap-6 text-center">
+                  {stats.map((stat) => (
                     <div key={stat.label} className="space-y-1">
-                      <div className="text-2xl font-bold text-white">{stat.value}</div>
-                      <div className="text-xs text-white/70">{stat.label}</div>
+                      <div className="text-xl sm:text-2xl font-bold text-white">{stat.value}</div>
+                      <div className="text-[11px] sm:text-xs text-white/70">{stat.label}</div>
                     </div>
                   ))}
                 </div>

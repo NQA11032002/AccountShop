@@ -142,38 +142,52 @@ export default function CoinPaymentInterface({
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <Card className="bg-white border border-gray-200 shadow-lg">
+        <Card className="bg-white border border-gray-200 shadow-lg overflow-hidden">
           <CardHeader className="pb-4 bg-gradient-to-r from-brand-blue to-brand-emerald text-white">
-            <div className="flex items-center space-x-3">
-              <div className={`
-                w -16 h - 16 rounded - lg flex items - center justify - center 
-                bg - white / 20 shadow - sm
-                transform transition - all duration - 700 ease - out
-                ${animationStep >= 1 ? 'scale-100 rotate-0' : 'scale-0 rotate-180'}
-              `}>
-                <Coins className="w-8 h-8 text-white" />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              {/* Icon */}
+              <div
+                className={`
+          w-12 h-12 sm:w-16 sm:h-16 rounded-lg flex items-center justify-center
+          bg-white/20 shadow-sm shrink-0
+          transform transition-all duration-700 ease-out
+          ${animationStep >= 1 ? "scale-100 rotate-0" : "scale-0 rotate-180"}
+        `}
+              >
+                <Coins className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
-              <div className="flex-1">
-                <CardTitle className={`
-    text - 2xl font - bold text - white
-                  transform transition - all duration - 700 ease - out delay - 200
-                  ${animationStep >= 1 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}
-    `}>
+
+              {/* Title + desc */}
+              <div className="flex-1 min-w-0">
+                <CardTitle
+                  className={`
+            text-xl sm:text-2xl font-bold text-white
+            transform transition-all duration-700 ease-out delay-200
+            ${animationStep >= 1 ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}
+          `}
+                >
                   Thanh toán bằng Coins
                 </CardTitle>
-                <p className={`
-    text - blue - 100 mt - 1
-                  transform transition - all duration - 700 ease - out delay - 300
-                  ${animationStep >= 1 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}
-    `}>
+
+                <p
+                  className={`
+            text-blue-100 mt-1 text-sm sm:text-base
+            transform transition-all duration-700 ease-out delay-300
+            ${animationStep >= 1 ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}
+          `}
+                >
                   Nhanh chóng, an toàn và không phí giao dịch
                 </p>
               </div>
-              <div className={`
-                flex items - center space - x - 2
-                transform transition - all duration - 700 ease - out delay - 400
-                ${animationStep >= 1 ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}
-    `}>
+
+              {/* Badges */}
+              <div
+                className={`
+          flex flex-wrap items-center gap-2
+          transform transition-all duration-700 ease-out delay-400
+          ${animationStep >= 1 ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"}
+        `}
+              >
                 <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
                   <Zap className="w-3 h-3 mr-1" />
                   Tức thì
@@ -338,28 +352,35 @@ export default function CoinPaymentInterface({
 
       {/* Payment Action */}
       <Card className="border-2 border-dashed border-brand-blue/30 bg-gradient-to-r from-blue-50 to-emerald-50">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center shadow-sm">
-                <Shield className="w-6 h-6 text-white" />
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Left info */}
+            <div className="flex items-start sm:items-center gap-3 min-w-0">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div>
+
+              <div className="min-w-0">
                 <h3 className="font-semibold text-gray-800">Bảo mật cao</h3>
-                <p className="text-sm text-gray-600 flex items-center">
-                  <Clock className="w-3 h-3 mr-1" />
-                  Giao dịch tức thì • Mã hóa dữ liệu
+                <p className="text-sm text-gray-600 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="inline-flex items-center">
+                    <Clock className="w-3 h-3 mr-1" />
+                    Giao dịch tức thì
+                  </span>
+                  <span className="text-gray-400">•</span>
+                  <span>Mã hóa dữ liệu</span>
                 </p>
               </div>
             </div>
 
+            {/* CTA */}
             <Button
               onClick={handlePayment}
               disabled={!isAffordable || isProcessingPayment}
               size="lg"
-              className={`px-8 py-4 text-lg font-semibold min-w-[200px] rounded-lg ${isAffordable
-                ? 'bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white shadow-md'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              className={`w-full lg:w-auto lg:min-w-[220px] px-6 sm:px-8 py-4 text-base sm:text-lg font-semibold rounded-lg ${isAffordable
+                  ? "bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white shadow-md"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
             >
               {isProcessingPayment ? (
@@ -381,6 +402,7 @@ export default function CoinPaymentInterface({
             </Button>
           </div>
         </CardContent>
+
       </Card>
 
       {/* Benefits Section */}

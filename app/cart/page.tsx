@@ -139,94 +139,122 @@ export default function CartPage() {
 
               {items.map((item) => (
                 <Card key={`${item.id}-${item.duration}`} className="overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      {/* Product Image */}
-                      <div className={`w-20 h-20 rounded-lg flex items-center justify-center text-2xl flex-shrink-0`}>
-                        <img src={`https://www.taikhoangpremium.shop/images/products/${item.image}`} alt="Product image" />
-                      </div>
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                      {/* Left block: Image + Info */}
+                      <div className="flex items-start gap-4 flex-1 min-w-0">
+                        {/* Product Image */}
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden bg-gray-50">
+                          <img
+                            src={`https://www.taikhoangpremium.shop/images/products/${item.image}`}
+                            alt={item.product_name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
 
-                      {/* Product Info */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                          {item.product_name}
-                        </h3>
-                        {/* <p className="text-sm text-gray-600 mb-2">
-                          {item.description}
-                        </p> */}
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <div className="flex items-center space-x-1">
-                            <span>Thời hạn:</span>
-                            <Badge variant="outline" className="text-xs">
-                              {item.duration}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Shield className="w-3 h-3" />
-                            <span>Bảo hành {item.warranty}</span>
+                        {/* Product Info */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
+                            {item.product_name}
+                          </h3>
+
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
+                            <div className="flex items-center gap-2">
+                              <span>Thời hạn:</span>
+                              <Badge variant="outline" className="text-xs">
+                                {item.duration}
+                              </Badge>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Shield className="w-3 h-3" />
+                              <span>Bảo hành {item.warranty}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Price & Quantity */}
-                      <div className="text-right flex-shrink-0">
-                        <div className="mb-3">
-                          <div className="text-lg font-bold text-brand-blue">
-                            {formatPrice(item.price)}
-                          </div>
-                          {item.original_price > item.price && (
-                            <div className="text-sm text-gray-500 line-through">
-                              {formatPrice(item.original_price)}
+                      {/* Right block: Price + Quantity + Remove */}
+                      <div className="sm:text-right sm:flex-shrink-0 w-full sm:w-auto">
+                        <div className="flex items-start justify-between sm:justify-end gap-4 mb-3">
+                          <div className="sm:text-right">
+                            <div className="text-base sm:text-lg font-bold text-brand-blue">
+                              {formatPrice(item.price)}
                             </div>
-                          )}
+                            {item.original_price > item.price && (
+                              <div className="text-sm text-gray-500 line-through">
+                                {formatPrice(item.original_price)}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Remove (mobile: top-right) */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveItem(item.id, item.duration)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 sm:hidden"
+                            disabled={isProcessing}
+                            aria-label="Remove item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
 
                         {/* Quantity Controls */}
-                        <div className="flex items-center space-x-2 mb-3">
+                        <div className="flex items-center justify-between sm:justify-end gap-3 mb-3">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleQuantityChange(item.id, item.selected_duration, item.quantity - 1)}
+                              disabled={item.quantity <= 1 || isProcessing}
+                              className="w-9 h-9 sm:w-8 sm:h-8 p-0"
+                              aria-label="Decrease quantity"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </Button>
+
+                            <span className="w-10 text-center font-medium">
+                              {item.quantity}
+                            </span>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleQuantityChange(item.id, item.selected_duration, item.quantity + 1)}
+                              className="w-9 h-9 sm:w-8 sm:h-8 p-0"
+                              disabled={isProcessing}
+                              aria-label="Increase quantity"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          </div>
+
+                          {/* Remove (desktop) */}
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => handleQuantityChange(item.id, item.selected_duration, item.quantity - 1)}
-                            disabled={item.quantity <= 1 || isProcessing}
-                            className="w-8 h-8 p-0"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </Button>
-                          <span className="w-8 text-center font-medium">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleQuantityChange(item.id, item.selected_duration, item.quantity + 1)}
-                            className="w-8 h-8 p-0"
+                            onClick={() => handleRemoveItem(item.id, item.duration)}
+                            className="hidden sm:inline-flex text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
                             disabled={isProcessing}
+                            aria-label="Remove item"
                           >
-                            <Plus className="w-3 h-3" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
-
-
-                        {/* Remove Button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveItem(item.id, item.duration)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1"
-                          disabled={isProcessing}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
                       </div>
                     </div>
 
                     {/* Item Total */}
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                       <span className="text-sm text-gray-600">
                         Tổng cộng ({item.quantity} sản phẩm):
                       </span>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-brand-blue">
+
+                      <div className="text-left sm:text-right">
+                        <div className="text-base sm:text-lg font-bold text-brand-blue">
                           {formatPrice(item.price * item.quantity)}
                         </div>
                         {item.original_price > item.price && (
@@ -238,6 +266,7 @@ export default function CartPage() {
                     </div>
                   </CardContent>
                 </Card>
+
               ))}
             </div>
 

@@ -242,19 +242,25 @@ export default function NewsPage() {
                   {filteredArticles.map((article) => (
                     <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
                       <div className="flex flex-col md:flex-row">
+                        {/* Image */}
                         <div className="md:w-1/3">
                           <img
                             src={article.image}
                             alt={article.title}
-                            className="w-full h-48 md:h-full object-cover"
+                            className="w-full h-44 sm:h-52 md:h-full object-cover"
+                            loading="lazy"
                           />
                         </div>
-                        <div className="md:w-2/3 p-6">
-                          <div className="flex items-center justify-between mb-3">
+
+                        {/* Content */}
+                        <div className="md:w-2/3 p-4 sm:p-6">
+                          {/* Top row */}
+                          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                             <Badge variant="outline" className="text-blue-600 border-blue-600">
-                              {newsCategories.find(cat => cat.id === article.category)?.name}
+                              {newsCategories.find((cat) => cat.id === article.category)?.name}
                             </Badge>
-                            <div className="flex items-center space-x-4 text-gray-500 text-sm">
+
+                            <div className="flex items-center gap-3 sm:gap-4 text-gray-500 text-sm">
                               <div className="flex items-center">
                                 <Eye className="w-4 h-4 mr-1" />
                                 {article.views}
@@ -266,35 +272,40 @@ export default function NewsPage() {
                             </div>
                           </div>
 
-                          <Link href={`/news/${article.id}`}>
-                            <h3 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors cursor-pointer">
+                          {/* Title */}
+                          <Link href={`/news/${article.id}`} className="block">
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 hover:text-blue-600 transition-colors cursor-pointer line-clamp-2">
                               {article.title}
                             </h3>
                           </Link>
 
-                          <p className="text-gray-600 mb-4 line-clamp-2">
+                          {/* Excerpt */}
+                          <p className="text-gray-600 mb-4 line-clamp-2 sm:line-clamp-3">
                             {article.excerpt}
                           </p>
 
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                          {/* Bottom */}
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
                               <span>Bởi {article.author}</span>
+
                               <div className="flex items-center">
                                 <Calendar className="w-4 h-4 mr-1" />
-                                {new Date(article.date).toLocaleDateString('vi-VN')}
+                                {new Date(article.date).toLocaleDateString("vi-VN")}
                               </div>
+
                               <div className="flex items-center">
                                 <Clock className="w-4 h-4 mr-1" />
                                 {article.readTime}
                               </div>
                             </div>
 
-                            <div className="flex items-center space-x-2">
-                              <Button variant="ghost" size="sm">
+                            <div className="flex flex-row sm:flex-row gap-2 sm:items-center sm:justify-end">
+                              <Button variant="ghost" size="sm" className="w-full sm:w-auto justify-center">
                                 <Heart className="w-4 h-4 mr-1" />
                                 Thích
                               </Button>
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" className="w-full sm:w-auto justify-center">
                                 <Share2 className="w-4 h-4 mr-1" />
                                 Chia sẻ
                               </Button>
@@ -303,6 +314,7 @@ export default function NewsPage() {
                         </div>
                       </div>
                     </Card>
+
                   ))}
                 </div>
 

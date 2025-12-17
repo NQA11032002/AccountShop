@@ -194,35 +194,48 @@ export default function ProductCard({
   if (isListView) {
     return (
       <Card className={`group hover:shadow-xl transition-all duration-500 border border-gray-100 shadow-sm bg-white rounded-2xl overflow-hidden hover:scale-[1.02] hover:-translate-y-1 flex flex-row h-auto ${className}`}>
-        <CardContent className="flex-1 flex flex-row space-x-6 p-6">
+        <CardContent className="flex-1 flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
+          {/* Image */}
           <div className="flex-shrink-0">
-            <div className={`${config.iconSize} ${product.color || 'bg-gray-500'} rounded-2xl flex items-center justify-center text-2xl shadow-lg`}>
-              <img src={`https://www.taikhoangpremium.shop/images/products/${product.image}`}
-                alt="" />
+            <div
+              className={`${config.iconSize} ${product.color || "bg-gray-500"} rounded-2xl flex items-center justify-center shadow-lg overflow-hidden`}
+            >
+              <img
+                src={`https://www.taikhoangpremium.shop/images/products/${product.image}`}
+                alt={product.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
             </div>
           </div>
-          <div className="flex-1 space-y-3">
-            <div className="flex items-start justify-between">
-              <h3 className={`${config.textSize} font-bold text-gray-900`}>{product.name}</h3>
+
+          {/* Content */}
+          <div className="flex-1 space-y-3 min-w-0">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className={`${config.textSize} font-bold text-gray-900 line-clamp-2`}>
+                {product.name}
+              </h3>
+
               {showFavoriteButton && (
                 <button
                   onClick={handleToggleFavorite}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${isFavorite(product.id)
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-gray-100 text-gray-600 hover:text-red-500 hover:bg-red-50'
+                  className={`shrink-0 w-9 h-9 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 ${isFavorite(product.id)
+                    ? "bg-red-500 text-white hover:bg-red-600"
+                    : "bg-gray-100 text-gray-600 hover:text-red-500 hover:bg-red-50"
                     }`}
                 >
-                  <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
+                  <Heart className={`w-4 h-4 ${isFavorite(product.id) ? "fill-current" : ""}`} />
                 </button>
               )}
             </div>
-            {/* <p className="text-sm text-gray-600">{product.description}</p> */}
-            <div className="flex items-center space-x-2">
+
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
               <span className="text-sm font-semibold">{product.rating}</span>
               <span className="text-sm text-gray-500">({product.reviews} đánh giá)</span>
             </div>
-            <div className="flex items-baseline space-x-2">
+
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
               <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
                 {formatPrice(product.price)}
               </span>
@@ -232,15 +245,17 @@ export default function ProductCard({
                 </span>
               )}
             </div>
-            <div className={`flex space-x-2 ${config.gap}`}>
+
+            {/* Actions */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Button
                 onClick={handleAddToCart}
                 disabled={!product.in_stock || isProcessing}
-                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl"
               >
                 {isProcessing ? (
                   <>
-                    <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
                     Đang thêm...
                   </>
                 ) : isInCart(product.id, standardDurationId) ? (
@@ -255,7 +270,8 @@ export default function ProductCard({
                   </>
                 )}
               </Button>
-              <Link href={`/products/${product.id}`} className="flex-1">
+
+              <Link href={`/products/${product.id}`} className="w-full">
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl">
                   <Eye className="w-4 h-4 mr-2" />
                   Chi tiết

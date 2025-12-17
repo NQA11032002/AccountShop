@@ -451,30 +451,38 @@ function CheckoutPageContent() {
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4 py-8">
           {/* Progress Steps */}
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="flex items-center justify-center space-x-4">
+          <div className="max-w-4xl mx-auto mb-6 sm:mb-8 px-4 sm:px-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-0">
               {[
-                { step: 1, label: 'Thông tin' },
-                { step: 2, label: 'Thanh toán' },
-                { step: 3, label: 'Hoàn tất' }
+                { step: 1, label: "Thông tin" },
+                { step: 2, label: "Thanh toán" },
+                { step: 3, label: "Hoàn tất" },
               ].map((item) => (
                 <div key={item.step} className="flex items-center">
-                  <div className={`
-                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium
-                    ${currentStep >= item.step
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-500'
-                    }
-                  `}>
+                  {/* Step circle */}
+                  <div
+                    className={`
+            w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-medium shrink-0
+            ${currentStep >= item.step ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"}
+          `}
+                  >
                     {currentStep > item.step ? <Check className="w-5 h-5" /> : item.step}
                   </div>
-                  <span className={`ml-2 text-sm font-medium ${currentStep >= item.step ? 'text-blue-600' : 'text-gray-500'
-                    }`}>
+
+                  {/* Label */}
+                  <span
+                    className={`ml-3 sm:ml-2 text-sm font-medium ${currentStep >= item.step ? "text-blue-600" : "text-gray-500"
+                      }`}
+                  >
                     {item.label}
                   </span>
+
+                  {/* Connector line (only on >= sm) */}
                   {item.step < 3 && (
-                    <div className={`w-12 h-0.5 ml-4 ${currentStep > item.step ? 'bg-blue-600' : 'bg-gray-200'
-                      }`} />
+                    <div
+                      className={`hidden sm:block h-0.5 mx-4 w-10 md:w-16 ${currentStep > item.step ? "bg-blue-600" : "bg-gray-200"
+                        }`}
+                    />
                   )}
                 </div>
               ))}

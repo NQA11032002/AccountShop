@@ -479,8 +479,8 @@ export default function ProductDetailPage() {
           <TabsContent value="features" className="mt-6">
             <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30">
               <CardHeader className="bg-gradient-to-r from-brand-purple/10 to-brand-blue/10 border-b">
-                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-brand-purple to-brand-blue bg-clip-text text-transparent flex items-center">
-                  🔥 Tính năng toàn diện
+                <CardTitle className="text-2xl font-bold bg-gradient-to-r text-black from-brand-purple to-brand-blue bg-clip-text text-transparent flex items-center">
+                  <p className='text-black'>🔥 Tính năng toàn diện</p>
                 </CardTitle>
                 <p className="text-gray-600 mt-2">Khám phá tất cả những gì bạn nhận được với sản phẩm này</p>
               </CardHeader>
@@ -494,21 +494,34 @@ export default function ProductDetailPage() {
                     <h3 className="text-xl font-bold text-gray-800">Thông tin sản phẩm</h3>
                   </div>
                   <div
-                    className="text-gray-600 text-lg leading-relaxed mb-4"
+                    className="
+    prose prose-gray max-w-none
+    text-sm sm:text-base lg:text-lg
+    leading-relaxed sm:leading-7
+    mb-4
+
+    /* Media inside description */
+    [&_img]:max-w-full
+    [&_img]:h-auto
+    [&_img]:rounded-lg
+    [&_img]:my-4
+
+    [&_iframe]:w-full
+    [&_iframe]:aspect-video
+    [&_iframe]:rounded-lg
+    [&_iframe]:my-4
+
+    /* Table / code safety */
+    [&_table]:block
+    [&_table]:overflow-x-auto
+    [&_pre]:overflow-x-auto
+  "
                     dangerouslySetInnerHTML={{
                       __html: DOMPurify.sanitize(product.description),
                     }}
                   />
-                  {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Array.isArray(product.product_features) && product.product_features.map((feature: any, index: number) => (
-                      <div key={index} className="flex items-center space-x-3 p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-green-200/50 hover:shadow-md transition-shadow">
-                        <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <Check className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="font-medium text-gray-800">{feature.feature}</span>
-                      </div>
-                    ))}
-                  </div> */}
+
+
                 </div>
 
                 {/* System Requirements */}
@@ -572,70 +585,122 @@ export default function ProductDetailPage() {
                 </div> */}
 
                 {/* Usage Guide */}
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-100 shadow-sm">
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                      <span className="text-white text-xl">📋</span>
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 sm:p-6 rounded-xl border border-purple-100 shadow-sm">
+                  {/* Header */}
+                  <div className="flex items-center mb-5 sm:mb-6">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3 sm:mr-4 shadow-lg">
+                      <span className="text-white text-lg sm:text-xl">📋</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">Hướng dẫn sử dụng</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800">
+                      Hướng dẫn sử dụng
+                    </h3>
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex items-start space-x-4 bg-white/70 backdrop-blur-sm p-5 rounded-lg border border-purple-200/50 hover:shadow-md transition-all duration-300 hover:scale-[1.02]">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">1</div>
-                      <div>
-                        <div className="font-semibold text-gray-800 text-lg mb-2">Nhận thông tin tài khoản</div>
-                        <div className="text-gray-600">Sau khi thanh toán thành công, bạn sẽ nhận được tài khoản chứa đầy đủ thông tin đăng nhập và hướng dẫn chi tiết</div>
+
+                  {/* Steps */}
+                  <div className="space-y-3 sm:space-y-4">
+                    {[
+                      {
+                        step: 1,
+                        color: "from-blue-500 to-blue-600",
+                        title: "Nhận thông tin tài khoản",
+                        desc:
+                          "Sau khi thanh toán thành công, bạn sẽ nhận được tài khoản chứa đầy đủ thông tin đăng nhập và hướng dẫn chi tiết",
+                      },
+                      {
+                        step: 2,
+                        color: "from-green-500 to-green-600",
+                        title: "Đăng nhập và kích hoạt",
+                        desc:
+                          "Sử dụng thông tin được cung cấp để đăng nhập vào dịch vụ và bắt đầu trải nghiệm ngay lập tức",
+                      },
+                      {
+                        step: 3,
+                        color: "from-purple-500 to-purple-600",
+                        title: "Hỗ trợ 24/7",
+                        desc:
+                          "Đội ngũ hỗ trợ chuyên nghiệp luôn sẵn sàng hỗ trợ bạn qua Fanpage và Zalo mọi lúc trong ngày",
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.step}
+                        className="
+          flex items-start gap-3 sm:gap-4
+          bg-white/80 backdrop-blur-sm
+          p-4 sm:p-5 rounded-lg
+          border border-purple-200/50
+          transition-all duration-300
+          hover:shadow-md
+          sm:hover:scale-[1.02]
+        "
+                      >
+                        {/* Step number */}
+                        <div
+                          className={`w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-r ${item.color}
+          rounded-full flex items-center justify-center
+          text-white font-bold text-sm sm:text-lg
+          shadow-lg flex-shrink-0`}
+                        >
+                          {item.step}
+                        </div>
+
+                        {/* Content */}
+                        <div className="min-w-0">
+                          <div className="font-semibold text-gray-800 text-base sm:text-lg mb-1 sm:mb-2">
+                            {item.title}
+                          </div>
+                          <div className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                            {item.desc}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-start space-x-4 bg-white/70 backdrop-blur-sm p-5 rounded-lg border border-purple-200/50 hover:shadow-md transition-all duration-300 hover:scale-[1.02]">
-                      <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">2</div>
-                      <div>
-                        <div className="font-semibold text-gray-800 text-lg mb-2">Đăng nhập và kích hoạt</div>
-                        <div className="text-gray-600">Sử dụng thông tin được cung cấp để đăng nhập vào dịch vụ và bắt đầu trải nghiệm ngay lập tức</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-4 bg-white/70 backdrop-blur-sm p-5 rounded-lg border border-purple-200/50 hover:shadow-md transition-all duration-300 hover:scale-[1.02]">
-                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">3</div>
-                      <div>
-                        <div className="font-semibold text-gray-800 text-lg mb-2">Hỗ trợ 24/7</div>
-                        <div className="text-gray-600">Đội ngũ hỗ trợ chuyên nghiệp luôn sẵn sàng hỗ trợ bạn qua Fanpage và Zalo mọi lúc trong ngày</div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
                 {/* Additional Benefits */}
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-xl border border-amber-100 shadow-sm">
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                      <span className="text-white text-xl">✨</span>
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 sm:p-6 rounded-xl border border-amber-100 shadow-sm">
+                  {/* Header */}
+                  <div className="flex items-center mb-5 sm:mb-6">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center mr-3 sm:mr-4 shadow-lg">
+                      <span className="text-white text-lg sm:text-xl">✨</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">Lợi ích đặc biệt</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800">Lợi ích đặc biệt</h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-amber-200/50 hover:shadow-md transition-shadow">
-                      <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-                        <Shield className="w-6 h-6 text-white" />
+
+                  {/* Cards grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    <div className="text-center p-4 bg-white/80 backdrop-blur-sm rounded-lg border border-amber-200/50 hover:shadow-md transition-shadow">
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                        <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
-                      <h4 className="font-semibold text-gray-800 mb-2">Bảo mật cao</h4>
-                      <p className="text-sm text-gray-600">Tài khoản được mật tuyệt đối</p>
+                      <h4 className="font-semibold text-gray-800 mb-2 text-base">Bảo mật cao</h4>
+                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                        Tài khoản được bảo mật tuyệt đối
+                      </p>
                     </div>
-                    <div className="text-center p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-amber-200/50 hover:shadow-md transition-shadow">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-                        <Zap className="w-6 h-6 text-white" />
+
+                    <div className="text-center p-4 bg-white/80 backdrop-blur-sm rounded-lg border border-amber-200/50 hover:shadow-md transition-shadow">
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                        <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
-                      <h4 className="font-semibold text-gray-800 mb-2">Tốc độ cao</h4>
-                      <p className="text-sm text-gray-600">Trải nghiệm mượt mà với tốc độ tải nhanh chóng</p>
+                      <h4 className="font-semibold text-gray-800 mb-2 text-base">Tốc độ cao</h4>
+                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                        Trải nghiệm mượt mà với tốc độ tải nhanh chóng
+                      </p>
                     </div>
-                    <div className="text-center p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-amber-200/50 hover:shadow-md transition-shadow">
-                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
-                        <Heart className="w-6 h-6 text-white" />
+
+                    <div className="text-center p-4 bg-white/80 backdrop-blur-sm rounded-lg border border-amber-200/50 hover:shadow-md transition-shadow">
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
-                      <h4 className="font-semibold text-gray-800 mb-2">Hỗ trợ tận tình</h4>
-                      <p className="text-sm text-gray-600">Đội ngũ hỗ trợ nhiệt tình, chuyên nghiệp 24/7</p>
+                      <h4 className="font-semibold text-gray-800 mb-2 text-base">Hỗ trợ tận tình</h4>
+                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                        Đội ngũ hỗ trợ nhiệt tình, chuyên nghiệp 24/7
+                      </p>
                     </div>
                   </div>
                 </div>
+
               </CardContent>
             </Card>
           </TabsContent>
