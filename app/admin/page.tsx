@@ -4352,8 +4352,9 @@ QAI Store - Tài khoản premium uy tín #1
                         </TableCell>
                         <TableCell>{code.onetimecode?.email}</TableCell>
                         <TableCell>{code.email}</TableCell>
-                        <TableCell>{code.name}</TableCell>
-                        <TableCell>{code.ip}</TableCell>
+                        <TableCell >{code.name}</TableCell>
+                        <TableCell className="max-w-[150px] whitespace-normal break-all"
+                        >{code.ip}</TableCell>
                         <TableCell >{code.count_logined}</TableCell>
                         <TableCell >{code.current_date_login}</TableCell>
                         <TableCell>
