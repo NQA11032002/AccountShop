@@ -143,6 +143,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { ChatgptPayload } from '@/types/chatgpt.interface';
 import { useMemo } from "react";
+import { useDeferredValue } from "react";
 
 import { Label } from "@radix-ui/react-label";
 
@@ -247,6 +248,8 @@ export default function AdminDashboard() {
   const [accountFilterType, setAccountFilterType] = useState<string>('all');
   const [accountSortBy, setAccountSortBy] = useState<'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday'>('purchaseDate');
   const [accountSortOrder, setAccountSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const [accountGPTSearchTerm, setAccountGPTSearchTerm] = useState('');
 
   // Orders State
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
@@ -617,36 +620,32 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
 
-  const filteredChatgpts = useMemo(() => {
-    const today = new Date().toLocaleDateString("en-CA"); // ví dụ: 2025-12-10
-    return chatgpts.filter((item) => {
+  const normalize = (s?: string) => (s ?? "").trim().toLowerCase();
 
-      // --- Advanced Filter ---
-      if (advancedFilter === "smallTeam" && item.count_user >= 5) {
-        return false;
-      }
+
+  const deferredSearch = useDeferredValue(accountGPTSearchTerm);
+
+  const filteredChatgpts = useMemo(() => {
+    const TODAY = new Date().toLocaleDateString("en-CA");
+
+    const today = TODAY; // xem phần dưới
+    const q = deferredSearch.trim().toLowerCase();
+
+    return chatgpts.filter((item) => {
+      if (q && !item.email?.toLowerCase().includes(q)) return false;
+
+      if (advancedFilter === "smallTeam" && item.count_user >= 5) return false;
 
       if (advancedFilter === "endToday") {
-        const endDate = item.end_date?.slice(0, 10);
-
-
-        if (endDate !== today) return false;
+        if (item.end_date?.slice(0, 10) !== today) return false;
       }
 
-
-      // --- Status & Category filter giữ nguyên ---
-      if (statusFilter !== "all" && item.status !== statusFilter) {
-        return false;
-      }
-
-      if (categoryFilter !== "all" && item.category !== categoryFilter) {
-        return false;
-      }
+      if (statusFilter !== "all" && item.status !== statusFilter) return false;
+      if (categoryFilter !== "all" && item.category !== categoryFilter) return false;
 
       return true;
     });
-
-  }, [chatgpts, advancedFilter, statusFilter, categoryFilter]);
+  }, [chatgpts, advancedFilter, statusFilter, categoryFilter, deferredSearch]);
 
 
   const loadCustomerAccounts = async (sessionId: string) => {
@@ -1010,6 +1009,8 @@ QAI Store - Tài khoản premium uy tín #1
       });
     }
   };
+
+
 
 
   const [error, setError] = useState<string>('');
@@ -2997,6 +2998,19 @@ QAI Store - Tài khoản premium uy tín #1
 
                         <div className="flex items-center space-x-2">
                           <div className="flex flex-wrap gap-4 items-end">
+
+                            <div className="relative flex-1 max-w-lg">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-4 w-4 text-brand-blue" />
+                              </div>
+                              <Input
+                                type="text"
+                                placeholder="🔍 Tìm kiếm theo mail GPT"
+                                value={accountGPTSearchTerm}
+                                onChange={(e) => setAccountGPTSearchTerm(e.target.value)}
+                                className="pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all duration-300"
+                              />
+                            </div>
 
                             {/* Filter status */}
                             <div className="space-y-1">
