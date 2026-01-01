@@ -4369,7 +4369,7 @@ QAI Store - Tài khoản premium uy tín #1
                         <TableCell>{code.name}</TableCell>
                         <TableCell className="max-w-[150px] break-words">{code.ip}</TableCell>
                         <TableCell >{code.count_logined}</TableCell>
-                        <TableCell >{code.current_date_login}</TableCell>
+                        <TableCell >{code.date_logined}</TableCell>
                         <TableCell>
                           {code.status == '1' ? (
                             <span className="px-2 py-1 text-xs rounded-full bg-green-600 text-white">
