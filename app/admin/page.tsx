@@ -4423,7 +4423,7 @@ QAI Store - Tài khoản premium uy tín #1
       ${code.status === "1" ? "bg-green-600" : "bg-red-600"}
     `}
                           >
-                            {code.status === "1" ? "Hoạt động" : "Tạm dừng"}
+                            {code.status == "1" ? "Hoạt động" : "Tạm dừng"}
                           </span>
                         </TableCell>
 
