@@ -4420,7 +4420,7 @@ QAI Store - Tài khoản premium uy tín #1
                         <TableCell>
                           <span
                             className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-sm text-white
-      ${code.status === "1" ? "bg-green-600" : "bg-red-600"}
+      ${code.status == "1" ? "bg-green-600" : "bg-red-600"}
     `}
                           >
                             {code.status == "1" ? "Hoạt động" : "Tạm dừng"}
