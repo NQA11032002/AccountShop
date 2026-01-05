@@ -1232,3 +1232,21 @@ export const getOnetimeCodeAdmin = async (id: Number, sessionId: string) => {
 
     return res.json();
 };
+
+export const createGPTBusiness = async (sessionId: string, accountData: object) => {
+    const res = await fetch(`https://chatgpt.com/backend-api/accounts/cd894bb7-af5b-4ae8-ae24-3ed036f2248e/invites`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(accountData), // Send the account data in the body
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to create account');
+    }
+
+    return res.json(); // Returns the created account
+};

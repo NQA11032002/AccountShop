@@ -17,6 +17,13 @@ import {
     TableHeader,
     TableRow
 } from '@/components/ui/table';
+import { createChatgpt, updateChatgpt } from '@/lib/api'; // Import hàm updateUser
+
+import {
+    Plus
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { EditCustomerAccountDialog } from '@/components/admin/EditCustomerAccountDialog';
 import { Badge } from "@/components/ui/badge";
 import { getAccountsByChatgptId } from '@/lib/api';
 import { CustomerAccount } from "@/types/CustomerAccount"; // hoặc đúng type bạn đang dùng
@@ -59,6 +66,21 @@ export function UserChatGPTDialog({
     ]); // Predefined status options
     const [accounts, setAccounts] = useState<CustomerAccount[]>([]);
     const [isFetching, setIsFetching] = useState(false);
+    const [editChatGPTDialog, setEditChatGPTDialog] = useState<{ open: boolean; product: ChatgptPayload | null }>({ open: false, product: null });
+    const { toast } = useToast();
+    const [chatgpts, setChatgpts] = useState<ChatgptPayload[]>([]);
+    const [editAccountDialog, setEditAccountDialog] = useState<{ open: boolean; account: CustomerAccount | null }>({ open: false, account: null });
+
+    // Customer Account Management Functions
+    const handleEditAccount = (account: CustomerAccount | null) => {
+        setEditAccountDialog({ open: true, account });
+    };
+
+    // Function for saving updated or new account
+    const handleSaveAccount = async (updatedAccount: CustomerAccount) => {
+        console.log("updatedAccount", updatedAccount);
+        await loadUserChatGPT();
+    };
 
     // Use useEffect to update formData when account changes
     useEffect(() => {
@@ -66,34 +88,7 @@ export function UserChatGPTDialog({
             // dialog chưa mở thì không làm gì
             if (!open) return;
 
-            // nếu không có account thì reset
-            if (!account?.id) {
-                setAccounts([]);
-                return;
-            }
-
-            setIsFetching(true);
-            try {
-                // set form
-                setFormData({
-                    ...account,
-                    start_date: account.start_date ? new Date(account.start_date).toISOString().slice(0, 10) : '',
-                    end_date: account.end_date ? new Date(account.end_date).toISOString().slice(0, 10) : '',
-                });
-
-                // load accounts
-                if (sessionId) {
-                    const res = await getAccountsByChatgptId(sessionId, account.id);
-                    setAccounts(res.data || []);
-                } else {
-                    setAccounts([]);
-                }
-            } catch (e) {
-                console.error("Load accounts by chatgpt_id failed:", e);
-                setAccounts([]);
-            } finally {
-                setIsFetching(false);
-            }
+            await loadUserChatGPT();
         };
 
         run();
@@ -105,6 +100,36 @@ export function UserChatGPTDialog({
         return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString("vi-VN");
     };
 
+    const loadUserChatGPT = async () => {
+        // nếu không có account thì reset
+        if (!account?.id) {
+            setAccounts([]);
+            return;
+        }
+
+        setIsFetching(true);
+        try {
+            // set form
+            setFormData({
+                ...account,
+                start_date: account.start_date ? new Date(account.start_date).toISOString().slice(0, 10) : '',
+                end_date: account.end_date ? new Date(account.end_date).toISOString().slice(0, 10) : '',
+            });
+
+            // load accounts
+            if (sessionId) {
+                const res = await getAccountsByChatgptId(sessionId, account.id);
+                setAccounts(res.data || []);
+            } else {
+                setAccounts([]);
+            }
+        } catch (e) {
+            console.error("Load accounts by chatgpt_id failed:", e);
+            setAccounts([]);
+        } finally {
+            setIsFetching(false);
+        }
+    };
 
     const statusBadge = (status: string) => {
         const s = (status || "").toLowerCase();
@@ -118,7 +143,16 @@ export function UserChatGPTDialog({
             <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-gray-900">
-                        {account ? 'Thông tin khách hàng' : 'Thêm tài khoản mới'}
+                        <div className='flex justify-between mt-5'>
+                            <p>{account ? 'Thông tin khách hàng' : 'Thêm tài khoản mới'}</p>
+                            <Button
+                                onClick={() => handleEditAccount(null)}
+                                className="w-full lg:w-auto bg-green-600 hover:bg-green-700"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Thêm tài khoản
+                            </Button>
+                        </div>
                     </DialogTitle>
                 </DialogHeader>
 
@@ -212,7 +246,19 @@ export function UserChatGPTDialog({
                         </Table>
                     </CardContent>
                 )}
+
+                <EditCustomerAccountDialog
+                    account={editAccountDialog.account}
+                    open={editAccountDialog.open}
+                    onOpenChange={(open) => setEditAccountDialog({ ...editAccountDialog, open })}
+                    onSave={handleSaveAccount}
+                />
+
             </DialogContent>
         </Dialog>
+
+
     );
+
+
 }

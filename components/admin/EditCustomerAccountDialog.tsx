@@ -243,7 +243,7 @@ export function EditCustomerAccountDialog({
               </div>
 
               <div>
-                <Label htmlFor="link">Link dịch vụ</Label>
+                <Label htmlFor="link">Link Facebook, Zalo, Tele...</Label>
                 <Input
                   id="link"
                   type="url"

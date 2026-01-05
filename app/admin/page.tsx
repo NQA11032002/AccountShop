@@ -1168,6 +1168,29 @@ QAI Store - Tài khoản premium uy tín #1
 
   const handleEditChatGPT = (product: ChatgptPayload | null) => {
     setEditChatGPTDialog({ open: true, product });
+
+    useMemo(() => {
+      const TODAY = new Date().toLocaleDateString("en-CA");
+
+      const today = TODAY; // xem phần dưới
+      const q = deferredSearch.trim().toLowerCase();
+
+      return chatgpts.filter((item) => {
+        if (q && !item.email?.toLowerCase().includes(q)) return false;
+
+        if (advancedFilter === "smallTeam" && item.count_user >= 5) return false;
+
+        if (advancedFilter === "endToday") {
+          if (item.end_date?.slice(0, 10) !== today) return false;
+        }
+
+        if (statusFilter !== "all" && item.status !== statusFilter) return false;
+        if (categoryFilter !== "all" && item.category !== categoryFilter) return false;
+
+        return true;
+      });
+    }, [chatgpts, advancedFilter, statusFilter, categoryFilter, deferredSearch]);
+
   };
 
 
@@ -2999,10 +3022,10 @@ QAI Store - Tài khoản premium uy tín #1
 
               {/* Sub Navigation */}
               <Tabs defaultValue="products" className="w-full">
-                <TabsList className="flex w-full overflow-x-auto whitespace-nowrap">
+                <TabsList className="flex w-full overflow-x-auto whitespace-nowrap justify-around">
                   <TabsTrigger
                     value="products"
-                    className="flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="flex w-full items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     <Package className="w-4 h-4" />
                     <span className="hidden sm:inline">Quản lý sản phẩm</span>
@@ -3011,7 +3034,7 @@ QAI Store - Tài khoản premium uy tín #1
 
                   <TabsTrigger
                     value="accounts"
-                    className="flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="flex w-full  items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     <UserCheck className="w-4 h-4" />
                     <span className="hidden sm:inline">Tài khoản khách hàng</span>
@@ -3020,7 +3043,7 @@ QAI Store - Tài khoản premium uy tín #1
 
                   <TabsTrigger
                     value="chatgpts"
-                    className="flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="flex w-full  items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     <Package className="w-4 h-4" />
                     <span className="hidden sm:inline">Quản lý Chat GPT</span>
@@ -3478,8 +3501,7 @@ QAI Store - Tài khoản premium uy tín #1
                         </div>
 
                         {/* Controls */}
-                        <div className="w-full lg:w-auto space-y-3 lg:space-y-0">
-
+                        <div className="w-full lg:w-auto space-y-3 lg:space-y-0 md:flex md:gap-3">
                           {/* Row 1: selects */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:flex lg:flex-wrap lg:items-center">
                             <Select value={accountFilterType} onValueChange={setAccountFilterType}>
@@ -3904,7 +3926,7 @@ QAI Store - Tài khoản premium uy tín #1
               <CardContent className="p-8">
                 {/* Enhanced Search and Filter with Send Account Actions */}
                 <div className="flex flex-col lg:flex-row gap-4 items-center mb-6">
-                  <div className="relative flex-1 sm:w-full ">
+                  <div className="relative sm:w-full ">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       placeholder="🔍 Tìm kiếm đơn hàng, khách hàng..."
