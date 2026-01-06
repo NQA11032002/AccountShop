@@ -101,6 +101,7 @@ import DepositApprovals from '@/components/admin/DepositApprovals';
 import { exportUsersToExcel, exportProductsToExcel, exportOrdersToExcel, exportDetailedOrdersToExcel } from '@/lib/excelExport';
 import DataSyncHelper from '@/lib/syncHelper';
 import { CustomerRank } from '@/types/RankingData.interface';
+import { updateAdminUser, addAdminUser } from '@/lib/api'; // Import hàm updateUser
 import {
   AreaChart,
   Area,
@@ -452,23 +453,25 @@ QAI Store - Tài khoản premium uy tín #1
 
   // Subscribe to data synchronization changes
   useEffect(() => {
-    const unsubscribe = DataSyncHelper.subscribeToAdminChanges((type, data) => {
+    //   const unsubscribe = DataSyncHelper.subscribeToAdminChanges((type, data) => {
 
-      switch (type) {
-        case 'users':
-          setUsers(data);
-          break;
-        case 'products':
-          setProducts(data);
-          break;
-        case 'orders':
-          setOrders(data);
-          break;
-        case 'accounts':
-          setCustomerAccounts(data);
-          break;
-      }
-    });
+    //     switch (type) {
+    //       case 'users':
+    //         setUsers(data);
+    //         break;
+    //       case 'products':
+    //         setProducts(data);
+    //         break;
+    //       case 'orders':
+    //         setOrders(data);
+    //         break;
+    //       case 'accounts':
+    //         setCustomerAccounts(data);
+    //         break;
+    //     }
+    //   }
+
+    // );
 
     // 📥 Hàm xử lý import Excel
 
@@ -530,7 +533,7 @@ QAI Store - Tài khoản premium uy tín #1
     });
 
     return () => {
-      unsubscribe();
+      // unsubscribe();
       unsubscribeOrderCompletion();
       unsubscribeGlobalSync();
       window.removeEventListener('admin-order-completed', handleAdminOrderCompleted);
@@ -540,30 +543,8 @@ QAI Store - Tài khoản premium uy tín #1
   const loadDashboardData = async (forceAPI = false) => {
 
     try {
-      // Load user wallets first using direct API call
-      const syncedWallets = await DataSyncHelper.fetchFromAPI('userWallets') || [];
-      setUserWallets(syncedWallets);
-      // Load users with JSON API support
       if (sessionId) {
-        const syncedUsers = await fetchAdminUsers(sessionId);
-
-        if (syncedUsers.data.length > 0) {
-          const usersWithStats = syncedUsers.data.map((user: any) => {
-            // Find user's wallet data
-            // const userWallet = syncedWallets.find((wallet: any) => wallet.userId === user.id);
-            return {
-              ...user,
-              status: user.status || 'active',
-              totalOrders: user.total_orders,
-              totalSpent: user.total_spent,
-              coins: user.coins,
-              joinDate: user.join_date
-            };
-          });
-
-          setUsers(usersWithStats);
-        }
-
+        await loadUser();
         await loadProducts();
         await loadOnetimecode();
         await loadCustomerAccounts(sessionId);
@@ -576,6 +557,30 @@ QAI Store - Tài khoản premium uy tín #1
       console.error('❌ Error loading dashboard data:', error);
     }
   };
+
+  const loadUser = async () => {
+    if (sessionId) {
+      const syncedUsers = await fetchAdminUsers(sessionId);
+
+      if (syncedUsers.data.length > 0) {
+        const usersWithStats = syncedUsers.data.map((user: any) => {
+          // Find user's wallet data
+          // const userWallet = syncedWallets.find((wallet: any) => wallet.userId === user.id);
+          return {
+            ...user,
+            status: user.status || 'active',
+            totalOrders: user.total_orders,
+            totalSpent: user.total_spent,
+            coins: user.coins,
+            joinDate: user.join_date
+          };
+        });
+
+        setUsers(usersWithStats);
+      }
+    }
+  };
+
 
   const loadOnetimecode = async () => {
     if (!sessionId) return;
@@ -712,8 +717,8 @@ QAI Store - Tài khoản premium uy tín #1
   const getStatusBadge = (status: string, type: 'user' | 'product' | 'order') => {
     const variants: { [key: string]: string } = {
       active: 'bg-green-100 text-green-800',
-      inactive: 'bg-gray-100 text-gray-800',
-      banned: 'bg-red-100 text-red-800',
+      inactive: 'bg-red-100 text-gray-800',
+      banned: 'bg-red-300 text-red-800',
       pending: 'bg-yellow-100 text-yellow-800',
       processing: 'bg-blue-100 text-blue-800',
       completed: 'bg-green-100 text-green-800',
@@ -837,59 +842,13 @@ QAI Store - Tài khoản premium uy tín #1
 
 
   // CRUD Operations
-  const handleEditUser = (user: User | null) => {
+  const handleEditUser = async (user: User | null) => {
     setEditUserDialog({ open: true, user });
 
-    if (sessionId)
-      loadCustomerAccounts(sessionId);
   };
 
-  const handleSaveUser = (userData: User) => {
-    let updatedUsers: User[];
-
-    if (editUserDialog.user) {
-      // Update existing user
-      updatedUsers = users.map(u => u.id === userData.id ? userData : u);
-      setUsers(updatedUsers);
-
-      // Also update localStorage for existing users
-      const storedUsers = localStorage.getItem('qai_users');
-      if (storedUsers) {
-        const legacyUsers = JSON.parse(storedUsers);
-        const updatedLegacyUsers = legacyUsers.map((u: any) =>
-          u.id === userData.id ? { ...u, ...userData } : u
-        );
-        // localStorage.setItem('qai_users', JSON.stringify(updatedLegacyUsers));
-      }
-
-      toast({
-        title: "Cập nhật thành công",
-        description: `Thông tin người dùng ${userData.name} đã được cập nhật.`,
-      });
-    } else {
-      // Add new user
-      const newUser = { ...userData, id: Date.now().toString() };
-      updatedUsers = [...users, newUser];
-      setUsers(updatedUsers);
-
-      toast({
-        title: "Tạo mới thành công",
-        description: `Người dùng ${userData.name} đã được tạo.`,
-      });
-
-      // Save to localStorage
-      const storedUsers = localStorage.getItem('qai_users');
-      const legacyUsers = storedUsers ? JSON.parse(storedUsers) : [];
-      legacyUsers.push({
-        ...newUser,
-        password: 'default123', // Default password
-        joinDate: new Date().toISOString()
-      });
-      // localStorage.setItem('qai_users', JSON.stringify(legacyUsers));
-    }
-
-    // Sync changes across all admin tabs
-    DataSyncHelper.syncAdminData('users', updatedUsers);
+  const handleSaveUser = async () => {
+    await loadUser();
   };
 
   const handleDeleteCode = async () => {
@@ -2894,6 +2853,7 @@ QAI Store - Tài khoản premium uy tín #1
                       <TableHead>Người dùng</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
+                      <TableHead>Hạng</TableHead>
                       <TableHead>Ngày tham gia</TableHead>
                       <TableHead>Đơn hàng</TableHead>
                       <TableHead>Tổng chi tiêu</TableHead>
@@ -2923,6 +2883,7 @@ QAI Store - Tài khoản premium uy tín #1
                         </TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{user.phone}</TableCell>
+                        <TableCell>{user.rank}</TableCell>
                         <TableCell>{user.joinDate}</TableCell>
                         <TableCell>{user.totalOrders}</TableCell>
                         <TableCell>{user.totalSpent?.toLocaleString('vi-VN')}đ</TableCell>

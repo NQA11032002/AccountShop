@@ -8,14 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { User } from '@/types/user.interface';
-import { updateAdminUser } from '@/lib/api'; // Import hàm updateUser
+import { updateAdminUser, addAdminUser } from '@/lib/api'; // Import hàm updateUser
 import { useAuth } from '@/contexts/AuthContext';
-
+import { useToast } from '@/hooks/use-toast';
 interface EditUserDialogProps {
   user: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (user: User) => void;
+  onSave: () => void;
 }
 
 export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDialogProps) {
@@ -46,6 +46,7 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const { sessionId } = useAuth();
+  const { toast } = useToast();
 
   // Reset form data when user prop changes or dialog opens
   useEffect(() => {
@@ -65,25 +66,43 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
     }
 
     try {
-      // Call updateAdminUser API to update user
-      const updatedUser = await updateAdminUser(sessionId, formData.id, formData);
+      // UPDATE
+      if (user) {
+        console.log("zxc");
+        const updated = await updateAdminUser(sessionId, formData.id, formData);
 
-      // Normalize the response data if necessary
-      const normalizedUser = {
-        ...updatedUser.user,
-        totalOrders: updatedUser.user.total_orders,
-        totalSpent: updatedUser.user.total_spent,
-        joinDate: updatedUser.user.join_date
-      };
+        toast({
+          title: "Cập nhật thành công",
+          description: `Thông tin người dùng ${updated?.name ?? updated.name} đã được cập nhật.`,
+        });
+      }
+      // CREATE
+      else {
+        const created = await addAdminUser(sessionId, formData);
 
-      onSave(normalizedUser); // Call onSave to update the user in the parent component
+        toast({
+          title: "Tạo mới thành công",
+          description: `Người dùng ${created?.name} đã được tạo.`,
+        });
+      }
+
+      // reload danh sách user / accounts tùy bạn đang hiển thị gì
 
       onOpenChange(false); // Close the dialog after update
+      // ✅ BẮT BUỘC: gọi callback để page reload list
+
+      await onSave?.();
+
     } catch (err: any) {
-      setError(err.message || 'Error saving user');
+      toast({
+        title: "Thao tác thất bại",
+        description: err?.message ?? "Có lỗi xảy ra, vui lòng thử lại.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
+
   };
 
   return (
@@ -99,6 +118,19 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
+          {/* Name */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="email" className="text-right">Mail</Label>
+            <Input
+              id="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="col-span-3"
+              placeholder="xxxx@xxx.com"
+              type='email'
+            />
+          </div>
+
           {/* Name */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Họ tên</Label>
