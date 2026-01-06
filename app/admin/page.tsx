@@ -3445,7 +3445,7 @@ QAI Store - Tài khoản premium uy tín #1
 
                     <CardContent className="p-6">
                       {/* Enhanced Search and Filter */}
-                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-5">
 
                         {/* Search */}
                         <div className="relative w-full lg:flex-1 lg:max-w-lg">
