@@ -82,16 +82,16 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
   const { toast } = useToast();
 
   const paymentMethods: PaymentMethod[] = [
-    {
-      id: 'card',
-      name: 'Thẻ tín dụng/ghi nợ',
-      type: 'card',
-      icon: <CreditCard className="w-5 h-5" />,
-      fee: 2500,
-      processingTime: 'Tức thì',
-      description: 'Visa, Mastercard, JCB',
-      isActive: true
-    },
+    // {
+    //   id: 'card',
+    //   name: 'Thẻ tín dụng/ghi nợ',
+    //   type: 'card',
+    //   icon: <CreditCard className="w-5 h-5" />,
+    //   fee: 2500,
+    //   processingTime: 'Tức thì',
+    //   description: 'Visa, Mastercard, JCB',
+    //   isActive: true
+    // },
     {
       id: 'banking',
       name: 'Chuyển khoản ngân hàng',
@@ -102,26 +102,26 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
       description: 'Chuyển khoản qua Internet Banking',
       isActive: true
     },
-    {
-      id: 'momo',
-      name: 'Ví MoMo',
-      type: 'momo',
-      icon: <Smartphone className="w-5 h-5" />,
-      fee: 0,
-      processingTime: 'Tức thì',
-      description: 'Thanh toán qua ứng dụng MoMo',
-      isActive: true
-    },
-    {
-      id: 'crypto',
-      name: 'Tiền điện tử',
-      type: 'crypto',
-      icon: <Bitcoin className="w-5 h-5" />,
-      fee: 0,
-      processingTime: '10-30 phút',
-      description: 'Bitcoin, USDT, Ethereum',
-      isActive: true
-    }
+    // {
+    //   id: 'momo',
+    //   name: 'Ví MoMo',
+    //   type: 'momo',
+    //   icon: <Smartphone className="w-5 h-5" />,
+    //   fee: 0,
+    //   processingTime: 'Tức thì',
+    //   description: 'Thanh toán qua ứng dụng MoMo',
+    //   isActive: true
+    // },
+    // {
+    //   id: 'crypto',
+    //   name: 'Tiền điện tử',
+    //   type: 'crypto',
+    //   icon: <Bitcoin className="w-5 h-5" />,
+    //   fee: 0,
+    //   processingTime: '10-30 phút',
+    //   description: 'Bitcoin, USDT, Ethereum',
+    //   isActive: true
+    // }
   ];
 
   const selectedPaymentMethod = paymentMethods.find(m => m.id === selectedMethod);

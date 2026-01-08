@@ -236,7 +236,7 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
             "Chọn 'Chuyển khoản' hoặc 'Quét QR'",
             "Quét mã QR hoặc nhập thông tin người nhận",
             "Nhập đúng số tiền và nội dung chuyển khoản",
-            "Đã thanh toán",
+            "Nhấn nút 'Đã thanh toán'",
           ],
           account: '19073157703011',
           accountName: 'NGUYEN QUOC ANH',
@@ -454,7 +454,7 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
                   </h3>
                   <p className="text-gray-600 text-sm max-w-lg mx-auto">
                     Giao dịch của bạn đang chờ admin xác nhận.
-                    Thời gian xử lý thường từ 1-30 phút trong giờ hành chính.
+                    Nếu sau 10 phút chưa được duyệt liên hệ <span className='font-bold'>Zalo: 038.966.0305</span>
                   </p>
                 </div>
                 <div className="flex flex-col items-center space-y-3">

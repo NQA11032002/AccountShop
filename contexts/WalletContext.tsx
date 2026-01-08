@@ -63,17 +63,17 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   const depositMethods: DepositMethod[] = [
-    {
-      id: 'momo',
-      name: 'Ví MoMo',
-      type: 'momo',
-      icon: '📱',
-      fee: 0,
-      minAmount: 10000,
-      maxAmount: 10000000,
-      processingTime: 'Tức thì',
-      isActive: true
-    },
+    // {
+    //   id: 'momo',
+    //   name: 'Ví MoMo',
+    //   type: 'momo',
+    //   icon: '📱',
+    //   fee: 0,
+    //   minAmount: 10000,
+    //   maxAmount: 10000000,
+    //   processingTime: 'Tức thì',
+    //   isActive: true
+    // },
     {
       id: 'banking',
       name: 'Chuyển khoản ngân hàng',
@@ -85,28 +85,28 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       processingTime: '5-15 phút',
       isActive: true
     },
-    {
-      id: 'card',
-      name: 'Thẻ tín dụng/ghi nợ',
-      type: 'card',
-      icon: '💳',
-      fee: 2500,
-      minAmount: 20000,
-      maxAmount: 20000000,
-      processingTime: 'Tức thì',
-      isActive: true
-    },
-    {
-      id: 'crypto',
-      name: 'Cryptocurrency',
-      type: 'crypto',
-      icon: '₿',
-      fee: 0,
-      minAmount: 100000,
-      maxAmount: 100000000,
-      processingTime: '10-30 phút',
-      isActive: true
-    }
+    // {
+    //   id: 'card',
+    //   name: 'Thẻ tín dụng/ghi nợ',
+    //   type: 'card',
+    //   icon: '💳',
+    //   fee: 2500,
+    //   minAmount: 20000,
+    //   maxAmount: 20000000,
+    //   processingTime: 'Tức thì',
+    //   isActive: true
+    // },
+    // {
+    //   id: 'crypto',
+    //   name: 'Cryptocurrency',
+    //   type: 'crypto',
+    //   icon: '₿',
+    //   fee: 0,
+    //   minAmount: 100000,
+    //   maxAmount: 100000000,
+    //   processingTime: '10-30 phút',
+    //   isActive: true
+    // }
   ];
 
   // console.log("WalletProvider initialized", {

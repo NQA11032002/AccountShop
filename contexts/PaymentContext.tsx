@@ -88,14 +88,14 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const [paymentMethods] = useState<PaymentMethod[]>([
-    {
-      id: 'momo',
-      name: 'Ví MoMo',
-      type: 'momo',
-      fee: 0,
-      processingTime: 'Tức thì',
-      isActive: true
-    },
+    // {
+    //   id: 'momo',
+    //   name: 'Ví MoMo',
+    //   type: 'momo',
+    //   fee: 0,
+    //   processingTime: 'Tức thì',
+    //   isActive: true
+    // },
     {
       id: 'banking',
       name: 'Chuyển khoản ngân hàng',
@@ -104,22 +104,22 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       processingTime: '5-15 phút',
       isActive: true
     },
-    {
-      id: 'card',
-      name: 'Thẻ tín dụng/ghi nợ',
-      type: 'card',
-      fee: 2500,
-      processingTime: 'Tức thì',
-      isActive: true
-    },
-    {
-      id: 'crypto',
-      name: 'Cryptocurrency',
-      type: 'crypto',
-      fee: 0,
-      processingTime: '10-30 phút',
-      isActive: true
-    }
+    // {
+    //   id: 'card',
+    //   name: 'Thẻ tín dụng/ghi nợ',
+    //   type: 'card',
+    //   fee: 2500,
+    //   processingTime: 'Tức thì',
+    //   isActive: true
+    // },
+    // {
+    //   id: 'crypto',
+    //   name: 'Cryptocurrency',
+    //   type: 'crypto',
+    //   fee: 0,
+    //   processingTime: '10-30 phút',
+    //   isActive: true
+    // }
   ]);
 
   const [discountCodes] = useState<DiscountCode[]>([
