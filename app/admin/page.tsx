@@ -225,6 +225,7 @@ export default function AdminDashboard() {
     timer?: NodeJS.Timeout
   }
 
+  const [searchQuery, setSearchQuery] = useState('');
   const [otpMap, setOtpMap] = useState<Record<number, OtpState>>({});
 
   // Dialog states
@@ -453,27 +454,6 @@ QAI Store - Tài khoản premium uy tín #1
 
   // Subscribe to data synchronization changes
   useEffect(() => {
-    //   const unsubscribe = DataSyncHelper.subscribeToAdminChanges((type, data) => {
-
-    //     switch (type) {
-    //       case 'users':
-    //         setUsers(data);
-    //         break;
-    //       case 'products':
-    //         setProducts(data);
-    //         break;
-    //       case 'orders':
-    //         setOrders(data);
-    //         break;
-    //       case 'accounts':
-    //         setCustomerAccounts(data);
-    //         break;
-    //     }
-    //   }
-
-    // );
-
-    // 📥 Hàm xử lý import Excel
 
 
     // Khi BE/Realtime phát sự kiện hoàn tất đơn
@@ -590,18 +570,67 @@ QAI Store - Tài khoản premium uy tín #1
     setOnetimecodes(onetimecode.data);
   };
 
+  const [ordersMeta, setOrdersMeta] = useState({
+    page: 1,
+    perPage: 20,
+    total: 0,
+    lastPage: 1,
+  });
+
+  const [orderStats, setOrderStats] = useState({
+    totalRevenue: 0,
+    totalProcessing: 0,
+    totalOrders: 0,
+  });
+
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(20);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   const loadOrders = async () => {
     if (!sessionId) return;
 
-    const orders = await fetchAdminOrdersData(sessionId, {
-      includeProducts: true,
-      sort_by: 'created_at',
-      sort_dir: 'desc',
-    });
+    setLoadingOrders(true);
+    try {
+      const res = await fetchAdminOrdersData(sessionId, {
+        includeProducts: true,
+        sort_by: "created_at",
+        sort_dir: "desc",
+        page,
+        per_page: perPage,
 
-    setOrders(orders.data);
+        // nếu bạn có filter/search:
+        // status: orderFilterStatus !== "all" ? orderFilterStatus : undefined,
+        // q: orderSearchTerm?.trim() || undefined,
+        // date_from: dateFrom || undefined,
+        // date_to: dateTo || undefined,
+      });
+
+      setOrders(res.data || []);
+      setOrdersMeta(res.meta || { page, perPage, total: 0, lastPage: 1 });
+
+      // ✅ NEW: statistics từ backend
+      setOrderStats({
+        totalRevenue: Number(res.statistics?.totalRevenue || 0),
+        totalProcessing: Number(res.statistics?.totalProcessing || 0),
+        totalOrders: Number(res.statistics?.totalOrders || 0),
+      });
+    } finally {
+      setLoadingOrders(false);
+    }
   };
+
+
+  const totalOrder = ordersMeta.total;
+  const fromOrder = totalOrder === 0 ? 0 : (ordersMeta.page - 1) * ordersMeta.perPage + 1;
+  const toOrder = totalOrder === 0 ? 0 : (ordersMeta.page - 1) * ordersMeta.perPage + orders.length;
+
+
+  useEffect(() => {
+    loadOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, page, perPage /*, orderFilterStatus, orderSearchTerm, sort... */]);
+
 
   const loadProducts = async () => {
     if (sessionId) {
@@ -1017,7 +1046,7 @@ QAI Store - Tài khoản premium uy tín #1
       }
     });
   };
-  const [status, setStatus] = useState(false);
+
 
   const handleOnetimeCodeAdmin = async (id: number) => {
     if (!sessionId) return;
@@ -1885,13 +1914,6 @@ QAI Store - Tài khoản premium uy tín #1
         });
       }
 
-      console.log("📊 Email sending summary:", {
-        total: ordersToSend.length,
-        sent: sentCount,
-        failed: failedCount,
-        failedEmails,
-      });
-
       if (sentCount > 0) {
         setSendAccountModal({ open: false, order: null });
         setSelectedOrders([]);
@@ -2014,6 +2036,8 @@ QAI Store - Tài khoản premium uy tín #1
       });
     }
   };
+
+
 
   const handleViewAccountDetail = (account: CustomerAccount) => {
     // console.log("View account detail", { accountId: account.id });
@@ -2146,6 +2170,8 @@ QAI Store - Tài khoản premium uy tín #1
     return Array.from(new Set(customerAccounts.map(acc => acc.product_type)));
   };
 
+
+
   const handleSort = (column: 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType') => {
     if (accountSortBy === column) {
       setAccountSortOrder(accountSortOrder === 'asc' ? 'desc' : 'asc');
@@ -2154,6 +2180,17 @@ QAI Store - Tài khoản premium uy tín #1
       setAccountSortOrder('asc');
     }
   };
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  // nếu products có product.category = { id, name }
+  const categories = useMemo(() => {
+    const map = new Map<string, string>(); // id -> name
+    products?.forEach((p) => {
+      if (p?.category?.id && p?.category?.name) {
+        map.set(String(p.category.id), p.category.name);
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [products]);
 
   // Orders filtering and sorting functions
   const getFilteredAndSortedOrders = () => {
@@ -2186,6 +2223,45 @@ QAI Store - Tài khoản premium uy tín #1
 
     return filtered;
   };
+
+  const [status, setStatus] = useState(false);
+  const [currentPageProduct, setCurrentPageProduct] = useState(1);
+  const pageSize = 10;
+
+  const filteredProducts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+
+    return products.filter((product) => {
+      const matchName = !q || (product?.name ?? "").toLowerCase().includes(q);
+
+      const matchCategory =
+        selectedCategory === "all" ||
+        String(product?.category?.id) === selectedCategory;
+
+      return matchName && matchCategory;
+    });
+  }, [products, searchQuery, selectedCategory]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPageProduct - 1) * pageSize;
+    return filteredProducts.slice(start, start + pageSize);
+  }, [filteredProducts, currentPageProduct, pageSize]);
+
+
+  const total = products.length;
+
+  const from = total === 0 ? 0 : (currentPageProduct - 1) * pageSize + 1;
+  const to =
+    total === 0
+      ? 0
+      : (currentPageProduct - 1) * pageSize + paginatedProducts.length; // chuẩn nhất
+
+
+  useEffect(() => {
+    setCurrentPageProduct(1);
+  }, [searchQuery, selectedCategory]);
 
   const filteredOrders = getFilteredAndSortedOrders();
 
@@ -2377,7 +2453,7 @@ QAI Store - Tài khoản premium uy tín #1
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-blue-100">Tổng người dùng</p>
-                        <p className="text-3xl font-bold">{stats.totalUsers}</p>
+                        <p className="text-3xl font-bold">{users.length}</p>
                         <p className="text-sm text-blue-200 mt-1">
                           <TrendingUp className="w-3 h-3 inline mr-1" />
                           +12% từ tháng trước
@@ -2393,7 +2469,9 @@ QAI Store - Tài khoản premium uy tín #1
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-green-100">Tổng doanh thu</p>
-                        <p className="text-3xl font-bold">{(stats.totalRevenue).toLocaleString('vi-VN')}đ</p>
+                        <p className="text-3xl font-bold">
+                          {Number(orderStats.totalRevenue).toLocaleString("vi-VN")}đ
+                        </p>
                         <p className="text-sm text-green-200 mt-1">
                           <TrendingUp className="w-3 h-3 inline mr-1" />
                           +8% từ tháng trước
@@ -2425,7 +2503,8 @@ QAI Store - Tài khoản premium uy tín #1
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-orange-100">Đơn hàng chờ</p>
-                        <p className="text-3xl font-bold">{stats.pendingOrders}</p>
+                        <p className="text-3xl font-bold">    {orderStats.totalProcessing}
+                        </p>
                         <p className="text-sm text-orange-200 mt-1">
                           <Clock className="w-3 h-3 inline mr-1" />
                           Cần xử lý
@@ -2721,7 +2800,7 @@ QAI Store - Tài khoản premium uy tín #1
                           </div>
 
                           <div className="text-left sm:text-right sm:flex">
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-gray-900 mr-2">
                               {order.total.toLocaleString("vi-VN")}đ
                             </p>
                             <p>{getStatusBadge(order.status, "order")}</p>
@@ -2850,6 +2929,7 @@ QAI Store - Tài khoản premium uy tín #1
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>ID</TableHead>
                       <TableHead>Người dùng</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
@@ -2872,12 +2952,9 @@ QAI Store - Tài khoản premium uy tín #1
                     ).map((user) => (
 
                       <TableRow key={user.id}>
+                        <TableCell>{user.id}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <Avatar>
-                              <AvatarImage src={user.avatar} alt={user.name} />
-                              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
                             <span className="font-medium">{user.name}</span>
                           </div>
                         </TableCell>
@@ -2949,7 +3026,8 @@ QAI Store - Tài khoản premium uy tín #1
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-green-100 text-sm">Sản phẩm hoạt động</p>
-                        <p className="text-2xl font-bold">{stats.activeProducts}</p>
+                        <p className="text-2xl font-bold">  {products.filter(p => p?.status == "active").length}
+                        </p>
                       </div>
                       <CheckCircle className="w-8 h-8 text-green-200" />
                     </div>
@@ -3215,8 +3293,8 @@ QAI Store - Tài khoản premium uy tín #1
                                 <span
                                   className={`
                                   px-2 py-1 rounded  font-medium
-                                  ${item.category === 'plus' ? 'text-white bg-yellow-500' : ''}
-                                  ${item.category === 'business' ? 'text-white bg-blue-500' : ''}
+                                  ${item.category === 'Plus' ? 'text-white bg-green-500' : ''}
+                                  ${item.category === 'Business' ? 'text-white bg-violet-500' : ''}
                                 `}
                                 >
                                   {item.category}
@@ -3318,27 +3396,72 @@ QAI Store - Tài khoản premium uy tín #1
                 <TabsContent value="products">
                   <Card>
                     <CardHeader>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <CardTitle className="text-lg sm:text-xl">
-                          Quản lý sản phẩm
-                        </CardTitle>
+                      <div className="flex flex-col gap-3">
+                        <CardTitle className="text-lg sm:text-xl">Quản lý sản phẩm</CardTitle>
 
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end">
-                          <Button onClick={handleExportProducts} className="w-full sm:w-auto">
-                            <Download className="w-4 h-4 mr-2" />
-                            Xuất Excel
-                          </Button>
+                        {/* Responsive row */}
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                          {/* SEARCH: full width on mobile, flexible on desktop */}
+                          <div className="relative w-full sm:flex-1 sm:min-w-[280px]">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                              <Search className="h-5 w-5 text-brand-blue" />
+                            </div>
 
-                          <Button
-                            onClick={() => handleEditProduct(null)}
-                            className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Thêm sản phẩm
-                          </Button>
+                            <Input
+                              type="text"
+                              placeholder="🔍 Tìm kiếm theo tên sản phẩm"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              className="lg:w-1/3 sm:w-full pl-12 pr-10 py-4 text-sm border-2 border-gray-200 rounded-md focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/20 transition-all duration-300 bg-white shadow-inner"
+                            />
+
+                            {searchQuery && (
+                              <button
+                                type="button"
+                                onClick={() => setSearchQuery("")}
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+                                aria-label="Xóa tìm kiếm"
+                              >
+                                {/* <X className="h-5 w-5" /> */}
+                                ✕
+                              </button>
+                            )}
+                          </div>
+
+                          {/* ACTIONS: wrap nicely */}
+                          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:flex-nowrap">
+
+                            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                              <SelectTrigger className="w-full sm:w-[220px] rounded-md">
+                                <SelectValue placeholder="Chọn danh mục" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">Tất cả danh mục</SelectItem>
+                                {categories.map((c) => (
+                                  <SelectItem key={c.id} value={c.id}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            <Button onClick={handleExportProducts} className="w-full sm:w-auto">
+                              <Download className="w-4 h-4 mr-2" />
+                              Xuất Excel
+                            </Button>
+
+                            <Button
+                              onClick={() => handleEditProduct(null)}
+                              className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Thêm sản phẩm
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CardHeader>
+
 
                     <CardContent>
                       <Table>
@@ -3356,7 +3479,7 @@ QAI Store - Tài khoản premium uy tín #1
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {products.map((product) => (
+                          {paginatedProducts.map((product) => (
                             <TableRow key={product.id}>
                               <TableCell className="font-medium">{product.id}</TableCell>
                               <TableCell className="font-medium">{product.name}</TableCell>
@@ -3391,7 +3514,59 @@ QAI Store - Tài khoản premium uy tín #1
                       </Table>
                     </CardContent>
                   </Card>
+
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mt-4">
+
+                    <p className="text-sm text-gray-500">
+                      Hiển thị {from} - {to} / {total} sản phẩm
+                    </p>
+
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPageProduct(1)}
+                        disabled={currentPageProduct === 1}
+                      >
+                        « Đầu
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPageProduct((p) => Math.max(1, p - 1))}
+                        disabled={currentPageProduct === 1}
+                      >
+                        ‹ Trước
+                      </Button>
+
+                      <span className="text-sm px-2">
+                        Trang <b>{currentPageProduct}</b> / {totalPages}
+                      </span>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPageProduct((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPageProduct === totalPages}
+                      >
+                        Sau ›
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPageProduct(totalPages)}
+                        disabled={currentPageProduct === totalPages}
+                      >
+                        Cuối »
+                      </Button>
+                    </div>
+                  </div>
                 </TabsContent>
+
+
+
 
                 {/* Customer Accounts Management */}
                 <TabsContent value="accounts">
@@ -3887,17 +4062,17 @@ QAI Store - Tài khoản premium uy tín #1
               <CardContent className="p-8">
                 {/* Enhanced Search and Filter with Send Account Actions */}
                 <div className="flex flex-col lg:flex-row gap-4 items-center mb-6">
-                  <div className="relative sm:w-full ">
+                  <div className="relative sm:w-full w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       placeholder="🔍 Tìm kiếm đơn hàng, khách hàng..."
                       value={orderSearchTerm}
                       onChange={(e) => setOrderSearchTerm(e.target.value)}
-                      className="pl-10 border-2 border-gray-200 focus:border-orange-500 transition-colors"
+                      className="pl-10 border-2 border-gray-200 focus:border-orange-500 transition-colors w-full"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 sm:w-full lg:flex lg:items-center gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 sm:w-full lg:flex lg:items-center gap-3 w-full">
                     <Select value={orderFilterStatus} onValueChange={setOrderFilterStatus}>
                       <SelectTrigger className="w-full border-2 border-gray-200 hover:border-orange-500 transition-colors">
                         <Filter className="w-4 h-4 mr-2" />
@@ -4017,9 +4192,7 @@ QAI Store - Tài khoản premium uy tín #1
                           </TableCell> */}
                           <TableCell>
                             <div className="flex items-center space-x-2">
-                              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                                {/* {order.id.slice(-2)} */}
-                              </div>
+
                               <span className="font-medium">#{order.id}</span>
                             </div>
                           </TableCell>
@@ -4181,7 +4354,62 @@ QAI Store - Tài khoản premium uy tín #1
                         </TableRow>
                       )}
                     </TableBody>
+
                   </Table>
+
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-3 pb-3">
+                    <p className="text-sm text-gray-500">
+                      Hiển thị {fromOrder} - {toOrder} / {totalOrder} đơn hàng
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(1)}
+                        disabled={page === 1 || loadingOrders}
+                        className="w-full sm:w-auto"
+                      >
+                        « Đầu
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1 || loadingOrders}
+                        className="w-full sm:w-auto"
+                      >
+                        ‹ Trước
+                      </Button>
+
+                      <span className="text-sm px-2 w-full sm:w-auto text-center sm:text-left">
+                        Trang <b>{page}</b> / {ordersMeta.lastPage}
+                      </span>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.min(ordersMeta.lastPage, p + 1))}
+                        disabled={page === ordersMeta.lastPage || loadingOrders}
+                        className="w-full sm:w-auto"
+                      >
+                        Sau ›
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(ordersMeta.lastPage)}
+                        disabled={page === ordersMeta.lastPage || loadingOrders}
+                        className="w-full sm:w-auto"
+                      >
+                        Cuối »
+                      </Button>
+                    </div>
+                  </div>
+
+
                 </div>
 
                 {/* Quick Actions */}
