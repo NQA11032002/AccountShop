@@ -111,7 +111,7 @@ export default function HeroSection() {
                   <h3 className="font-bold text-lg">Capcut Pro</h3>
                   <p className="text-red-100 text-sm">Mở khóa tính năng</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold">50K</span>
+                    <span className="text-2xl font-bold">10K</span>
                     <Badge className="bg-white text-red-600">Bán chạy</Badge>
                   </div>
                 </div>
@@ -141,7 +141,7 @@ export default function HeroSection() {
                   <h3 className="font-bold text-lg">ChatGPT Plus</h3>
                   <p className="text-purple-100 text-sm">không giới hạn tin nhắn</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold">79k</span>
+                    <span className="text-2xl font-bold">69k</span>
                     <Badge className="bg-white text-purple-600">Mới</Badge>
                   </div>
                 </div>

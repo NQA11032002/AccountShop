@@ -42,7 +42,7 @@ export default function FAQ() {
     },
     {
       question: 'Làm sao liên hệ hỗ trợ khi cần?',
-      answer: 'Bạn có thể liên hệ qua Telegram: @qaistore hoặc Zalo: 0123456789. Đội ngũ hỗ trợ làm việc 24/7, phản hồi trong vòng 5 phút.'
+      answer: 'Bạn có thể liên hệ qua Telegram: @qaistore hoặc Zalo: 038.966.0305. Đội ngũ hỗ trợ làm việc 24/7, phản hồi trong vòng 5 phút.'
     },
     {
       question: 'Có được đổi trả nếu không hài lòng?',
