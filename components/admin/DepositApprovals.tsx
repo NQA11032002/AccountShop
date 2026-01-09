@@ -38,30 +38,39 @@ export default function DepositApprovals() {
   const { toast } = useToast();
   const { sessionId } = useAuth(); // Lấy sessionId từ context
   const [isProcessingType, setIsProcessingType] = useState<string | null>(null);
+  const [currentPageTx, setCurrentPageTx] = useState(1);
+  const [perPageTx] = useState(10);
+  const [metaTx, setMetaTx] = useState<any>(null);
+  const [loadingTx, setLoadingTx] = useState(false);
 
   /// Load pending deposits from API
   const loadPendingDeposits = async () => {
     try {
-
       if (!sessionId) return;
-      // Thay vì lấy từ localStorage, gọi API để lấy danh sách giao dịch
-      const response = await fetchAllTransactions(sessionId);
 
-      if (response.data.length > 0) {
-        // Assuming response is an array of pending deposits
-        const deposits = response.data.map((deposit: any) => ({
-          orderId: deposit.id || '',
-          transaction_id: deposit.transaction_id || '',
-          userEmail: deposit.user.email || '',
-          userId: deposit.userId || '',
-          amount: deposit.amount || 0,
-          type: deposit.type || '',
-          created_at: deposit.created_at || new Date().toISOString(),
-          status: deposit.status || 'pending',
-        })) as PendingDeposit[];
+      setLoadingTx(true);
 
-        setPendingDeposits(deposits);
-        setFilteredDeposits(deposits);
+      const response = await fetchAllTransactions(sessionId, currentPageTx, perPageTx);
+
+      const deposits = (response.data ?? []).map((deposit: any) => ({
+        orderId: deposit.id || '',
+        transaction_id: deposit.transaction_id || '',
+        userEmail: deposit.user?.email || '',
+        userId: deposit.userId || '',
+        amount: deposit.amount || 0,
+        type: deposit.type || '',
+        fee: deposit.fee || 0,
+        created_at: deposit.created_at || new Date().toISOString(),
+        status: deposit.status || 'pending',
+      })) as PendingDeposit[];
+
+      setPendingDeposits(deposits);
+      setFilteredDeposits(deposits); // ⚠️ lưu ý: nếu bạn muốn search trên toàn bộ DB thì phải search ở backend
+      setMetaTx(response.meta);
+
+      // ✅ sync/clamp page (tránh dư trang rỗng)
+      if (response.meta?.current_page && response.meta.current_page !== currentPageTx) {
+        setCurrentPageTx(response.meta.current_page);
       }
     } catch (error: any) {
       toast({
@@ -70,9 +79,22 @@ export default function DepositApprovals() {
         variant: 'destructive',
       });
     } finally {
-      setIsProcessingType(''); // Reset loại xử lý sau khi hoàn thành
+      setLoadingTx(false);
+      setIsProcessingType('');
     }
   };
+
+  useEffect(() => {
+    loadPendingDeposits();
+  }, [sessionId, currentPageTx]);
+
+  const totalTx = metaTx?.total ?? 0;
+  const perPageMetaTx = metaTx?.per_page ?? perPageTx;
+  const totalPagesTx = metaTx?.last_page ?? 1;
+  const currentPageMetaTx = metaTx?.current_page ?? currentPageTx;
+
+  const fromTx = totalTx === 0 ? 0 : (currentPageMetaTx - 1) * perPageMetaTx + 1;
+  const toTx = Math.min(currentPageMetaTx * perPageMetaTx, totalTx);
 
   /// Renew load pending deposits from API
   const renewLoadPendingDeposits = async () => {
@@ -443,6 +465,55 @@ export default function DepositApprovals() {
               </TableBody>
             </Table>
           </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-3 pt-4">
+            <p className="text-sm text-gray-500">
+              Hiển thị {fromTx} - {toTx} / {totalTx} giao dịch
+            </p>
+
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPageTx(1)}
+                disabled={currentPageTx === 1 || loadingTx}
+              >
+                « Đầu
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPageTx((p) => Math.max(1, p - 1))}
+                disabled={currentPageTx === 1 || loadingTx}
+              >
+                ‹ Trước
+              </Button>
+
+              <span className="text-sm px-2">
+                Trang <b>{currentPageTx}</b> / {totalPagesTx}
+              </span>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPageTx((p) => Math.min(totalPagesTx, p + 1))}
+                disabled={currentPageTx === totalPagesTx || loadingTx}
+              >
+                Sau ›
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPageTx(totalPagesTx)}
+                disabled={currentPageTx === totalPagesTx || loadingTx}
+              >
+                Cuối »
+              </Button>
+            </div>
+          </div>
+
         </CardContent>
       </Card>
     </div>

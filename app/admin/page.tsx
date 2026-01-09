@@ -538,37 +538,104 @@ QAI Store - Tài khoản premium uy tín #1
     }
   };
 
-  const loadUser = async () => {
-    if (sessionId) {
-      const syncedUsers = await fetchAdminUsers(sessionId);
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    if (refreshing) return;
 
-      if (syncedUsers.data.length > 0) {
-        const usersWithStats = syncedUsers.data.map((user: any) => {
-          // Find user's wallet data
-          // const userWallet = syncedWallets.find((wallet: any) => wallet.userId === user.id);
-          return {
-            ...user,
-            status: user.status || 'active',
-            totalOrders: user.total_orders,
-            totalSpent: user.total_spent,
-            coins: user.coins,
-            joinDate: user.join_date
-          };
-        });
-
-        setUsers(usersWithStats);
-      }
+    try {
+      setRefreshing(true);
+      await loadOrders();
+    } finally {
+      setRefreshing(false);
     }
   };
 
+  const [currentPageUser, setCurrentPageUser] = useState(1);
+  const [perPageUser] = useState(10);
+  const [metaUser, setMetaUser] = useState<any>(null);
+  useEffect(() => {
+    loadUser();
+  }, [sessionId, currentPageUser]);
+
+  const loadUser = async () => {
+    if (!sessionId) return;
+
+    const res = await fetchAdminUsers(sessionId, currentPageUser, perPageUser);
+
+    const usersWithStats = (res.data ?? []).map((user: any) => ({
+      ...user,
+      status: user.status || "active",
+      totalOrders: user.total_orders,
+      totalSpent: user.total_spent,
+      coins: user.coins,
+      joinDate: user.join_date,
+    }));
+
+    setUsers(usersWithStats);
+    setMetaUser(res.meta);
+
+    // sync/clamp page (tránh dư trang rỗng)
+    if (res.meta?.current_page && res.meta.current_page !== currentPageUser) {
+      setCurrentPageUser(res.meta.current_page);
+    }
+  };
+  const totalUser = metaUser?.total ?? 0;
+  const perPageMetaUser = metaUser?.per_page ?? perPageUser;
+  const currentPageMetaUser = metaUser?.current_page ?? currentPageUser;
+  const totalPagesUser = metaUser?.last_page ?? 1;
+
+  const fromUser =
+    totalUser === 0 ? 0 : (currentPageMetaUser - 1) * perPageMetaUser + 1;
+
+  const toUser = Math.min(currentPageMetaUser * perPageMetaUser, totalUser);
+
+  //=======================================================
+
+  const [currentPageOnetimecode, setCurrentPageOnetimecode] = useState(1);
+  const [perPageOnetimecode] = useState(10);
+  const [metaOnetimecode, setMetaOnetimecode] = useState<any>(null);
+
+  useEffect(() => {
+    loadOnetimecode();
+  }, [sessionId, currentPageOnetimecode]);
 
   const loadOnetimecode = async () => {
     if (!sessionId) return;
 
-    const onetimecode = await getOnetimecodes(sessionId);
+    const res = await getOnetimecodes(
+      sessionId,
+      currentPageOnetimecode,
+      perPageOnetimecode
+    );
 
-    setOnetimecodes(onetimecode.data);
+    setOnetimecodes(res.data);
+    setMetaOnetimecode(res.meta);
+
+    // ✅ đồng bộ page nếu backend clamp lại
+    if (res.meta?.current_page !== currentPageOnetimecode) {
+      setCurrentPageOnetimecode(res.meta.current_page);
+    }
   };
+
+  const totalOnetimecode = metaOnetimecode?.total ?? 0;
+  const perPageMetaOnetimecode =
+    metaOnetimecode?.per_page ?? perPageOnetimecode;
+
+  const currentPageMetaOnetimecode =
+    metaOnetimecode?.current_page ?? currentPageOnetimecode;
+
+  const fromOnetimecode =
+    totalOnetimecode === 0
+      ? 0
+      : (currentPageMetaOnetimecode - 1) * perPageMetaOnetimecode + 1;
+
+  const toOnetimecode = Math.min(
+    currentPageMetaOnetimecode * perPageMetaOnetimecode,
+    totalOnetimecode
+  );
+
+  const totalPageOnetimecode = metaOnetimecode?.last_page ?? 1;
+
 
   const [ordersMeta, setOrdersMeta] = useState({
     page: 1,
@@ -1002,8 +1069,6 @@ QAI Store - Tài khoản premium uy tín #1
       });
     }
   };
-
-
 
 
   const [error, setError] = useState<string>('');
@@ -2224,7 +2289,6 @@ QAI Store - Tài khoản premium uy tín #1
     return filtered;
   };
 
-  const [status, setStatus] = useState(false);
   const [currentPageProduct, setCurrentPageProduct] = useState(1);
   const pageSize = 10;
 
@@ -3001,6 +3065,54 @@ QAI Store - Tài khoản premium uy tín #1
                   </TableBody>
                 </Table>
               </CardContent>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pb-3 px-3">
+                <p className="text-sm text-gray-500">
+                  Hiển thị {fromUser} - {toUser} / {totalUser} user
+                </p>
+
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPageUser(1)}
+                    disabled={currentPageUser === 1}
+                  >
+                    « Đầu
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPageUser((p) => Math.max(1, p - 1))}
+                    disabled={currentPageUser === 1}
+                  >
+                    ‹ Trước
+                  </Button>
+
+                  <span className="text-sm px-2">
+                    Trang <b>{currentPageUser}</b> / {totalPagesUser}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPageUser((p) => Math.min(totalPagesUser, p + 1))}
+                    disabled={currentPageUser === totalPagesUser}
+                  >
+                    Sau ›
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPageUser(totalPagesUser)}
+                    disabled={currentPageUser === totalPagesUser}
+                  >
+                    Cuối »
+                  </Button>
+                </div>
+              </div>
+
             </Card>
           </TabsContent>
 
@@ -4106,11 +4218,16 @@ QAI Store - Tài khoản premium uy tín #1
                     <Button
                       variant="outline"
                       className="w-full lg:w-auto border-2 border-gray-200 hover:border-blue-500"
-                      onClick={() => loadDashboardData(true)}
+                      onClick={handleRefresh}
+                      disabled={refreshing}
                     >
-                      <RefreshCw className="w-4 h-4 mr-2" />
+                      <RefreshCw
+                        className={`w-4 h-4 mr-2 transition-transform duration-700 ${refreshing ? 'animate-spin' : ''
+                          }`}
+                      />
                       Làm mới
                     </Button>
+
                   </div>
 
                 </div>
@@ -4667,8 +4784,63 @@ QAI Store - Tài khoản premium uy tín #1
                   </TableBody>
                 </Table>
               </CardContent>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pb-3 px-3">
+                <p className="text-sm text-gray-500">
+                  Hiển thị {fromOnetimecode} - {toOnetimecode} / {totalOnetimecode} email
+                </p>
+
+
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPageOnetimecode(1)}
+                    disabled={currentPageOnetimecode === 1}
+                  >
+                    « Đầu
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPageOnetimecode((p) => Math.max(1, p - 1))
+                    }
+                    disabled={currentPageOnetimecode === 1}
+                  >
+                    ‹ Trước
+                  </Button>
+
+                  <span className="text-sm px-2">
+                    Trang <b>{currentPageOnetimecode}</b> / {totalPageOnetimecode}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPageOnetimecode((p) =>
+                        Math.min(totalPageOnetimecode, p + 1)
+                      )
+                    }
+                    disabled={currentPageOnetimecode === totalPageOnetimecode}
+                  >
+                    Sau ›
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPageOnetimecode(totalPages)}
+                    disabled={currentPageOnetimecode === totalPageOnetimecode}
+                  >
+                    Cuối »
+                  </Button>
+                </div>
+              </div>
             </Card>
           </TabsContent>
+
 
         </Tabs>
 

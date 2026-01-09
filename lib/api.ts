@@ -415,8 +415,12 @@ export const claimUserReward = async (rewardId: number, sessionId: string) => {
     return res.json();
 };
 
-export const fetchAdminUsers = async (sessionId: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users`, {
+export const fetchAdminUsers = async (
+    sessionId: string,
+    page: number = 1,
+    perPage: number = 20
+) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users?page=${page}&per_page=${perPage}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${sessionId}`,
@@ -485,8 +489,12 @@ export const deleteAdminUser = async (sessionId: string, userId: string) => {
     return res.json(); // trả về thông báo xóa thành công
 };
 
-export const fetchAllTransactions = async (sessionId: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/wallet/transactions`, {
+export const fetchAllTransactions = async (
+    sessionId: string,
+    page: number = 1,
+    perPage: number = 20
+) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/wallet/transactions?page=${page}&per_page=${perPage}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${sessionId}`,
@@ -890,22 +898,30 @@ export async function sendOrderEmail(
     return data; // { success: true, message: 'Email scheduled to send' }
 }
 
-export const getOnetimecodes = async (sessionId: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/onetimecodes`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionId}`,
-        },
-    });
+export const getOnetimecodes = async (
+    sessionId: string,
+    page: number = 1,
+    perPage: number = 20
+) => {
+    const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/onetimecodes?page=${page}&per_page=${perPage}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionId}`,
+            },
+        }
+    );
 
     if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Failed to fetch user coins');
+        throw new Error(error.message || 'Failed to fetch onetimecodes');
     }
 
-    return res.json(); // trả về { coins: number }
+    return res.json();
 };
+
 
 export const getListOnetimecodes = async (sessionId: string) => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/get-onetimecodes`, {
