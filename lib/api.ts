@@ -898,29 +898,43 @@ export async function sendOrderEmail(
     return data; // { success: true, message: 'Email scheduled to send' }
 }
 
-export const getOnetimecodes = async (
-    sessionId: string,
-    page: number = 1,
-    perPage: number = 20
-) => {
-    const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/onetimecodes?page=${page}&per_page=${perPage}`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionId}`,
-            },
-        }
-    );
+export async function getOnetimecodes(
+    sessionId: string | number,
+    page: number,
+    perPage: number,
+    q?: string
+) {
+    const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/admin/onetimecodes`;
+
+    const params = new URLSearchParams({
+        page: String(page),
+        per_page: String(perPage),
+    });
+
+    const keyword = q?.trim();
+    if (keyword) params.set("q", keyword); // ✅ gửi q lên backend khi có search
+
+    const res = await fetch(`${baseUrl}?${params.toString()}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionId}`,
+        },
+        // optional (tuỳ bạn muốn fresh data):
+        // cache: "no-store",
+    });
 
     if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to fetch onetimecodes');
+        let message = "Failed to fetch onetimecodes";
+        try {
+            const error = await res.json();
+            message = error?.message || message;
+        } catch { }
+        throw new Error(message);
     }
 
-    return res.json();
-};
+    return res.json(); // backend trả { data: ..., meta: ... }
+}
 
 
 export const getListOnetimecodes = async (sessionId: string) => {

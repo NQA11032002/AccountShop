@@ -85,6 +85,7 @@ import {
   ChartLegend,
   ChartLegendContent
 } from '@/components/ui/chart';
+import { Loader2 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { EditUserDialog } from '@/components/admin/EditUserDialog';
@@ -590,51 +591,68 @@ QAI Store - Tài khoản premium uy tín #1
   const toUser = Math.min(currentPageMetaUser * perPageMetaUser, totalUser);
 
   //=======================================================
-
   const [currentPageOnetimecode, setCurrentPageOnetimecode] = useState(1);
   const [perPageOnetimecode] = useState(10);
   const [metaOnetimecode, setMetaOnetimecode] = useState<any>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+  const [loadingOnetimecode, setLoadingOnetimecode] = useState(false);
+  const [errorOnetimecode, setErrorOnetimecode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
   useEffect(() => {
     loadOnetimecode();
-  }, [sessionId, currentPageOnetimecode]);
+  }, [sessionId, currentPageOnetimecode, perPageOnetimecode, debouncedSearch]);
+
+  useEffect(() => {
+    setCurrentPageOnetimecode(1);
+  }, [searchTerm]);
 
   const loadOnetimecode = async () => {
     if (!sessionId) return;
 
-    const res = await getOnetimecodes(
-      sessionId,
-      currentPageOnetimecode,
-      perPageOnetimecode
-    );
+    setLoadingOnetimecode(true);
+    setErrorOnetimecode(null);
 
-    setOnetimecodes(res.data);
-    setMetaOnetimecode(res.meta);
+    try {
+      const res = await getOnetimecodes(
+        sessionId,
+        currentPageOnetimecode,
+        perPageOnetimecode,
+        debouncedSearch
+      );
 
-    // ✅ đồng bộ page nếu backend clamp lại
-    if (res.meta?.current_page !== currentPageOnetimecode) {
-      setCurrentPageOnetimecode(res.meta.current_page);
+      setLoadingOnetimecode(false);
+      setOnetimecodes(res.data ?? []);
+      setMetaOnetimecode(res.meta ?? null);
+
+      const serverPage = res.meta?.current_page;
+      if (serverPage && serverPage !== currentPageOnetimecode) {
+        setCurrentPageOnetimecode(serverPage);
+      }
+    } catch (e: any) {
+      setErrorOnetimecode(e?.message || "Có lỗi khi tải dữ liệu");
+    } finally {
     }
   };
 
-  const totalOnetimecode = metaOnetimecode?.total ?? 0;
-  const perPageMetaOnetimecode =
-    metaOnetimecode?.per_page ?? perPageOnetimecode;
 
-  const currentPageMetaOnetimecode =
-    metaOnetimecode?.current_page ?? currentPageOnetimecode;
+
+  const totalOnetimecode = metaOnetimecode?.total ?? 0;
+  const perPageMetaOnetimecode = metaOnetimecode?.per_page ?? perPageOnetimecode;
+  const currentPageMetaOnetimecode = metaOnetimecode?.current_page ?? currentPageOnetimecode;
 
   const fromOnetimecode =
-    totalOnetimecode === 0
-      ? 0
-      : (currentPageMetaOnetimecode - 1) * perPageMetaOnetimecode + 1;
+    totalOnetimecode === 0 ? 0 : (currentPageMetaOnetimecode - 1) * perPageMetaOnetimecode + 1;
 
-  const toOnetimecode = Math.min(
-    currentPageMetaOnetimecode * perPageMetaOnetimecode,
-    totalOnetimecode
-  );
+  const toOnetimecode = Math.min(currentPageMetaOnetimecode * perPageMetaOnetimecode, totalOnetimecode);
 
   const totalPageOnetimecode = metaOnetimecode?.last_page ?? 1;
+
+  const showPagination = totalPageOnetimecode > 1;
 
 
   const [ordersMeta, setOrdersMeta] = useState({
@@ -4715,6 +4733,7 @@ QAI Store - Tài khoản premium uy tín #1
               </CardHeader>
 
               <CardContent>
+
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -4730,6 +4749,18 @@ QAI Store - Tài khoản premium uy tín #1
                     </TableRow>
                   </TableHeader>
                   <TableBody>
+                    {loadingOnetimecode && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          Đang tải dữ liệu...
+                        </div>
+                      </div>
+                    )}
+
+                    {errorOnetimecode && (
+                      <div className="mb-3 text-sm text-red-600">{errorOnetimecode}</div>
+                    )}
                     {onetimecodes.filter(code =>
                       code?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       code?.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -4789,54 +4820,49 @@ QAI Store - Tài khoản premium uy tín #1
                   Hiển thị {fromOnetimecode} - {toOnetimecode} / {totalOnetimecode} email
                 </p>
 
+                {showPagination && (
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPageOnetimecode(1)}
+                      disabled={currentPageOnetimecode === 1}
+                    >
+                      « Đầu
+                    </Button>
 
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPageOnetimecode(1)}
-                    disabled={currentPageOnetimecode === 1}
-                  >
-                    « Đầu
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPageOnetimecode((p) => Math.max(1, p - 1))}
+                      disabled={currentPageOnetimecode === 1}
+                    >
+                      ‹ Trước
+                    </Button>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPageOnetimecode((p) => Math.max(1, p - 1))
-                    }
-                    disabled={currentPageOnetimecode === 1}
-                  >
-                    ‹ Trước
-                  </Button>
+                    <span className="text-sm px-2">
+                      Trang <b>{currentPageOnetimecode}</b> / {totalPageOnetimecode}
+                    </span>
 
-                  <span className="text-sm px-2">
-                    Trang <b>{currentPageOnetimecode}</b> / {totalPageOnetimecode}
-                  </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPageOnetimecode((p) => Math.min(totalPageOnetimecode, p + 1))}
+                      disabled={currentPageOnetimecode === totalPageOnetimecode}
+                    >
+                      Sau ›
+                    </Button>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPageOnetimecode((p) =>
-                        Math.min(totalPageOnetimecode, p + 1)
-                      )
-                    }
-                    disabled={currentPageOnetimecode === totalPageOnetimecode}
-                  >
-                    Sau ›
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPageOnetimecode(totalPages)}
-                    disabled={currentPageOnetimecode === totalPageOnetimecode}
-                  >
-                    Cuối »
-                  </Button>
-                </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPageOnetimecode(totalPageOnetimecode)} // ✅ sửa totalPages -> totalPageOnetimecode
+                      disabled={currentPageOnetimecode === totalPageOnetimecode}
+                    >
+                      Cuối »
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           </TabsContent>
