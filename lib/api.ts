@@ -1168,22 +1168,24 @@ const handle = async (res: Response) => {
     return res.json();
 };
 
-/** GET /admin/chatgpts (có thể truyền ?page=&category=&status=) */
 export const getListChatgpts = async (
     sessionId: string,
-    params?: { page?: number; category?: string; status?: number | string }
+    params?: { page?: number; per_page?: number; category?: string; status?: number | string; q?: string }
 ) => {
     const qs = new URLSearchParams();
     if (params?.page) qs.set("page", String(params.page));
+    if (params?.per_page) qs.set("per_page", String(params.per_page));
     if (params?.category) qs.set("category", params.category);
     if (params?.status !== undefined) qs.set("status", String(params.status));
+    if (params?.q?.trim()) qs.set("q", params.q.trim()); // ✅
 
     const res = await fetch(
         `${base}/admin/chatgpts${qs.toString() ? `?${qs.toString()}` : ""}`,
         { method: "GET", headers: headers(sessionId), cache: "no-store" }
     );
-    return handle(res); // trả về cấu trúc paginate từ Laravel
+    return handle(res);
 };
+
 
 /** GET /admin/chatgpts/:id */
 export const getChatgptById = async (sessionId: string, id: string | number) => {

@@ -85,7 +85,6 @@ import {
   ChartLegend,
   ChartLegendContent
 } from '@/components/ui/chart';
-import { Loader2 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { EditUserDialog } from '@/components/admin/EditUserDialog';
@@ -614,31 +613,23 @@ QAI Store - Tài khoản premium uy tín #1
   const loadOnetimecode = async () => {
     if (!sessionId) return;
 
-    setLoadingOnetimecode(true);
-    setErrorOnetimecode(null);
+    const res = await getOnetimecodes(
+      sessionId,
+      currentPageOnetimecode,
+      perPageOnetimecode,
+      debouncedSearch
+    );
 
-    try {
-      const res = await getOnetimecodes(
-        sessionId,
-        currentPageOnetimecode,
-        perPageOnetimecode,
-        debouncedSearch
-      );
+    // backend trả { data: [...], meta: {...} }
+    setOnetimecodes(res.data ?? []);
+    setMetaOnetimecode(res.meta ?? null);
 
-      setLoadingOnetimecode(false);
-      setOnetimecodes(res.data ?? []);
-      setMetaOnetimecode(res.meta ?? null);
-
-      const serverPage = res.meta?.current_page;
-      if (serverPage && serverPage !== currentPageOnetimecode) {
-        setCurrentPageOnetimecode(serverPage);
-      }
-    } catch (e: any) {
-      setErrorOnetimecode(e?.message || "Có lỗi khi tải dữ liệu");
-    } finally {
+    // ✅ đồng bộ page nếu backend clamp
+    const serverPage = res.meta?.current_page;
+    if (serverPage && serverPage !== currentPageOnetimecode) {
+      setCurrentPageOnetimecode(serverPage);
     }
   };
-
 
 
   const totalOnetimecode = metaOnetimecode?.total ?? 0;
@@ -654,10 +645,10 @@ QAI Store - Tài khoản premium uy tín #1
 
   const showPagination = totalPageOnetimecode > 1;
 
-
+  //=======================================================
   const [ordersMeta, setOrdersMeta] = useState({
     page: 1,
-    perPage: 20,
+    perPage: 10,
     total: 0,
     lastPage: 1,
   });
@@ -669,7 +660,7 @@ QAI Store - Tài khoản premium uy tín #1
   });
 
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(20);
+  const [perPage, setPerPage] = useState(10);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
   const loadOrders = async () => {
@@ -724,20 +715,70 @@ QAI Store - Tài khoản premium uy tín #1
     }
   }
 
+  ///===============================
+
+  const [currentPageChatgpt, setCurrentPageChatgpt] = useState(1);
+  const [perPageChatgpt] = useState(10);
+  const [metaChatgpt, setMetaChatgpt] = useState<any>(null);
+
+  // filters của bạn (ví dụ)
+  const [category, setCategory] = useState<string | undefined>(undefined);
+  const [status, setStatus] = useState<string | number | undefined>(undefined);
+
+  const [debouncedAccountGPT, setDebouncedAccountGPT] = useState(accountGPTSearchTerm);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedAccountGPT(accountGPTSearchTerm), 300);
+    return () => clearTimeout(t);
+  }, [accountGPTSearchTerm]);
+
+  useEffect(() => {
+    setCurrentPageChatgpt(1);
+  }, [debouncedAccountGPT, category, status]);
+
+  useEffect(() => {
+    loadChatGPTS();
+  }, [sessionId, currentPageChatgpt, perPageChatgpt, category, status, debouncedAccountGPT]);
+
   const loadChatGPTS = async () => {
     if (!sessionId) return;
 
     try {
-      const res = await getListChatgpts(sessionId);
+      const res = await getListChatgpts(sessionId, {
+        page: currentPageChatgpt,
+        per_page: perPageChatgpt,
+        category,
+        status,
+        q: debouncedAccountGPT, // ✅
+      });
 
-      // API: { success: true, data: [...] }
-      setChatgpts(res.data || []);  // <-- ĐÚNG
+      setChatgpts(res.data ?? []);
+      setMetaChatgpt(res.meta ?? null);
+
+      const serverPage = res.meta?.current_page;
+      if (serverPage && serverPage !== currentPageChatgpt) {
+        setCurrentPageChatgpt(serverPage);
+      }
     } catch (error) {
       console.error("Failed to load chatgpts:", error);
-      setChatgpts([]); // fallback để tránh undefined
+      setChatgpts([]);
+      setMetaChatgpt(null);
     }
   };
 
+  const totalChatgpt = metaChatgpt?.total ?? 0;
+  const perPageMetaChatgpt = metaChatgpt?.per_page ?? perPageChatgpt;
+  const currentPageMetaChatgpt = metaChatgpt?.current_page ?? currentPageChatgpt;
+  const totalPageChatgpt = metaChatgpt?.last_page ?? 1;
+
+  const fromChatgpt =
+    totalChatgpt === 0 ? 0 : (currentPageMetaChatgpt - 1) * perPageMetaChatgpt + 1;
+
+  const toChatgpt = Math.min(currentPageMetaChatgpt * perPageMetaChatgpt, totalChatgpt);
+
+  const showPaginationChatgpt = totalPageChatgpt > 1;
+
+  //================================
 
   const normalize = (s?: string) => (s ?? "").trim().toLowerCase();
 
@@ -3224,19 +3265,13 @@ QAI Store - Tài khoản premium uy tín #1
                 {/* Products Management */}
                 <TabsContent value="chatgpts">
                   <Card>
-
-
-
                     <CardHeader>
-
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
                         <CardTitle className="text-lg sm:text-xl">
                           Quản lý tài khoản ChatGPT
                         </CardTitle>
 
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-end lg:gap-2 w-full lg:w-auto">
-
                           {/* Controls: Search + Filters */}
                           <div className="w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 lg:flex lg:flex-wrap lg:items-end lg:gap-4">
 
@@ -3475,7 +3510,59 @@ QAI Store - Tài khoản premium uy tín #1
                         </TableBody>
                       </Table>
                     </CardContent>
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pb-3 px-3">
+                      <p className="text-sm text-gray-500">
+                        Hiển thị {fromChatgpt} - {toChatgpt} / {totalChatgpt} chatgpt
+                      </p>
+
+                      {showPaginationChatgpt && (
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPageChatgpt(1)}
+                            disabled={currentPageChatgpt === 1}
+                          >
+                            « Đầu
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPageChatgpt((p) => Math.max(1, p - 1))}
+                            disabled={currentPageChatgpt === 1}
+                          >
+                            ‹ Trước
+                          </Button>
+
+                          <span className="text-sm px-2">
+                            Trang <b>{currentPageChatgpt}</b> / {totalPageChatgpt}
+                          </span>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPageChatgpt((p) => Math.min(totalPageChatgpt, p + 1))}
+                            disabled={currentPageChatgpt === totalPageChatgpt}
+                          >
+                            Sau ›
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPageChatgpt(totalPageChatgpt)}
+                            disabled={currentPageChatgpt === totalPageChatgpt}
+                          >
+                            Cuối »
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
                   </Card>
+
                 </TabsContent>
 
 
@@ -4733,7 +4820,6 @@ QAI Store - Tài khoản premium uy tín #1
               </CardHeader>
 
               <CardContent>
-
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -4749,18 +4835,6 @@ QAI Store - Tài khoản premium uy tín #1
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {loadingOnetimecode && (
-                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          Đang tải dữ liệu...
-                        </div>
-                      </div>
-                    )}
-
-                    {errorOnetimecode && (
-                      <div className="mb-3 text-sm text-red-600">{errorOnetimecode}</div>
-                    )}
                     {onetimecodes.filter(code =>
                       code?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       code?.email?.toLowerCase().includes(searchTerm.toLowerCase())
