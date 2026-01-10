@@ -527,7 +527,6 @@ QAI Store - Tài khoản premium uy tín #1
         await loadUser();
         await loadProducts();
         await loadOnetimecode();
-        await loadCustomerAccounts(sessionId);
         await loadOrders();
         await loadChatGPTS();
       }
@@ -808,16 +807,47 @@ QAI Store - Tài khoản premium uy tín #1
   }, [chatgpts, advancedFilter, statusFilter, categoryFilter, deferredSearch]);
 
 
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [metaAccounts, setMetaAccounts] = useState<any>(null);
+
+  const [currentPageAccounts, setCurrentPageAccounts] = useState(1);
+  const [perPageAccounts] = useState(10);
+
+  const [debouncedAccountSearch, setDebouncedAccountSearch] = useState(accountSearchTerm);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedAccountSearch(accountSearchTerm), 300);
+    return () => clearTimeout(t);
+  }, [accountSearchTerm]);
+
+  // reset page khi đổi search/filter/sort
+  useEffect(() => {
+    setCurrentPageAccounts(1);
+  }, [debouncedAccountSearch, accountFilterType, accountSortBy, accountSortOrder]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    loadCustomerAccounts(sessionId)
+  }, [sessionId, currentPageAccounts, perPageAccounts, debouncedAccountSearch, accountFilterType, accountSortBy, accountSortOrder]);
+
   const loadCustomerAccounts = async (sessionId: string) => {
     try {
-      // 1. Thử load trực tiếp từ Laravel API
-      const apiAccounts = await getListAccounts(sessionId);
+      const res = await getListAccounts(sessionId, {
+        page: currentPageAccounts,
+        per_page: perPageAccounts,
+        q: debouncedAccountSearch,
+        product_type: accountFilterType,
+        sort_by: accountSortBy,
+        sort_order: accountSortOrder,
+      });
 
-      setCustomerAccounts(apiAccounts);
-
-      return;
+      setAccounts(res.data ?? []);
+      setMetaAccounts(res.meta ?? null);
     } catch (error) {
       console.error('❌ Error loading customer accounts from Laravel API:', error);
+      setAccounts([]);
+      setMetaAccounts(null);
     }
   };
 
@@ -2291,9 +2321,8 @@ QAI Store - Tài khoản premium uy tín #1
 
 
   const getUniqueProductTypes = () => {
-    return Array.from(new Set(customerAccounts.map(acc => acc.product_type)));
+    return Array.from(new Set(accounts.map(acc => acc.product_type)));
   };
-
 
 
   const handleSort = (column: 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType') => {
@@ -3632,17 +3661,6 @@ QAI Store - Tài khoản premium uy tín #1
                               className="lg:w-1/3 sm:w-full pl-12 pr-10 py-4 text-sm border-2 border-gray-200 rounded-md focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/20 transition-all duration-300 bg-white shadow-inner"
                             />
 
-                            {searchQuery && (
-                              <button
-                                type="button"
-                                onClick={() => setSearchQuery("")}
-                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
-                                aria-label="Xóa tìm kiếm"
-                              >
-                                {/* <X className="h-5 w-5" /> */}
-                                ✕
-                              </button>
-                            )}
                           </div>
 
                           {/* ACTIONS: wrap nicely */}
@@ -4005,7 +4023,7 @@ QAI Store - Tài khoản premium uy tín #1
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {getPaginatedAccounts().accounts.map((account, index) => (
+                            {accounts.map((account, index) => (
                               <TableRow
                                 key={account.id}
                                 className={`hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-emerald-50/50 transition-all duration-200 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'

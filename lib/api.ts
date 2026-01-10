@@ -1065,22 +1065,44 @@ export const deleteMasterOnetimecode = async (sessionId: string, id: number) => 
     return res.json();
 };
 
-export const getListAccounts = async (sessionId: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts`, {
-        method: 'GET',
+export const getListAccounts = async (
+    sessionId: string,
+    params?: {
+        page?: number;
+        per_page?: number;
+        q?: string;
+        product_type?: string;      // all | ...
+        sort_by?: string;           // purchaseDate | expiryDate | expiryToday | customerName | productType
+        sort_order?: "asc" | "desc";
+    }
+) => {
+    const base = `${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts`;
+
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set("page", String(params.page));
+    if (params?.per_page) qs.set("per_page", String(params.per_page));
+    if (params?.q?.trim()) qs.set("q", params.q.trim());
+    if (params?.product_type && params.product_type !== "all") qs.set("product_type", params.product_type);
+    if (params?.sort_by) qs.set("sort_by", params.sort_by);
+    if (params?.sort_order) qs.set("sort_order", params.sort_order);
+
+    const res = await fetch(`${base}${qs.toString() ? `?${qs.toString()}` : ""}`, {
+        method: "GET",
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionId}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionId}`,
         },
+        cache: "no-store",
     });
 
     if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to fetch user coins');
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Failed to fetch accounts");
     }
 
-    return res.json(); // trả về { coins: number }
+    return res.json(); // { success, data, meta }
 };
+
 
 export const createAccount = async (sessionId: string, accountData: object) => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts`, {
