@@ -809,10 +809,8 @@ QAI Store - Tài khoản premium uy tín #1
 
   const [accounts, setAccounts] = useState<any[]>([]);
   const [metaAccounts, setMetaAccounts] = useState<any>(null);
-
   const [currentPageAccounts, setCurrentPageAccounts] = useState(1);
   const [perPageAccounts] = useState(10);
-
   const [debouncedAccountSearch, setDebouncedAccountSearch] = useState(accountSearchTerm);
 
   useEffect(() => {
@@ -850,6 +848,28 @@ QAI Store - Tài khoản premium uy tín #1
       setMetaAccounts(null);
     }
   };
+
+  const totalItems = metaAccounts?.total ?? 0;
+
+  const totalPagesAccounts = metaAccounts?.last_page ?? 1;
+
+  // 🔹 derived values (KHÔNG trùng state)
+  const currentPageMetaAccounts =
+    metaAccounts?.current_page ?? currentPageAccounts;
+
+  const perPageMetaAccounts =
+    metaAccounts?.per_page ?? perPageAccounts;
+
+  const fromAccounts =
+    totalItems === 0
+      ? 0
+      : (currentPageMetaAccounts - 1) * perPageMetaAccounts + 1;
+
+  const toAccounts = Math.min(
+    currentPageMetaAccounts * perPageMetaAccounts,
+    totalItems
+  );
+
 
   const statusStyles: Record<number, string> = {
     0: "bg-red-500 text-white",
@@ -4163,79 +4183,74 @@ QAI Store - Tài khoản premium uy tín #1
                       </div>
 
                       {/* Optimized Pagination */}
-                      {getPaginatedAccounts().totalPages > 1 && (
+                      {/* Optimized Pagination (BACKEND) */}
+                      {totalPagesAccounts > 1 && (
                         <div className="mt-6 px-2 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                          {/* Left: info + items per page */}
+                          {/* Left: info */}
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                             <span className="text-sm text-gray-600 leading-relaxed">
-                              Hiển thị {((currentPage - 1) * itemsPerPage) + 1} đến{" "}
-                              {Math.min(currentPage * itemsPerPage, getPaginatedAccounts().totalItems)} của{" "}
-                              {getPaginatedAccounts().totalItems} tài khoản
+                              Hiển thị {fromAccounts} - {toAccounts} / {totalItems} tài khoản
                             </span>
-
-                            <Select
-                              value={itemsPerPage.toString()}
-                              onValueChange={(value) => {
-                                setItemsPerPage(Number(value));
-                                setCurrentPage(1);
-                              }}
-                            >
-                              <SelectTrigger className="w-full sm:w-28">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="5">5 / trang</SelectItem>
-                                <SelectItem value="10">10 / trang</SelectItem>
-                                <SelectItem value="20">20 / trang</SelectItem>
-                              </SelectContent>
-                            </Select>
                           </div>
 
                           {/* Right: pagination controls */}
                           <div className="flex flex-wrap items-center gap-2 justify-between sm:justify-end">
+                            {/* First */}
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setCurrentPage(currentPage - 1)}
-                              disabled={currentPage === 1}
+                              onClick={() => setCurrentPageAccounts(1)}
+                              disabled={currentPageAccounts === 1}
                               className="w-[90px] sm:w-auto"
                             >
-                              Trước
+                              « Đầu
                             </Button>
 
-                            <div className="flex items-center gap-1">
-                              {Array.from({ length: Math.min(3, getPaginatedAccounts().totalPages) }, (_, i) => {
-                                const totalPages = getPaginatedAccounts().totalPages;
-                                let pageNumber = currentPage <= 2 ? i + 1 : currentPage - 1 + i;
-                                if (pageNumber > totalPages) return null;
-
-                                return (
-                                  <Button
-                                    key={pageNumber}
-                                    variant={currentPage === pageNumber ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setCurrentPage(pageNumber)}
-                                    className={currentPage === pageNumber ? "bg-brand-blue text-white" : ""}
-                                  >
-                                    {pageNumber}
-                                  </Button>
-                                );
-                              })}
-                            </div>
-
+                            {/* Prev */}
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setCurrentPage(currentPage + 1)}
-                              disabled={currentPage === getPaginatedAccounts().totalPages}
+                              onClick={() => setCurrentPageAccounts((p) => Math.max(1, p - 1))}
+                              disabled={currentPageAccounts === 1}
                               className="w-[90px] sm:w-auto"
                             >
-                              Sau
+                              ‹ Trước
+                            </Button>
+
+                            <span className="text-sm px-2">
+                              Trang <b>{currentPageAccounts}</b> / {totalPagesAccounts}
+                            </span>
+
+                            {/* Next */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setCurrentPageAccounts((p) =>
+                                  Math.min(totalPagesAccounts, p + 1)
+                                )
+                              }
+                              disabled={currentPageAccounts === totalPagesAccounts}
+                              className="w-[90px] sm:w-auto"
+                            >
+                              Sau ›
+                            </Button>
+
+                            {/* Last */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPageAccounts(totalPagesAccounts)}
+                              disabled={currentPageAccounts === totalPagesAccounts}
+                              className="w-[90px] sm:w-auto"
+                            >
+                              Cuối »
                             </Button>
                           </div>
                         </div>
-
                       )}
+
+
                     </CardContent>
                   </Card>
                 </TabsContent>
