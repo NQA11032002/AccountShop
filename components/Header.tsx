@@ -509,7 +509,7 @@ export default function Header() {
         {/* Mobile/Tablet Drawer */}
         {isMenuOpen && (
           <div className="lg:hidden border-t border-gray-200 bg-white px-3 sm:px-4 py-5 space-y-4">
-            <nav className="space-y-2">
+            <nav className="space-y-2 sm:hidden">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
@@ -565,8 +565,8 @@ export default function Header() {
               <div className="flex items-center gap-3 text-gray-800">
                 <Phone className="w-4 h-4 text-brand-blue" />
                 <div>
-                  <p className="text-xs text-gray-500">Hotline</p>
-                  <p className="font-medium text-sm">0987.022.876</p>
+                  <p className="text-xs text-gray-500">Hotline/Zalo</p>
+                  <p className="font-medium text-sm">0389.66.0305</p>
                 </div>
               </div>
             </div>
