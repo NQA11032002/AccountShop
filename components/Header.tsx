@@ -508,7 +508,7 @@ export default function Header() {
 
         {/* Mobile/Tablet Drawer */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t sm:hidden border-gray-200 bg-white px-3 sm:px-4 py-5 space-y-4">
+          <div className="lg:hidden border-t border-gray-200 bg-white px-3 sm:px-4 py-5 space-y-4">
             <nav className="space-y-2">
               {navigation.map((item) => (
                 <Link
