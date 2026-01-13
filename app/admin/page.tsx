@@ -261,13 +261,12 @@ export default function AdminDashboard() {
   // Send Accounts State
   const [sendAccountModal, setSendAccountModal] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
-  const [emailSubject, setEmailSubject] = useState('🎉 Tài khoản premium của bạn đã sẵn sàng!');
+  const [emailSubject, setEmailSubject] = useState('🎉 Tài khoản {typeAccount} của bạn đã sẵn sàng!');
   const [emailMessage, setEmailMessage] = useState(`Xin chào {customerName},
 
 Cảm ơn bạn đã tin tưởng và mua hàng tại QAI Store! 
 
-Tài khoản premium của bạn đã được kích hoạt thành công:
-
+Thông tin tài khoản:
 📧 Email: {accountEmail}
 🔑 Mật khẩu: {accountPassword}
 🔗 Link truy cập: {accountLink}
@@ -2006,6 +2005,7 @@ QAI Store - Tài khoản premium uy tín #1
       .replace('{customerName}', order.customerName || order.userEmail)
       .replace('{accountEmail}', credentials.accountEmail)
       .replace('{accountPassword}', credentials.accountPassword)
+      .replace('{typeAccount}', credentials.typeAccount)
       .replace('{accountLink}', credentials.accountLink)
       .replace('{duration}', credentials.duration);
   };
@@ -2043,13 +2043,12 @@ QAI Store - Tài khoản premium uy tín #1
           const credentials = generateAccountCredentials(order);
           const emailContent = formatEmailContent(order, credentials);
 
-          console.log(`📧 Gửi email ${sentCount + 1}/${ordersToSend.length} -> ${order.userEmail}`);
-
           // Gọi API Laravel: POST /admin/orders/{id}/email
           const result = await sendOrderEmail(sessionId, numericId, {
             subject: emailSubject,          // ví dụ: state bạn đang dùng
             message: emailContent,          // nội dung render sẵn
             template: 'custom',             // hoặc 'status_update' nếu muốn server tự build theo status
+
           });
 
           if (result?.success) {
@@ -2106,13 +2105,12 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const resetEmailTemplate = () => {
-    setEmailSubject('🎉 Tài khoản premium của bạn đã sẵn sàng!');
+    setEmailSubject('🎉 Tài khoản {typeAccount} của bạn đã sẵn sàng!');
     setEmailMessage(`Xin chào {customerName},
 
 Cảm ơn bạn đã tin tưởng và mua hàng tại QAI Store! 
 
-Tài khoản premium của bạn đã được kích hoạt thành công:
-
+Thông tin tài khoản:
 📧 Email: {accountEmail}
 🔑 Mật khẩu: {accountPassword}
 🔗 Link truy cập: {accountLink}
