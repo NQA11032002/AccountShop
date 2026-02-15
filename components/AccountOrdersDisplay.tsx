@@ -103,7 +103,7 @@ export default function AccountOrdersDisplay() {
     };
 
     return (
-      <Badge className={`${variants[status] || 'bg-gray-100 text-gray-800'} border`}>
+      <Badge className={`${variants[status] || 'bg-gray-100 text-gray-800'} border text-xs sm:text-sm`}>
         {getStatusIcon(status)}
         <span className="ml-1 capitalize">{status}</span>
       </Badge>
@@ -118,6 +118,23 @@ export default function AccountOrdersDisplay() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Tính số ngày từ ngày tạo đơn (tránh sai do timezone từ API)
+  const getDaysSinceOrder = (createdAt: string): number => {
+    const orderDate = new Date(createdAt);
+    const now = new Date();
+    orderDate.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    const diffMs = now.getTime() - orderDate.getTime();
+    return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+  };
+
+  const formatDaysAgo = (createdAt: string): string => {
+    const days = getDaysSinceOrder(createdAt);
+    if (days === 0) return 'Hôm nay';
+    if (days === 1) return 'Hôm qua';
+    return `${days} ngày trước`;
   };
 
   const filteredOrders = ordersData?.orders.filter(order =>
@@ -199,53 +216,53 @@ export default function AccountOrdersDisplay() {
       />
 
       {/* Statistics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100">Tổng đơn hàng</p>
-                <p className="text-3xl font-bold">
+              <div className="min-w-0">
+                <p className="text-blue-100 text-xs sm:text-sm">Tổng đơn hàng</p>
+                <p className="text-xl sm:text-3xl font-bold truncate">
                   {ordersData?.statistics.totalOrders ?? orders.length}
                 </p>
               </div>
-              <Package className="w-8 h-8 text-blue-200" />
+              <Package className="w-6 h-6 sm:w-8 sm:h-8 text-blue-200 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100">Tổng chi tiêu</p>
-                <p className="text-3xl font-bold">{ordersData.statistics.totalSpent.toLocaleString('vi-VN')}đ</p>
+              <div className="min-w-0">
+                <p className="text-green-100 text-xs sm:text-sm">Tổng chi tiêu</p>
+                <p className="text-lg sm:text-3xl font-bold truncate">{ordersData.statistics.totalSpent.toLocaleString('vi-VN')}đ</p>
               </div>
-              <CreditCard className="w-8 h-8 text-green-200" />
+              <CreditCard className="w-6 h-6 sm:w-8 sm:h-8 text-green-200 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100">Tổng đơn hoàn thành</p>
-                <p className="text-3xl font-bold">{ordersData.statistics.totalOrderCompledted}</p>
+              <div className="min-w-0">
+                <p className="text-purple-100 text-xs sm:text-sm">Tổng đơn hoàn thành</p>
+                <p className="text-xl sm:text-3xl font-bold">{ordersData.statistics.totalOrderCompledted}</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-purple-200" />
+              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-purple-200 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-100">Tài khoản</p>
-                <p className="text-3xl font-bold">{ordersData.statistics.totalOrderProducts || 0}</p>
+              <div className="min-w-0">
+                <p className="text-orange-100 text-xs sm:text-sm">Tài khoản</p>
+                <p className="text-xl sm:text-3xl font-bold">{ordersData.statistics.totalOrderProducts || 0}</p>
               </div>
-              <Star className="w-8 h-8 text-orange-200" />
+              <Star className="w-6 h-6 sm:w-8 sm:h-8 text-orange-200 shrink-0" />
             </div>
           </CardContent>
         </Card>
@@ -253,33 +270,33 @@ export default function AccountOrdersDisplay() {
 
       {/* Orders List */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold text-gray-900">Lịch sử đơn hàng</CardTitle>
-            <Tabs value={selectedStatus} onValueChange={setSelectedStatus}>
-              <TabsList>
-                <TabsTrigger value="all">Tất cả</TabsTrigger>
-                <TabsTrigger value="completed">Hoàn thành</TabsTrigger>
-                <TabsTrigger value="processing">Đang xử lý</TabsTrigger>
-                <TabsTrigger value="pending">Chờ xử lý</TabsTrigger>
+        <CardHeader className="px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">Lịch sử đơn hàng</CardTitle>
+            <Tabs value={selectedStatus} onValueChange={setSelectedStatus} className="w-full sm:w-auto">
+              <TabsList className="w-full sm:w-auto h-auto flex flex-wrap gap-1 p-1.5 sm:p-1">
+                <TabsTrigger value="all" className="flex-1 sm:flex-initial text-xs sm:text-sm px-2 sm:px-3 py-1.5">Tất cả</TabsTrigger>
+                <TabsTrigger value="completed" className="flex-1 sm:flex-initial text-xs sm:text-sm px-2 sm:px-3 py-1.5">Hoàn thành</TabsTrigger>
+                <TabsTrigger value="processing" className="flex-1 sm:flex-initial text-xs sm:text-sm px-2 sm:px-3 py-1.5">Đang xử lý</TabsTrigger>
+                <TabsTrigger value="pending" className="flex-1 sm:flex-initial text-xs sm:text-sm px-2 sm:px-3 py-1.5">Chờ xử lý</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
+        <CardContent className="px-4 sm:px-6">
+          <div className="space-y-4 sm:space-y-6">
             {filteredOrders.map((order) => (
               <Card key={order.id} className="border border-gray-200 hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                    <div className="flex items-center space-x-3 min-w-0">
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
                         <Package className="w-6 h-6 text-white" />
                       </div>
                       <div>
                         <div className="flex items-center space-x-2">
                           <h3 className="font-semibold text-gray-900">#{order.id}</h3>
-                          {(order.analytics?.daysSinceOrder || 0) <= 1 && (
+                          {getDaysSinceOrder(order.created_at) <= 1 && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-sm">
                               ✨ Mới
                             </span>
@@ -296,9 +313,9 @@ export default function AccountOrdersDisplay() {
                         )}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="flex sm:flex-col items-start sm:items-end gap-2 shrink-0">
                       {getStatusBadge(order.status)}
-                      <p className="text-lg font-bold text-gray-900 mt-1">
+                      <p className="text-base sm:text-lg font-bold text-gray-900">
                         {order.total.toLocaleString('vi-VN')}đ
                       </p>
                       {(order.analytics?.discountPercentage || 0) > 0 && (
@@ -312,15 +329,15 @@ export default function AccountOrdersDisplay() {
                   <Separator className="my-4" />
 
                   {/* Products */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900">Sản phẩm đã mua:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-2 sm:space-y-3">
+                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">Sản phẩm đã mua:</h4>
+                    <div className="grid grid-cols-1 gap-2 sm:gap-3">
                       {order.order_products?.map((product, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="text-2xl">{product.image || '📦'}</div>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">{product.product_name}</p>
-                            <p className="text-sm text-gray-600">
+                        <div key={index} className="flex items-center space-x-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg min-w-0">
+                          <div className="text-xl sm:text-2xl shrink-0">{product.image || '📦'}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{product.product_name}</p>
+                            <p className="text-xs sm:text-sm text-gray-600">
                               {product.quantity || 1}x • {product.duration || 'N/A'} • {(product.price || 0).toLocaleString('vi-VN')}đ
                             </p>
                           </div>
@@ -331,7 +348,7 @@ export default function AccountOrdersDisplay() {
 
                   {/* Customer Accounts */}
                   {order.customerAccounts && order.customerAccounts.length > 0 && (
-                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="mt-4 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
                       <h4 className="font-medium text-green-900 mb-2">Tài khoản đã giao:</h4>
                       <div className="space-y-2">
                         {order.customerAccounts.map((account, index) => (
@@ -353,17 +370,17 @@ export default function AccountOrdersDisplay() {
 
                   {/* Order Analytics */}
                   {order.analytics && (
-                    <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm text-gray-600">
                       <span>{order.analytics.totalItems} sản phẩm</span>
                       {order.analytics.discountPercentage > 0 && (
                         <span className="text-green-600">Tiết kiệm {order.analytics.discountPercentage}%</span>
                       )}
-                      <span>{order.analytics.daysSinceOrder} ngày trước</span>
+                      <span>{formatDaysAgo(order.created_at)}</span>
                     </div>
                   )}
 
                   {/* Action Buttons */}
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                  <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <Package className="w-4 h-4" />
                       <span>Đơn hàng #{order.id}</span>
@@ -371,7 +388,7 @@ export default function AccountOrdersDisplay() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex items-center space-x-2 hover:bg-brand-blue hover:text-white transition-all"
+                      className="w-full sm:w-auto flex items-center justify-center space-x-2 hover:bg-brand-blue hover:text-white transition-all"
                       onClick={() => {
                         setSelectedOrder(order);
                         setIsDetailModalOpen(true);
@@ -387,8 +404,8 @@ export default function AccountOrdersDisplay() {
           </div>
 
           {paginationMeta && (
-            <div className="mt-6 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <p className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                 Hiển thị{" "}
                 {Math.min(
                   (paginationMeta.current_page - 1) * paginationMeta.per_page + 1,
@@ -401,16 +418,17 @@ export default function AccountOrdersDisplay() {
                 )}{" "}
                 trong tổng {paginationMeta.total} đơn hàng
               </p>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center sm:justify-end gap-2 flex-wrap">
                 <Button
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm"
                   disabled={paginationMeta.current_page <= 1}
                   onClick={() =>
                     setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev))
                   }
                 >
-                  Trang trước
+                  Trước
                 </Button>
                 <span className="text-sm text-gray-700">
                   Trang {paginationMeta.current_page}/{paginationMeta.last_page}
@@ -418,6 +436,7 @@ export default function AccountOrdersDisplay() {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm"
                   disabled={paginationMeta.current_page >= paginationMeta.last_page}
                   onClick={() =>
                     setCurrentPage((prev) =>
@@ -425,7 +444,7 @@ export default function AccountOrdersDisplay() {
                     )
                   }
                 >
-                  Trang sau
+                  Sau
                 </Button>
               </div>
             </div>

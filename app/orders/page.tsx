@@ -15,33 +15,33 @@ export default function OrdersPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       <Header />
 
-      <main className="container mx-auto px-4 py-8 mt-20">
+      <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 mt-16 sm:mt-20">
         {/* Page Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <Package className="w-8 h-8 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex items-center justify-center mb-3 sm:mb-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+              <Package className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
           </div>
 
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2 sm:mb-4 px-2">
             Đơn hàng của tôi
           </h1>
 
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto px-2">
             Theo dõi và quản lý tất cả đơn hàng của bạn. Xem chi tiết sản phẩm đã mua và tài khoản đã nhận.
           </p>
 
-          <div className="flex items-center justify-center mt-6 space-x-4">
-            <Link href="/">
-              <Button variant="outline" className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-6 px-2">
+            <Link href="/" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto flex items-center justify-center space-x-2">
                 <ArrowLeft className="w-4 h-4" />
                 <span>Về trang chủ</span>
               </Button>
             </Link>
 
-            <Link href="/products">
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+            <Link href="/products" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                 Mua thêm sản phẩm
               </Button>
             </Link>
@@ -49,7 +49,7 @@ export default function OrdersPage() {
         </div>
 
         {/* Orders Display */}
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto w-full overflow-x-hidden">
           <Suspense fallback={<OrdersLoadingSkeleton />}>
             <AccountOrdersDisplay />
           </Suspense>

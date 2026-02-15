@@ -675,7 +675,8 @@ function CheckoutPageContent() {
                     isProcessing={isProcessingPayment}
                     orderItems={getEffectiveItems()}
                     appliedDiscount={appliedDiscount}
-                    notes={orderNotes} // 👈 thêm prop này
+                    notes={orderNotes}
+                    customerInfo={customerInfo}
                   />
                 )}
               </div>

@@ -180,38 +180,38 @@ export default function OrderDetailModal({ order, isOpen, onClose, onRenewSucces
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="w-[95vw] sm:w-full max-w-4xl max-h-[90dvh] sm:max-h-[90vh] overflow-y-auto overscroll-contain p-4 sm:p-6 mx-auto my-4 sm:my-0"
         onFocusOutside={(e) => {
           // Giữ dialog mở khi focus nhảy (vd. toast sau khi sao chép), tránh nháy/đóng
           e.preventDefault();
         }}
       >
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center">
-              <Package className="w-5 h-5 text-white" />
+          <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-10 h-10 shrink-0 bg-gradient-to-r from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center">
+                <Package className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-lg sm:text-xl font-bold">Đơn hàng #{order.id}</span>
+                <p className="text-xs sm:text-sm text-gray-600 font-normal flex items-center mt-0.5 sm:mt-1">
+                  <Calendar className="w-3 h-3 mr-1 shrink-0" />
+                  {formatDate(order.created_at)}
+                </p>
+              </div>
             </div>
-            <div>
-              <span className="text-xl font-bold">Đơn hàng #{order.id}</span>
-              <p className="text-sm text-gray-600 font-normal flex items-center mt-1">
-                <Calendar className="w-3 h-3 mr-1" />
-                {formatDate(order.created_at)}
-              </p>
-            </div>
-            <div className="ml-auto">
-              {getStatusBadge(order.status)}
-            </div>
+            <div className="shrink-0">{getStatusBadge(order.status)}</div>
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Order Summary */}
           <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-0">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Tổng giá trị đơn hàng</p>
-                  <p className="text-3xl font-bold text-brand-blue">
+                  <p className="text-2xl sm:text-3xl font-bold text-brand-blue">
                     {order.total.toLocaleString('vi-VN')}đ
                   </p>
                   {order.analytics?.discountPercentage && order.analytics.discountPercentage > 0 && (
@@ -221,7 +221,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, onRenewSucces
                     </p>
                   )}
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <p className="text-sm text-gray-600">Phương thức thanh toán</p>
                   <p className="font-semibold">{order.payment_method}</p>
                   <p className="text-sm text-green-600 mt-1">✓ Đã thanh toán</p>
@@ -241,7 +241,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, onRenewSucces
             <CardContent>
               <div className="space-y-3">
                 {order.order_products?.map((product, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                  <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 sm:p-4 bg-gray-50 rounded-lg border">
                     <div className="flex items-center space-x-3">
                       <div className="text-2xl">{product.image || '📦'}</div>
                       <div>
@@ -251,7 +251,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, onRenewSucces
                         </p>
                       </div>
                     </div>
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-gray-900 text-sm sm:text-base">
                       {((product.price || 0) * (product.quantity || 1)).toLocaleString('vi-VN')}đ
                     </span>
                   </div>
@@ -305,16 +305,16 @@ export default function OrderDetailModal({ order, isOpen, onClose, onRenewSucces
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           {/* Tài khoản */}
                           <div className="space-y-2">
                             <label className="text-sm font-medium text-green-800">Tài khoản / Email:</label>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                               <input
                                 type="text"
                                 value={account.accountEmail}
                                 readOnly
-                                className="flex-1 px-3 py-2 bg-white border border-green-200 rounded text-sm"
+                                className="flex-1 min-w-0 px-3 py-2 bg-white border border-green-200 rounded text-sm"
                               />
                               <Button
                                 type="button"
@@ -335,12 +335,12 @@ export default function OrderDetailModal({ order, isOpen, onClose, onRenewSucces
                           {/* Mật khẩu hiển thị rõ */}
                           <div className="space-y-2">
                             <label className="text-sm font-medium text-green-800">Mật khẩu:</label>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                               <input
                                 type="text"
                                 value={account.accountPassword}
                                 readOnly
-                                className="flex-1 px-3 py-2 bg-white border border-green-200 rounded text-sm"
+                                className="flex-1 min-w-0 px-3 py-2 bg-white border border-green-200 rounded text-sm"
                               />
                               <Button
                                 type="button"
@@ -361,12 +361,12 @@ export default function OrderDetailModal({ order, isOpen, onClose, onRenewSucces
                           {/* Mã bảo mật */}
                           <div className="space-y-2">
                             <label className="text-sm font-medium text-green-800">Mã bảo mật:</label>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                               <input
                                 type="text"
                                 value={account.securityCode}
                                 readOnly
-                                className="flex-1 px-3 py-2 bg-white border border-green-200 rounded text-sm"
+                                className="flex-1 min-w-0 px-3 py-2 bg-white border border-green-200 rounded text-sm"
                               />
                               <Button
                                 type="button"
@@ -399,7 +399,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, onRenewSucces
                         {/* Hướng dẫn */}
                         <div className="space-y-2 mt-2">
                           <label className="text-sm font-medium text-green-800">Hướng dẫn sử dụng:</label>
-                          <div className="flex items-start space-x-2">
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-2">
                             <textarea
                               value={account.instructions}
                               readOnly
@@ -463,7 +463,7 @@ export default function OrderDetailModal({ order, isOpen, onClose, onRenewSucces
           </Card>
 
           {/* Customer Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">

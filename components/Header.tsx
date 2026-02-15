@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Crown, Grid3X3, ChevronDown, LogOut, Heart, Ticket } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Crown, ChevronDown, LogOut, Heart, Ticket, Home, Info, Package, FileText, Newspaper, Mail, Code, Gift } from 'lucide-react';
 import DataSyncHelper from '@/lib/syncHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,8 +21,20 @@ import { fetchCategories, fetchProducts } from '@/lib/api';
 import type { Category, ParentCategory } from '@/types/category.interface';
 import type { ProductBase } from '@/lib/products';
 
+const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  'Trang chủ': Home,
+  'Giới thiệu': Info,
+  'Danh mục sản phẩm': Package,
+  'Chính sách mua hàng': FileText,
+  'Tin tức công nghệ': Newspaper,
+  'Liên hệ': Mail,
+  'Prompt GPT': Code,
+  'Lấy Code': Gift,
+};
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const { theme, setTheme } = useTheme();
   const { itemsCount } = useCart();
   const [realtimeCartCount, setRealtimeCartCount] = useState(itemsCount);
@@ -101,7 +114,20 @@ export default function Header() {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+    setShowMobileSearch(false);
   };
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
 
   const handleCartClick = () => {
     router.push('/cart');
@@ -278,21 +304,20 @@ export default function Header() {
   })();
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* TOP BAR */}
-        <div className="flex items-center justify-between h-16 gap-3">
-          {/* Left - Logo */}
-          <Link href="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden bg-white">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-3">
+          {/* Left - Logo (compact on mobile) */}
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0 group">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center overflow-hidden bg-white shadow-sm border border-gray-100">
               <img src="/images/logo.png" alt="QAI STORE" className="w-full h-full object-contain" />
             </div>
-
-            <div className="flex flex-col leading-tight">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-800 group-hover:text-brand-blue transition">
+            <div className="flex flex-col leading-tight min-w-0">
+              <h1 className="text-base sm:text-xl font-bold text-gray-800 group-hover:text-brand-blue transition truncate">
                 QAI STORE
               </h1>
-              <p className="text-[11px] sm:text-sm text-gray-400 group-hover:text-gray-500 transition">
+              <p className="text-[10px] sm:text-sm text-gray-400 group-hover:text-gray-500 transition hidden sm:block">
                 SHOP TÀI KHOẢN
               </p>
             </div>
@@ -368,16 +393,27 @@ export default function Header() {
               </div>
             </div>
 
+            {/* Mobile Search Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+              className="md:hidden text-gray-600 hover:text-brand-blue hover:bg-brand-blue/5 p-2.5 rounded-xl"
+              aria-label="Tìm kiếm"
+            >
+              <Search className="w-5 h-5" />
+            </Button>
+
             {/* Cart */}
             <Button
               variant="ghost"
               onClick={handleCartClick}
-              className="relative text-gray-800 hover:bg-gray-100 p-2 sm:p-3 rounded-lg"
+              className="relative text-gray-800 hover:bg-gray-100 p-2 sm:p-3 rounded-xl"
             >
               <ShoppingCart className="w-5 h-5" />
               <span className="ml-2 hidden sm:inline">Giỏ hàng</span>
               {realtimeCartCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 min-w-6 h-6 px-1 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
+                <Badge className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold border-2 border-white">
                   {realtimeCartCount > 99 ? "99+" : realtimeCartCount}
                 </Badge>
               )}
@@ -461,50 +497,59 @@ export default function Header() {
               </Link>
             )}
 
-            {/* Mobile menu */}
+            {/* Mobile menu toggle */}
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={toggleMenu}
-              className="lg:hidden text-gray-800 hover:bg-gray-100 p-2 rounded-lg"
-              aria-label="Toggle menu"
+              className="lg:hidden text-gray-700 hover:text-brand-blue hover:bg-brand-blue/5 p-2.5 rounded-xl"
+              aria-label="Menu"
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
         </div>
 
-        {/* Mobile Search (below top bar) */}
-        <div className="md:hidden pb-3">
-          <form onSubmit={(e) => e.preventDefault()}>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+        {/* Mobile Search - Collapsible */}
+        {showMobileSearch && (
+          <div className="md:hidden pb-3 animate-in slide-in-from-top-2 duration-200">
+            <form onSubmit={(e) => e.preventDefault()} className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 type="text"
-                placeholder="Tìm kiếm tài khoản, khóa học, phần mềm..."
+                placeholder="Tìm kiếm sản phẩm..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9 pr-3 py-2 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500"
+                className="pl-10 pr-10 py-2.5 w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white shadow-sm"
+                autoFocus
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg"
+                onClick={() => setShowMobileSearch(false)}
+                aria-label="Đóng tìm kiếm"
+              >
+                <X className="w-4 h-4" />
+              </Button>
               {suggestedProducts.length > 0 && (
-                <div className="absolute z-30 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-auto">
+                <div className="absolute z-30 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-xl max-h-64 overflow-auto">
                   {suggestedProducts.map((product) => (
                     <button
                       key={product.id}
                       type="button"
                       onClick={() => {
-                        const name = product.name || '';
-                        setSearchInput(name);
-                        setDebouncedSearchInput(name);
+                        setSearchInput('');
+                        setShowMobileSearch(false);
+                        setDebouncedSearchInput(product.name || '');
                         router.push(`/products/${product.id}`);
                       }}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between"
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between border-b border-gray-50 last:border-0"
                     >
-                      <span className="text-sm text-gray-800 line-clamp-1">
-                        {product.name}
-                      </span>
+                      <span className="text-sm text-gray-800 line-clamp-1">{product.name}</span>
                       {(product as any).durations?.[0]?.price && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-brand-emerald font-medium">
                           {(product as any).durations[0].price.toLocaleString('vi-VN')}đ
                         </span>
                       )}
@@ -512,9 +557,9 @@ export default function Header() {
                   ))}
                 </div>
               )}
-            </div>
-          </form>
-        </div>
+            </form>
+          </div>
+        )}
 
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center justify-center h-12 gap-2 xl:gap-6">
@@ -626,71 +671,173 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Mobile/Tablet Drawer */}
-        {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 bg-white px-3 sm:px-4 py-5 space-y-4">
-            <nav className="space-y-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="block py-3 text-gray-700 hover:text-brand-blue font-medium text-base rounded-lg hover:bg-gray-100 px-4 transition"
+        {/* Mobile Drawer - Render via Portal để nhận touch/click ra ngoài */}
+        {isMenuOpen && typeof document !== 'undefined' && createPortal(
+          <div className="lg:hidden fixed inset-0 z-[9999]" role="presentation">
+            {/* Overlay - nhấn/chạm ra ngoài panel để đóng menu */}
+            <div
+              className="absolute inset-0 bg-transparent cursor-pointer"
+              style={{ touchAction: 'manipulation' } as React.CSSProperties}
+              onClick={() => setIsMenuOpen(false)}
+              onTouchEnd={() => setIsMenuOpen(false)}
+              aria-hidden
+            />
+            {/* Panel - stopPropagation để không đóng khi nhấn trong panel */}
+            <div
+              className="absolute top-0 right-0 bottom-0 w-[min(320px,85vw)] bg-white flex flex-col animate-in slide-in-from-right duration-300 ease-out shadow-[0_0_0_1px_rgba(0,0,0,0.06),-8px_0_32px_rgba(0,0,0,0.18)]"
+              onClick={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-label="Menu điều hướng"
+            >
+              {/* Drawer header */}
+              <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 shrink-0 bg-white">
+                <span className="font-bold text-lg text-gray-800">Menu</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setIsMenuOpen(false)}
+                  className="rounded-xl hover:bg-gray-100"
+                  aria-label="Đóng menu"
                 >
-                  {item.name}
-                </Link>
-              ))}
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
 
-              {!user && (
-                <Link
-                  href="/login"
-                  className="block py-3 text-gray-700 font-medium text-base rounded-lg hover:bg-gray-100 px-4"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Đăng nhập
-                </Link>
-              )}
-
-              {/* Top-level categories on mobile */}
-              {!loadingCategories && categories?.length > 0 && (
-                <>
-                  <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 px-4">
-                    Danh mục
-                  </div>
-                  {categories
-                    .filter((c) => !c.parent_id || Number(c.parent_id) === 0)
-                    .slice(0, 10)
-                    .map((top) => (
+              {/* Nav links - ĐẶT ĐẦU TIÊN để luôn thấy các trang tab */}
+              <nav className="shrink-0 px-3 py-3 border-b border-gray-100 bg-white">
+                <p className="px-4 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Điều hướng
+                </p>
+                <div className="space-y-0.5">
+                  {navigation.map((item) => {
+                    const Icon = navIcons[item.name];
+                    return (
                       <Link
-                        key={top.id}
-                        href={`/products?category=${encodeURIComponent(top.slug ?? String(top.id))}`}
-                        className="block py-2 px-4 text-gray-700 rounded-lg hover:bg-gray-100"
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center gap-3 py-2.5 px-4 text-gray-700 hover:text-brand-blue hover:bg-brand-blue/5 font-medium rounded-xl transition"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        {top.name}
+                        {Icon && (
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600 group-hover:bg-brand-blue/10 group-hover:text-brand-blue">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                        )}
+                        <span className="text-sm">{item.name}</span>
                       </Link>
-                    ))}
-                </>
-              )}
-            </nav>
+                    );
+                  })}
 
-            <div className="pt-4 border-t border-gray-200 space-y-3">
-              <div className="flex items-center gap-3 text-gray-800">
-                <MapPin className="w-4 h-4 text-brand-blue" />
-                <div>
-                  <p className="text-xs text-gray-500">Vận chuyển</p>
-                  <p className="font-medium text-sm">31 Nguyễn Đình Khởi</p>
+                  {!user && (
+                    <Link
+                      href="/login"
+                      className="group flex items-center gap-3 py-2.5 px-4 text-brand-blue hover:bg-brand-blue/5 font-semibold rounded-xl transition"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-blue/10">
+                        <User className="w-4 h-4 text-brand-blue" />
+                      </div>
+                      Đăng nhập
+                    </Link>
+                  )}
                 </div>
-              </div>
-              <div className="flex items-center gap-3 text-gray-800">
-                <Phone className="w-4 h-4 text-brand-blue" />
-                <div>
-                  <p className="text-xs text-gray-500">Hotline/Zalo</p>
-                  <p className="font-medium text-sm">0389.66.0305</p>
+              </nav>
+
+              {/* User section + Categories + Contact - scrollable */}
+              <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-3">
+                {/* User section (if logged in) */}
+                {user && (
+                  <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-brand-blue/5 to-brand-emerald/5 border border-gray-100">
+                    <Link
+                      href="/wallet"
+                      className="flex items-center gap-3"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback className="bg-gradient-to-br from-brand-blue to-brand-emerald text-white text-sm">
+                          {user.name?.charAt(0)?.toUpperCase() ?? "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-800 truncate text-sm">{user.name}</p>
+                        <p className="text-xs text-brand-emerald font-medium flex items-center gap-1">
+                          <Wallet className="w-3 h-3" />
+                          {formatCoins(user.coins)} coins
+                        </p>
+                      </div>
+                    </Link>
+                    <div className="flex gap-2 mt-2">
+                      <Link href="/orders" onClick={() => setIsMenuOpen(false)} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full rounded-lg text-xs h-8">
+                          <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
+                          Đơn hàng
+                        </Button>
+                      </Link>
+                      <Link href="/wallet" onClick={() => setIsMenuOpen(false)} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full rounded-lg text-xs h-8">
+                          <Wallet className="w-3.5 h-3.5 mr-1.5" />
+                          Ví
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* Categories */}
+                {!loadingCategories && categories?.length > 0 && (
+                  <div className="mb-4">
+                    <p className="px-4 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Danh mục
+                    </p>
+                    <div className="space-y-1">
+                      {categories
+                        .filter((c) => !c.parent_id || Number(c.parent_id) === 0)
+                        .slice(0, 10)
+                        .map((top) => (
+                          <Link
+                            key={top.id}
+                            href={`/products?category=${encodeURIComponent(top.slug ?? String(top.id))}`}
+                            className="flex items-center gap-3 py-2.5 px-4 text-gray-600 hover:text-brand-blue hover:bg-gray-50 rounded-lg text-sm"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <Package className="w-4 h-4 text-gray-400 shrink-0" />
+                            {top.name}
+                          </Link>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contact footer */}
+                <div className="space-y-3 pt-2">
+                <a
+                  href="tel:0389660305"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100 hover:border-brand-blue/30 transition"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10">
+                    <Phone className="w-5 h-5 text-brand-blue" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Hotline / Zalo</p>
+                    <p className="font-semibold text-gray-800">038.966.0305</p>
+                  </div>
+                </a>
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-emerald/10">
+                    <MapPin className="w-5 h-5 text-brand-emerald" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Địa chỉ</p>
+                    <p className="font-medium text-gray-800 text-sm">96 Ngô Tất Thành</p>
+                  </div>
+                </div>
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </header>

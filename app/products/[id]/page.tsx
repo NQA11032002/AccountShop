@@ -485,43 +485,35 @@ export default function ProductDetailPage() {
                 <p className="text-gray-600 mt-2">Khám phá tất cả những gì bạn nhận được với sản phẩm này</p>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
-                {/* What's Included */}
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-100 shadow-sm">
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                      <span className="text-white text-xl">📦</span>
+                {/* Thông tin sản phẩm - Enhanced design */}
+                <div className="relative overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-white via-emerald-50/40 to-teal-50/50 shadow-lg shadow-emerald-100/50">
+                  {/* Decorative top accent */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400" />
+                  {/* Header */}
+                  <div className="flex items-center gap-4 p-6 pb-5">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-md shadow-emerald-300/40 ring-4 ring-emerald-100/80">
+                      <span className="text-2xl">📦</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">Thông tin sản phẩm</h3>
+                    <div>
+                      <h3 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
+                        Thông tin sản phẩm
+                      </h3>
+                      <p className="mt-0.5 text-sm text-gray-500">
+                        Mô tả chi tiết và đầy đủ về sản phẩm
+                      </p>
+                    </div>
                   </div>
+                  {/* Content */}
                   <div
-                    className="
-    prose prose-gray max-w-none
-    text-sm sm:text-base lg:text-lg
-    leading-relaxed sm:leading-7
-    mb-4
-
-    /* Media inside description */
-    [&_img]:max-w-full
-    [&_img]:h-auto
-    [&_img]:rounded-lg
-    [&_img]:my-4
-
-    [&_iframe]:w-full
-    [&_iframe]:aspect-video
-    [&_iframe]:rounded-lg
-    [&_iframe]:my-4
-
-    /* Table / code safety */
-    [&_table]:block
-    [&_table]:overflow-x-auto
-    [&_pre]:overflow-x-auto
-  "
+                    className="prose prose-gray prose-headings:font-semibold prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 max-w-none px-6 pb-8 pt-0
+                      text-sm leading-relaxed sm:text-base sm:leading-7 lg:text-lg
+                      [&_img]:my-6 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_img]:shadow-md
+                      [&_iframe]:my-6 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-xl
+                      [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto [&_pre]:rounded-lg"
                     dangerouslySetInnerHTML={{
                       __html: DOMPurify.sanitize(product.description),
                     }}
                   />
-
-
                 </div>
 
                 {/* System Requirements */}

@@ -35,7 +35,8 @@ interface CoinPaymentInterfaceProps {
   isProcessing: boolean;
   orderItems: any[];
   appliedDiscount?: any;
-  notes?: string; // 👈 thêm
+  notes?: string;
+  customerInfo?: { fullName?: string; email?: string; phone?: string };
 }
 
 export default function CoinPaymentInterface({
@@ -44,7 +45,8 @@ export default function CoinPaymentInterface({
   isProcessing,
   orderItems,
   appliedDiscount,
-  notes
+  notes,
+  customerInfo
 }: CoinPaymentInterfaceProps) {
   const { balance, canAfford, formatCoins } = useWallet();
   const [animationStep, setAnimationStep] = useState(0);
@@ -69,14 +71,22 @@ export default function CoinPaymentInterface({
   // nếu đang dùng custom toast
   const handlePayment = async () => {
     if (isProcessingPayment) return; // Ngừng nếu đang xử lý thanh toán
+    if (!sessionId) {
+      toast({ title: "Phiên hết hạn", description: "Vui lòng đăng nhập lại.", variant: "destructive" });
+      return;
+    }
+    if (!orderItems?.length) {
+      toast({ title: "Giỏ hàng trống", description: "Không có sản phẩm để thanh toán.", variant: "destructive" });
+      return;
+    }
 
     setIsProcessingPayment(true); // Bắt đầu xử lý thanh toán
     setShowConfetti(true);
 
     try {
       const orderData: Record<string, unknown> = {
-        customer_name: user?.name || 'Không tên',
-        customer_phone: user?.phone || '0123456789',
+        customer_name: customerInfo?.fullName || user?.name || 'Không tên',
+        customer_phone: customerInfo?.phone || user?.phone || '0123456789',
         shipping_address: 'Mặc định',
         notes: (notes ?? '').trim(),
         total: amount,
@@ -84,12 +94,12 @@ export default function CoinPaymentInterface({
         discount: 0,
         payment_method: 'coin',
         payment_status: 'Đã thanh toán',
-        products: items.map((item) => ({
-          product_id: item.id,
-          product_name: item.product_name,
+        products: orderItems.map((item) => ({
+          product_id: item.product_id ?? item.id,
+          product_name: item.product_name ?? item.name ?? 'Sản phẩm',
           quantity: item.quantity,
           price: item.price,
-          duration: item.duration,
+          duration: item.duration ?? item.selected_duration?.toString?.() ?? '',
         })),
         status: 'processing',
       };
@@ -125,7 +135,7 @@ export default function CoinPaymentInterface({
       // ✅ 4. Mua hàng tăng điểm hạng: cập nhật ranking (điểm, total_spent, total_orders)
       if (!isNaN(orderId)) {
         try {
-          await updateCustomerRankingOnOrder(sessionId!, orderId, amount, items.length);
+          await updateCustomerRankingOnOrder(sessionId!, orderId, amount, orderItems.length);
         } catch (err) {
           console.warn("Failed to update customer ranking after payment", err);
         }
@@ -137,14 +147,11 @@ export default function CoinPaymentInterface({
         variant: "default",
       });
 
-      // ✅ 4. Xóa giỏ hàng
+      // Xóa giỏ hàng và chuyển đến trang Đơn hàng của tôi
       setTimeout(() => {
         clearAllCart();
+        router.push('/orders');
       }, 1500);
-
-
-      // ✅ 5. Hiển thị confetti và chuyển hướng nếu muốn
-      // setTimeout(() => setShowConfetti(false), 3000);
 
     } catch (error: any) {
       setShowConfetti(false);

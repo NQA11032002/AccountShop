@@ -233,12 +233,11 @@ export async function createOrder(orderData: any, sessionId: string): Promise<an
         body: JSON.stringify(orderData),
     });
 
-    // if (!res.ok) {
-    //     const errorBody = await res.json();
-    //     throw new Error(errorBody.message || 'Tạo đơn hàng thất bại');
-    // }
-
-    return res.json(); // trả về { order_id, message }
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data?.message || 'Tạo đơn hàng thất bại');
+    }
+    return data; // trả về { order_id, message }
 }
 
 export async function registerUser(
