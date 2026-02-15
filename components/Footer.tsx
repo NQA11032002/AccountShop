@@ -42,12 +42,12 @@ export default function Footer() {
   return (
     <footer className="bg-brand-charcoal text-white">
       {/* Main Footer */}
-      <div className="container-max section-padding py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="container-max section-padding py-10 sm:py-14 lg:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
           {/* Brand & Contact */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Logo */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg flex items-center justify-center">
                 {/* <span className="text-white font-bold text-xl">Q</span> */}
                 <img src="/images/logo.png" alt="" />
@@ -59,13 +59,13 @@ export default function Footer() {
             </div>
 
             {/* Description */}
-            <p className="text-gray-300 text-sm leading-relaxed">
+            <p className="text-gray-300 text-sm leading-relaxed max-w-sm">
               Cung cấp tài khoản premium chất lượng cao với giá tốt nhất thị trường.
               Cam kết bảo hành và hỗ trợ khách hàng 24/7.
             </p>
 
             {/* Trust Badges */}
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <Badge className="bg-green-600 text-white">
                 <Star className="w-3 h-3 mr-1" />
                 Uy tín
@@ -94,8 +94,8 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-6">
-            <h4 className="text-lg font-semibold">Liên kết nhanh</h4>
+          <div className="space-y-4 sm:space-y-6">
+            <h4 className="text-base sm:text-lg font-semibold">Liên kết nhanh</h4>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.name}>
@@ -109,7 +109,7 @@ export default function Footer() {
               ))}
             </ul>
 
-            <h4 className="text-lg font-semibold pt-4">Chính sách</h4>
+            <h4 className="text-base sm:text-lg font-semibold pt-4">Chính sách</h4>
             <ul className="space-y-3">
               {policies.map((policy) => (
                 <li key={policy.name}>
@@ -125,8 +125,8 @@ export default function Footer() {
           </div>
 
           {/* Categories */}
-          <div className="space-y-6">
-            <h4 className="text-lg font-semibold">Danh mục sản phẩm</h4>
+          <div className="space-y-4 sm:space-y-6">
+            <h4 className="text-base sm:text-lg font-semibold">Danh mục sản phẩm</h4>
             <ul className="space-y-3">
               {categories.map((category) => (
                 <li key={category.name}>
@@ -157,11 +157,11 @@ export default function Footer() {
           </div>
 
           {/* Newsletter & Social */}
-          <div className="space-y-6">
-            <h4 className="text-lg font-semibold">Theo dõi chúng tôi</h4>
+          <div className="space-y-4 sm:space-y-6 lg:col-span-1">
+            <h4 className="text-base sm:text-lg font-semibold">Theo dõi chúng tôi</h4>
 
             {/* Social Links */}
-            <div className="flex space-x-4">
+            <div className="flex gap-3 sm:gap-4">
               <a
                 href="https://www.facebook.com/qaistorethegioiai/"
                 target="_blank"
@@ -221,13 +221,13 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-gray-800">
-        <div className="container-max section-padding py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm text-gray-400">
+        <div className="container-max section-padding py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-center sm:text-left">
+            <div className="text-xs sm:text-sm text-gray-400">
               © {currentYear} QAI STORE. Tất cả quyền được bảo lưu.
             </div>
 
-            <div className="flex items-center space-x-6 text-sm text-gray-400">
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-6 text-xs sm:text-sm text-gray-400">
               <span>Thiết kế bởi QAI Team</span>
               <span>•</span>
               <span>Made with ❤️ in Vietnam</span>

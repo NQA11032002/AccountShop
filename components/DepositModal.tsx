@@ -388,24 +388,29 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
                     </span>
                   </div>
 
-                  {/* Enhanced Payment Confirmation Button */}
+                  {/* Call-to-action hint */}
+                  <p className="text-center text-sm font-medium text-gray-700 mb-3">
+                    ⬇️ Sau khi chuyển khoản xong, hãy nhấn nút bên dưới:
+                  </p>
+
+                  {/* Payment Confirmation Button */}
                   <Button
                     onClick={handlePaymentConfirmation}
                     onMouseDown={(e) => e.preventDefault()}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 cursor-pointer select-none active:scale-[0.98]"
+                    className="w-full min-w-0 bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 hover:from-green-600 hover:via-green-700 hover:to-emerald-700 text-white font-bold py-4 sm:py-5 px-4 sm:px-6 rounded-xl shadow-lg hover:shadow-xl ring-2 ring-green-400/50 ring-offset-2 ring-offset-white transition-all duration-200 cursor-pointer select-none active:scale-[0.98] border-2 border-green-400/30 overflow-hidden"
                     disabled={isProcessing}
                     type="button"
                   >
-                    <div className="flex items-center justify-center space-x-2">
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 min-w-0 flex-1">
                       {isProcessing ? (
                         <>
-                          <RefreshCw className="w-5 h-5 animate-spin" />
-                          <span className="text-base font-semibold">Đang xử lý...</span>
+                          <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin shrink-0" />
+                          <span className="text-sm sm:text-base font-bold truncate">Đang xử lý...</span>
                         </>
                       ) : (
                         <>
-                          <CheckCircle className="w-5 h-5" />
-                          <span className="text-base font-semibold">✅ Đã thanh toán</span>
+                          <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                          <span className="text-sm sm:text-base font-bold whitespace-nowrap shrink-0">Đã thanh toán</span>
                         </>
                       )}
                     </div>

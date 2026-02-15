@@ -2,6 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
+
+function useItemsPerSlide() {
+  const [items, setItems] = useState(3);
+  useEffect(() => {
+    const mq = (w: number) => window.matchMedia(`(min-width: ${w}px)`);
+    const update = () => {
+      if (mq(1024).matches) setItems(3);
+      else if (mq(768).matches) setItems(2);
+      else setItems(1);
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return items;
+}
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Testimonials() {
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  console.log("Testimonials component rendered", { currentSlide });
+  const itemsPerSlide = useItemsPerSlide();
 
   const testimonials = [
     {
@@ -81,22 +96,22 @@ export default function Testimonials() {
     }
   ];
 
-  const itemsPerSlide = 3;
-  const totalSlides = Math.ceil(testimonials.length / itemsPerSlide);
+  const totalSlides = Math.max(1, Math.ceil(testimonials.length / itemsPerSlide));
+
+  useEffect(() => {
+    setCurrentSlide((prev) => Math.min(prev, totalSlides - 1));
+  }, [totalSlides]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
-    console.log("Next slide clicked", { newSlide: (currentSlide + 1) % totalSlides });
   };
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
-    console.log("Previous slide clicked", { newSlide: (currentSlide - 1 + totalSlides) % totalSlides });
   };
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
-    console.log("Slide indicator clicked", { slideIndex: index });
   };
 
   // Auto-play functionality
@@ -114,25 +129,25 @@ export default function Testimonials() {
   );
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+    <section className="section-spacing bg-gradient-to-br from-gray-50 to-white">
       <div className="container-max section-padding">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 animate-fade-in">
-          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-16 animate-fade-in">
+          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 mb-3 sm:mb-4 text-xs sm:text-sm">
             Khách hàng nói gì?
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-charcoal mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-charcoal mb-3 sm:mb-4 px-2">
             Đánh giá từ 
             <span className="gradient-text"> khách hàng thực</span>
           </h2>
-          <p className="text-lg text-gray-600 text-balance">
+          <p className="text-base sm:text-lg text-gray-600 text-balance px-2">
             Hàng nghìn khách hàng đã tin tưởng và hài lòng với dịch vụ của chúng tôi
           </p>
         </div>
 
         {/* Testimonials Slider */}
         <div className="relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8">
             {currentTestimonials.map((testimonial, index) => (
               <Card
                 key={testimonial.id}
@@ -192,18 +207,18 @@ export default function Testimonials() {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4">
             <Button
               variant="outline"
               size="sm"
               onClick={prevSlide}
-              className="w-10 h-10 rounded-full p-0 border-gray-300 hover:border-brand-blue hover:text-brand-blue"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full p-0 border-gray-300 hover:border-brand-blue hover:text-brand-blue shrink-0"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
 
             {/* Slide Indicators */}
-            <div className="flex space-x-2">
+            <div className="flex gap-1.5 sm:gap-2">
               {[...Array(totalSlides)].map((_, index) => (
                 <button
                   key={index}
@@ -221,7 +236,7 @@ export default function Testimonials() {
               variant="outline"
               size="sm"
               onClick={nextSlide}
-              className="w-10 h-10 rounded-full p-0 border-gray-300 hover:border-brand-blue hover:text-brand-blue"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full p-0 border-gray-300 hover:border-brand-blue hover:text-brand-blue shrink-0"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -229,28 +244,28 @@ export default function Testimonials() {
         </div>
 
         {/* Trust Stats */}
-        <div className="mt-16 bg-white rounded-2xl shadow-lg p-8 animate-fade-in animation-delay-400">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div className="mt-10 sm:mt-14 lg:mt-16 bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 animate-fade-in animation-delay-400">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-brand-blue mb-1">4.9</div>
-              <div className="text-sm text-gray-600">Đánh giá trung bình</div>
-              <div className="flex justify-center mt-2">
+              <div className="text-2xl sm:text-3xl font-bold text-brand-blue mb-0.5 sm:mb-1">4.9</div>
+              <div className="text-xs sm:text-sm text-gray-600">Đánh giá trung bình</div>
+              <div className="flex justify-center mt-1 sm:mt-2">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                  <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-brand-blue mb-1">2,450</div>
-              <div className="text-sm text-gray-600">Đánh giá tổng</div>
+              <div className="text-2xl sm:text-3xl font-bold text-brand-blue mb-0.5 sm:mb-1">2,450</div>
+              <div className="text-xs sm:text-sm text-gray-600">Đánh giá tổng</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-brand-blue mb-1">98%</div>
-              <div className="text-sm text-gray-600">Khách hàng hài lòng</div>
+              <div className="text-2xl sm:text-3xl font-bold text-brand-blue mb-0.5 sm:mb-1">98%</div>
+              <div className="text-xs sm:text-sm text-gray-600">Khách hàng hài lòng</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-brand-blue mb-1">5,000+</div>
-              <div className="text-sm text-gray-600">Khách hàng tin tưởng</div>
+              <div className="text-2xl sm:text-3xl font-bold text-brand-blue mb-0.5 sm:mb-1">5,000+</div>
+              <div className="text-xs sm:text-sm text-gray-600">Khách hàng tin tưởng</div>
             </div>
           </div>
         </div>

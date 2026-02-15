@@ -8,6 +8,14 @@ const config: Config = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    screens: {
+      xs: '475px',
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1536px',
+    },
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -106,6 +114,18 @@ const config: Config = {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-10px)' },
         },
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 4px 14px 0 rgba(22, 163, 74, 0.5)', transform: 'scale(1)' },
+          '50%': { boxShadow: '0 0 24px 4px rgba(22, 163, 74, 0.6), 0 4px 14px 0 rgba(22, 163, 74, 0.5)', transform: 'scale(1.02)' },
+        },
+        'attention-bounce': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
+        'shine': {
+          '0%': { backgroundPosition: '-200% center' },
+          '100%': { backgroundPosition: '200% center' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -114,6 +134,8 @@ const config: Config = {
         'scale-in': 'scale-in 0.3s ease-out',
         'slide-up': 'slide-up 0.4s ease-out',
         'float': 'float 3s ease-in-out infinite',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'attention-bounce': 'attention-bounce 1.5s ease-in-out infinite',
       },
       boxShadow: {
         'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',

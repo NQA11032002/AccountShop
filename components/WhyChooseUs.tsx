@@ -72,24 +72,24 @@ export default function WhyChooseUs() {
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="section-spacing bg-white">
       <div className="container-max section-padding">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 animate-fade-in">
-          <Badge className="bg-brand-emerald/10 text-brand-emerald border-brand-emerald/20 mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-16 animate-fade-in">
+          <Badge className="bg-brand-emerald/10 text-brand-emerald border-brand-emerald/20 mb-3 sm:mb-4 text-xs sm:text-sm">
             Vì sao chọn QAI STORE?
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-charcoal mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-charcoal mb-3 sm:mb-4 px-2">
             Lý do khách hàng 
             <span className="gradient-text"> tin tưởng chúng tôi</span>
           </h2>
-          <p className="text-lg text-gray-600 text-balance">
+          <p className="text-base sm:text-lg text-gray-600 text-balance px-2">
             Chúng tôi cam kết mang đến trải nghiệm mua sắm tài khoản premium tốt nhất với dịch vụ chuyên nghiệp và uy tín
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-10 sm:mb-14 lg:mb-16">
           {features.map((feature, index) => (
             <Card
               key={feature.title}
@@ -123,30 +123,30 @@ export default function WhyChooseUs() {
         </div>
 
         {/* Stats Section */}
-        <div className="bg-gradient-brand rounded-3xl p-8 md:p-12 animate-fade-in animation-delay-600">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+        <div className="bg-gradient-brand rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 animate-fade-in animation-delay-600">
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2">
               Những con số ấn tượng
             </h3>
-            <p className="text-white/80">
+            <p className="text-sm sm:text-base text-white/85">
               Minh chứng cho chất lượng dịch vụ của chúng tôi
             </p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {stats.map((stat, index) => (
               <div
                 key={stat.label}
-                className={`text-center space-y-3 animate-scale-in animation-delay-${700 + index * 100}`}
+                className={`text-center space-y-2 sm:space-y-3 animate-scale-in animation-delay-${700 + index * 100}`}
               >
-                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto backdrop-blur-sm">
-                  <stat.icon className="w-8 h-8 text-white" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-white/20 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto backdrop-blur-sm">
+                  <stat.icon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-1">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-0.5 sm:mb-1">
                     {stat.number}
                   </div>
-                  <div className="text-white/80 text-sm font-medium">
+                  <div className="text-white/85 text-xs sm:text-sm font-medium leading-tight">
                     {stat.label}
                   </div>
                 </div>
@@ -156,31 +156,31 @@ export default function WhyChooseUs() {
         </div>
 
         {/* Trust Indicators */}
-        <div className="mt-16 text-center animate-fade-in animation-delay-800">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            <div className="space-y-2">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <Shield className="w-6 h-6 text-green-600" />
+        <div className="mt-10 sm:mt-14 lg:mt-16 text-center animate-fade-in animation-delay-800">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-4xl mx-auto">
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
-              <p className="text-sm font-medium text-gray-700">Bảo mật tuyệt đối</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Bảo mật tuyệt đối</p>
             </div>
-            <div className="space-y-2">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                <Award className="w-6 h-6 text-blue-600" />
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                <Award className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
-              <p className="text-sm font-medium text-gray-700">Chất lượng đảm bảo</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Chất lượng đảm bảo</p>
             </div>
-            <div className="space-y-2">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-                <RefreshCw className="w-6 h-6 text-purple-600" />
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+                <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
-              <p className="text-sm font-medium text-gray-700">Hoàn tiền 100%</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Hoàn tiền 100%</p>
             </div>
-            <div className="space-y-2">
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
-                <Zap className="w-6 h-6 text-orange-600" />
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+                <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
               </div>
-              <p className="text-sm font-medium text-gray-700">Giao hàng tức thì</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Giao hàng tức thì</p>
             </div>
           </div>
         </div>

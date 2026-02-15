@@ -47,25 +47,29 @@ export default function WalletPage() {
 
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    try {
-      getTransactions();
-    } catch (err: any) {
-      setError(err.message || 'Có lỗi xảy ra khi tải giao dịch');
-    } finally {
-      setLoading(false);
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const sessionId = localStorage.getItem('qai_session') || '';
+        const data = await fetchTransactionUserById(sessionId);
+        if (mounted) setTransactions(data.data || []);
+      } catch (err: any) {
+        if (mounted) setError(err.message || 'Có lỗi xảy ra khi tải giao dịch');
+      } finally {
+        if (mounted) setLoading(false);
+      }
     }
+    load();
+    return () => { mounted = false; };
   }, []);
 
   async function getTransactions() {
     const sessionId = localStorage.getItem('qai_session') || '';
-
     const data = await fetchTransactionUserById(sessionId);
-    setTransactions(data.data);
+    setTransactions(data.data || []);
   }
-
-  if (loading) return <div>Đang tải...</div>;
 
   if (!user) {
     return (
@@ -147,7 +151,8 @@ export default function WalletPage() {
     }
   };
 
-  const recentTransactions = transactions.slice(0, 5);
+  const recentTransactions = transactions.slice(0, 10);
+  const depositHistory = transactions.filter(tx => tx.type === 'deposit').slice(0, 10);
   const selectedDepositMethod = depositMethods.find(m => m.id === selectedMethod);
 
   return (
@@ -272,31 +277,121 @@ export default function WalletPage() {
                 </Card>
               </div>
 
-              {/* Recent Transactions */}
+              {/* Lịch sử nạp tiền */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Giao dịch gần đây</span>
+                  <CardTitle className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="flex items-center gap-2">
+                      <ArrowDownRight className="w-5 h-5 text-green-600" />
+                      Lịch sử nạp tiền
+                    </span>
                     <Button variant="outline" size="sm" onClick={() => setActiveTab('history')}>
                       Xem tất cả
                     </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {recentTransactions.length > 0 ? (
-                    <div className="space-y-4">
-                      {recentTransactions.map((transaction) => (
-                        <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                          <div className="flex items-center space-x-4">
+                  {loading ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg animate-pulse">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-gray-300 rounded" />
+                            <div className="space-y-2">
+                              <div className="h-4 bg-gray-300 rounded w-32" />
+                              <div className="h-3 bg-gray-300 rounded w-24" />
+                            </div>
+                          </div>
+                          <div className="h-5 bg-gray-300 rounded w-16" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : depositHistory.length > 0 ? (
+                    <div className="space-y-3">
+                      {depositHistory.map((transaction) => (
+                        <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 bg-gray-50 rounded-lg hover:bg-gray-100/80 transition">
+                          <div className="flex items-center gap-3 min-w-0">
                             {getTransactionIcon(transaction.type)}
-                            <div>
-                              <div className="font-medium">{transaction.description}</div>
-                              <div className="text-sm text-gray-600">
+                            <div className="min-w-0">
+                              <div className="font-medium text-sm sm:text-base truncate">{transaction.description}</div>
+                              <div className="text-xs sm:text-sm text-gray-600">
                                 {formatDateTimeUTC(transaction.created_at)}
+                                {transaction.transaction_id && (
+                                  <span className="ml-2 text-blue-600 font-mono">#{transaction.transaction_id}</span>
+                                )}
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
+                            <div className={`font-bold text-green-600`}>
+                              +{formatCoins(Math.abs(transaction.amount))}
+                            </div>
+                            <Badge className={getStatusColor(transaction.status)}>
+                              {transaction.status === 'approved' ? 'Hoàn thành' :
+                                transaction.status === 'pending' ? 'Đang xử lý' : 'Từ chối'}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <ArrowDownRight className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm">Chưa có lịch sử nạp tiền</p>
+                      <Button variant="outline" size="sm" className="mt-3" onClick={() => setActiveTab('deposit')}>
+                        Nạp tiền ngay
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Giao dịch gần đây */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="flex items-center gap-2">
+                      <History className="w-5 h-5 text-brand-blue" />
+                      Giao dịch gần đây
+                    </span>
+                    <Button variant="outline" size="sm" onClick={() => setActiveTab('history')}>
+                      Xem tất cả
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg animate-pulse">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-gray-300 rounded" />
+                            <div className="space-y-2">
+                              <div className="h-4 bg-gray-300 rounded w-40" />
+                              <div className="h-3 bg-gray-300 rounded w-28" />
+                            </div>
+                          </div>
+                          <div className="h-5 bg-gray-300 rounded w-20" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : recentTransactions.length > 0 ? (
+                    <div className="space-y-3">
+                      {recentTransactions.map((transaction) => (
+                        <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 bg-gray-50 rounded-lg hover:bg-gray-100/80 transition">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {getTransactionIcon(transaction.type)}
+                            <div className="min-w-0">
+                              <div className="font-medium text-sm sm:text-base truncate">{transaction.description}</div>
+                              <div className="text-xs sm:text-sm text-gray-600">
+                                {formatDateTimeUTC(transaction.created_at)}
+                                {transaction.transaction_id && (
+                                  <span className="ml-2 text-blue-600 font-mono">#{transaction.transaction_id}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
                             <div className={`font-bold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {transaction.amount > 0 ? '+' : ''}{formatCoins(Math.abs(transaction.amount))}
                             </div>
@@ -310,8 +405,11 @@ export default function WalletPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      <History className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                      <p>Chưa có giao dịch nào</p>
+                      <History className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm">Chưa có giao dịch nào</p>
+                      <Button variant="outline" size="sm" className="mt-3" onClick={() => setActiveTab('deposit')}>
+                        Nạp tiền ngay
+                      </Button>
                     </div>
                   )}
                 </CardContent>

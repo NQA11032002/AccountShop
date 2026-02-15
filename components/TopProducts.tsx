@@ -42,24 +42,24 @@ export default function TopProducts() {
   return (
     <>
       {/* Mục 1: Tài khoản Premium Chất lượng cao (Hot) */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4 max-w-7xl">
+      <section className="section-spacing bg-white">
+        <div className="container-max section-padding">
           {/* Section Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium mb-4 border border-green-200">
-              <TrendingUp className="w-4 h-4 mr-2" />
+          <div className="text-center mb-8 sm:mb-12">
+            <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-green-50 text-green-700 rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-4 border border-green-200">
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 shrink-0" />
               Tài khoản Premium chất lượng cao
             </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-2">
               Tài khoản Premium Chất lượng cao
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-2">
               Hiển thị tối đa 9 sản phẩm được gắn nhãn <strong>Hot</strong>, giúp bạn nhanh chóng chọn các gói nổi bật nhất.
             </p>
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {hotDisplayedProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -75,22 +75,22 @@ export default function TopProducts() {
       </section>
 
       {/* Mục 2: 9 tài khoản giá tốt nhất hôm nay (rẻ nhất) */}
-      <section className="py-8 bg-gray-50">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium mb-4 border border-blue-200">
-              <TrendingUp className="w-4 h-4 mr-2" />
+      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+        <div className="container-max section-padding">
+          <div className="text-center mb-8 sm:mb-12">
+            <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 text-blue-700 rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-4 border border-blue-200">
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 shrink-0" />
               9 tài khoản giá tốt nhất hôm nay
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 px-2">
               9 tài khoản giá tốt nhất hôm nay
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-2">
               Tự động chọn 9 sản phẩm có giá thấp nhất để bạn dễ dàng lựa chọn, vẫn đảm bảo chất lượng dịch vụ.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {cheapestProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -103,11 +103,11 @@ export default function TopProducts() {
             ))}
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-8 sm:mt-12">
             <Link href="/products">
-              <Button className="bg-white border-brand-purple text-brand-purple hover:bg-gradient-to-r hover:from-brand-gray hover:to-brand-blue hover:text-white px-8 py-3 font-medium transition-all duration-300 shadow-lg hover:shadow-xl">
+              <Button className="bg-white border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-medium transition-all duration-300 shadow-md hover:shadow-xl w-full sm:w-auto max-w-xs sm:max-w-none mx-auto">
                 Xem tất cả sản phẩm
-                <TrendingUp className="w-5 h-5 ml-2" />
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 ml-2 shrink-0" />
               </Button>
             </Link>
           </div>
