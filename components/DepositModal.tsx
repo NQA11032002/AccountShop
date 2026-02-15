@@ -262,7 +262,7 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl w-full mx-auto bg-white border border-gray-200 shadow-xl">
+      <DialogContent className="max-w-4xl w-full mx-auto bg-white border border-gray-200 shadow-xl max-h-[90dvh] overflow-y-auto overscroll-contain">
         <DialogHeader className="pb-4 border-b border-gray-100">
           <DialogTitle className="flex items-center justify-center space-x-3 text-xl">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white text-lg">
