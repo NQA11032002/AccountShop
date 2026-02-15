@@ -887,14 +887,15 @@ QAI Store - Tài khoản premium uy tín #1
   const [currentPageUser, setCurrentPageUser] = useState(1);
   const [perPageUser] = useState(10);
   const [metaUser, setMetaUser] = useState<any>(null);
+  const [userSortOrder, setUserSortOrder] = useState<'asc' | 'desc'>('desc'); // Sắp xếp theo ngày tham gia
   useEffect(() => {
     loadUser();
-  }, [sessionId, currentPageUser]);
+  }, [sessionId, currentPageUser, userSortOrder]);
 
   const loadUser = async () => {
     if (!sessionId) return;
 
-    const res = await fetchAdminUsers(sessionId, currentPageUser, perPageUser);
+    const res = await fetchAdminUsers(sessionId, currentPageUser, perPageUser, 'join_date', userSortOrder);
 
     const usersWithStats = (res.data ?? []).map((user: any) => ({
       ...user,
@@ -4135,6 +4136,23 @@ QAI Store - Tài khoản premium uy tín #1
                         className="pl-10 w-full"
                       />
                     </div>
+
+                    {/* Sắp xếp theo ngày tham gia */}
+                    <Select
+                      value={userSortOrder}
+                      onValueChange={(v: 'asc' | 'desc') => {
+                        setUserSortOrder(v);
+                        setCurrentPageUser(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-full sm:w-[200px]">
+                        <SelectValue placeholder="Sắp xếp theo ngày tham gia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="desc">Ngày tham gia: Mới nhất</SelectItem>
+                        <SelectItem value="asc">Ngày tham gia: Cũ nhất</SelectItem>
+                      </SelectContent>
+                    </Select>
 
                     {/* Filter */}
                     <Button

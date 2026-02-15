@@ -11,6 +11,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+
+/** Format date as YYYY-MM-DD in local time (avoid UTC off-by-one day). */
+function toLocalDateString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 import { CustomerAccount } from '@/types/CustomerAccount';
 import { useAuth } from '@/contexts/AuthContext';
 import { getListChatgpts } from "@/lib/api";
@@ -143,8 +151,8 @@ export function EditCustomerAccountDialog({
 
     const updatedAccount: CustomerAccount = {
       ...formData,
-      purchase_date: pDate.toISOString().slice(0, 10),
-      expiry_date: eDate.toISOString().slice(0, 10)
+      purchase_date: toLocalDateString(pDate),
+      expiry_date: toLocalDateString(eDate)
     };
 
     try {
@@ -409,9 +417,7 @@ export function EditCustomerAccountDialog({
                       setPurchaseDate(date);
                       setFormData(prev => ({
                         ...prev,
-                        purchase_date: date
-                          ? date.toISOString().slice(0, 10)
-                          : null
+                        purchase_date: date ? toLocalDateString(date) : null
                       }));
                     }}
                     initialFocus
@@ -442,9 +448,7 @@ export function EditCustomerAccountDialog({
                       setExpiryDate(date);
                       setFormData(prev => ({
                         ...prev,
-                        expiry_date: date
-                          ? date.toISOString().slice(0, 10)
-                          : null
+                        expiry_date: date ? toLocalDateString(date) : null
                       }));
                     }}
                     initialFocus

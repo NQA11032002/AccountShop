@@ -630,9 +630,14 @@ export const claimUserReward = async (rewardId: number, sessionId: string) => {
 export const fetchAdminUsers = async (
     sessionId: string,
     page: number = 1,
-    perPage: number = 20
+    perPage: number = 20,
+    sortBy: string = 'join_date',
+    sortOrder: string = 'desc'
 ) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users?page=${page}&per_page=${perPage}`, {
+    const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    if (sortBy) params.set('sort_by', sortBy);
+    if (sortOrder) params.set('sort_order', sortOrder);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users?${params.toString()}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${sessionId}`,
