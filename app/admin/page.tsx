@@ -159,7 +159,7 @@ import {
 } from '@/lib/api';
 import { Product } from '@/types/product.interface';
 import { deleteOrder } from '@/lib/api';
-import { sendOrderEmail, getOnetimecodes, getListAccounts, deleteAccount, sendCustomerAccountRenewalEmail, fetchAdminRenewalRequests, updateAdminRenewalRequest } from '@/lib/api';
+import { sendOrderEmail, getOnetimecodes, getListAccounts, deleteAccount, sendCustomerAccountRenewalEmail } from '@/lib/api';
 import { Onetimecode, userOnetimecode } from '@/types/Onetimecode';
 import * as XLSX from "xlsx";
 import { CustomerAccount } from '@/types/CustomerAccount';
@@ -212,7 +212,7 @@ interface Order {
   customerName?: string;
   customerPhone?: string;
   shippingAddress?: string;
-  products: { name: string; quantity: number; price: number }[];
+  products: { name: string; quantity: number; price: number; duration?: string }[];
   total: number;
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
   paymentMethod: string;
@@ -1222,32 +1222,6 @@ QAI Store - Tài khoản premium uy tín #1
     currentPageMetaAccounts * perPageMetaAccounts,
     totalItems
   );
-
-  // Đơn yêu cầu gia hạn tài khoản (admin)
-  const [renewalRequests, setRenewalRequests] = useState<any[]>([]);
-  const [renewalMeta, setRenewalMeta] = useState<any>(null);
-  const [renewalStatusFilter, setRenewalStatusFilter] = useState<string>('pending');
-  const [renewalUpdatingId, setRenewalUpdatingId] = useState<number | null>(null);
-  useEffect(() => {
-    if (!sessionId) return;
-    fetchAdminRenewalRequests(sessionId, { per_page: 50, status: renewalStatusFilter })
-      .then((res) => {
-        setRenewalRequests(res.data ?? []);
-        setRenewalMeta(res.meta ?? null);
-      })
-      .catch(() => setRenewalRequests([]));
-  }, [sessionId, renewalStatusFilter]);
-
-  const handleRenewalRequestUpdate = async (id: number, status: 'approved' | 'rejected', adminNote?: string) => {
-    if (!sessionId) return;
-    setRenewalUpdatingId(id);
-    try {
-      await updateAdminRenewalRequest(sessionId, id, { status, admin_note: adminNote });
-      setRenewalRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
-    } finally {
-      setRenewalUpdatingId(null);
-    }
-  };
 
   const statusStyles: Record<number, string> = {
     0: "bg-red-500 text-white",
@@ -3651,7 +3625,7 @@ QAI Store - Tài khoản premium uy tín #1
                                   : "Không giới hạn"}
                               </TableCell>
                               <TableCell>{dc.usage_limit ?? "∞"}</TableCell>
-                              <TableCell>{dc.used_count ?? 0}</TableCell>
+                              <TableCell>{(dc as AdminDiscountCode & { used_count?: number }).used_count ?? 0}</TableCell>
                               <TableCell>
                                 <Badge
                                   className={
@@ -4386,15 +4360,6 @@ QAI Store - Tài khoản premium uy tín #1
                     <UserCheck className="w-4 h-4" />
                     <span className="hidden sm:inline">Tài khoản khách hàng</span>
                     <span className="sm:hidden">Khách hàng</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger
-                    value="renewal-requests"
-                    className="flex w-full items-center justify-center gap-2 text-sm sm:text-base"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    <span className="hidden sm:inline">Yêu cầu gia hạn</span>
-                    <span className="sm:hidden">Gia hạn</span>
                   </TabsTrigger>
 
                   <TabsTrigger
@@ -5375,117 +5340,6 @@ QAI Store - Tài khoản premium uy tín #1
                       )}
 
 
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                {/* Đơn yêu cầu gia hạn tài khoản */}
-                <TabsContent value="renewal-requests">
-                  <Card className="border-0 shadow-2xl bg-white">
-                    <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 border-b">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                          <CardTitle className="text-xl">Yêu cầu gia hạn tài khoản</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">Xem và duyệt/từ chối đơn yêu cầu gia hạn từ khách hàng</p>
-                        </div>
-                        <Select value={renewalStatusFilter} onValueChange={setRenewalStatusFilter}>
-                          <SelectTrigger className="w-full sm:w-[180px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Chờ xử lý</SelectItem>
-                            <SelectItem value="approved">Đã duyệt</SelectItem>
-                            <SelectItem value="rejected">Đã từ chối</SelectItem>
-                            <SelectItem value="all">Tất cả</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="overflow-x-auto rounded-lg border">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="bg-gray-50">
-                              <TableHead className="font-semibold">ID</TableHead>
-                              <TableHead className="font-semibold">Tài khoản</TableHead>
-                              <TableHead className="font-semibold">Sản phẩm</TableHead>
-                              <TableHead className="font-semibold">Khách hàng</TableHead>
-                              <TableHead className="font-semibold">Ghi chú</TableHead>
-                              <TableHead className="font-semibold">Ngày tạo</TableHead>
-                              <TableHead className="font-semibold">Trạng thái</TableHead>
-                              <TableHead className="text-right font-semibold">Thao tác</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {renewalRequests.length === 0 ? (
-                              <TableRow>
-                                <TableCell colSpan={8} className="py-8 text-center text-gray-500">
-                                  Chưa có đơn yêu cầu gia hạn nào.
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              renewalRequests.map((req) => (
-                                <TableRow key={req.id}>
-                                  <TableCell>{req.id}</TableCell>
-                                  <TableCell className="font-mono text-sm">{req.accountEmail}</TableCell>
-                                  <TableCell>{req.productType || '—'}</TableCell>
-                                  <TableCell>
-                                    <div className="text-sm">{req.userName || '—'}</div>
-                                    <div className="text-xs text-gray-500">{req.userEmail}</div>
-                                  </TableCell>
-                                  <TableCell className="max-w-[200px] truncate text-sm">{req.note || '—'}</TableCell>
-                                  <TableCell className="text-sm text-gray-600">
-                                    {req.createdAt ? new Date(req.createdAt).toLocaleDateString('vi-VN') : '—'}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge
-                                      className={
-                                        req.status === 'pending'
-                                          ? 'bg-amber-100 text-amber-800'
-                                          : req.status === 'approved'
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-red-100 text-red-800'
-                                      }
-                                    >
-                                      {req.status === 'pending' ? 'Chờ xử lý' : req.status === 'approved' ? 'Đã duyệt' : 'Đã từ chối'}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    {req.status === 'pending' && (
-                                      <div className="flex items-center justify-end gap-1">
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          className="text-green-600 border-green-300 hover:bg-green-50"
-                                          disabled={renewalUpdatingId === req.id}
-                                          onClick={() => handleRenewalRequestUpdate(req.id, 'approved')}
-                                        >
-                                          {renewalUpdatingId === req.id ? '...' : 'Duyệt'}
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          className="text-red-600 border-red-300 hover:bg-red-50"
-                                          disabled={renewalUpdatingId === req.id}
-                                          onClick={() => handleRenewalRequestUpdate(req.id, 'rejected')}
-                                        >
-                                          Từ chối
-                                        </Button>
-                                      </div>
-                                    )}
-                                    {req.status !== 'pending' && req.adminNote && (
-                                      <span className="text-xs text-gray-500">{req.adminNote}</span>
-                                    )}
-                                  </TableCell>
-                                </TableRow>
-                              ))
-                            )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                      {renewalMeta?.total > 0 && (
-                        <p className="text-sm text-gray-500 mt-3">Tổng: {renewalMeta.total} đơn</p>
-                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>

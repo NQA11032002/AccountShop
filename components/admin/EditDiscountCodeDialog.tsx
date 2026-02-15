@@ -30,6 +30,7 @@ export interface AdminDiscountCode {
   max_discount?: number | null;
   expiry_date?: string | null;
   usage_limit?: number | null;
+  used_count?: number;
   is_active: boolean;
 }
 
