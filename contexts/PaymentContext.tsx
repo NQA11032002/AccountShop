@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import DataSyncHelper from '@/lib/syncHelper';
+import { applyDiscountCodeApi } from '@/lib/api';
 
 interface PaymentMethod {
   id: string;
@@ -26,6 +27,8 @@ interface DiscountCode {
   usageLimit?: number;
   usedCount: number;
   isActive: boolean;
+  // Giá trị giảm cụ thể do backend tính (ưu tiên dùng nếu có)
+  discountAmount?: number;
 }
 
 interface Order {
@@ -84,7 +87,7 @@ interface PaymentContextType {
 const PaymentContext = createContext<PaymentContextType | undefined>(undefined);
 
 export function PaymentProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, sessionId } = useAuth();
   const { toast } = useToast();
 
   const [paymentMethods] = useState<PaymentMethod[]>([
@@ -120,44 +123,6 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
     //   processingTime: '10-30 phút',
     //   isActive: true
     // }
-  ]);
-
-  const [discountCodes] = useState<DiscountCode[]>([
-    {
-      code: 'WELCOME10',
-      description: 'Giảm 10% cho đơn hàng đầu tiên',
-      type: 'percentage',
-      value: 10,
-      minAmount: 50000,
-      maxDiscount: 50000,
-      expiryDate: '2024-12-31',
-      usageLimit: 1000,
-      usedCount: 150,
-      isActive: true
-    },
-    {
-      code: 'SAVE20K',
-      description: 'Giảm 20.000đ cho đơn từ 100.000đ',
-      type: 'fixed',
-      value: 20000,
-      minAmount: 100000,
-      expiryDate: '2024-12-31',
-      usageLimit: 500,
-      usedCount: 75,
-      isActive: true
-    },
-    {
-      code: 'PREMIUM15',
-      description: 'Giảm 15% tất cả tài khoản Premium',
-      type: 'percentage',
-      value: 15,
-      minAmount: 80000,
-      maxDiscount: 100000,
-      expiryDate: '2024-12-31',
-      usageLimit: 200,
-      usedCount: 45,
-      isActive: true
-    }
   ]);
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -356,28 +321,34 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
   };
 
   const applyDiscountCode = async (code: string, orderTotal: number): Promise<boolean> => {
-    console.log("Applying discount code", { code, orderTotal });
+    console.log("Applying discount code (backend)", { code, orderTotal });
 
-    const discount = discountCodes.find(d =>
-      d.code.toUpperCase() === code.toUpperCase() &&
-      d.isActive &&
-      new Date(d.expiryDate) > new Date() &&
-      (!d.usageLimit || d.usedCount < d.usageLimit) &&
-      (!d.minAmount || orderTotal >= d.minAmount)
-    );
+    try {
+      const data = await applyDiscountCodeApi(code, orderTotal, sessionId ?? undefined);
 
-    if (discount) {
+      const discount: DiscountCode = {
+        code: data.code,
+        description: data.message,
+        type: data.type,
+        value: data.value,
+        expiryDate: new Date().toISOString(), // không dùng phía client, chỉ để đủ type
+        usedCount: 0,
+        isActive: true,
+        discountAmount: data.discountAmount,
+      };
+
       setAppliedDiscount(discount);
       toast({
         title: "Mã giảm giá áp dụng thành công!",
-        description: discount.description,
+        description: data.message,
       });
-      console.log("Discount applied", discount);
+      console.log("Discount applied from backend", data);
       return true;
-    } else {
+    } catch (error: any) {
+      console.error("Failed to apply discount code via API", error);
       toast({
         title: "Mã giảm giá không hợp lệ",
-        description: "Vui lòng kiểm tra lại mã giảm giá hoặc điều kiện áp dụng.",
+        description: error?.message || "Vui lòng kiểm tra lại mã giảm giá hoặc điều kiện áp dụng.",
         variant: "destructive",
       });
       return false;
@@ -394,12 +365,11 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
   };
 
   const calculateDiscount = (orderTotal: number, discount: DiscountCode): number => {
-    if (discount.type === 'percentage') {
-      const discountAmount = (orderTotal * discount.value) / 100;
-      return discount.maxDiscount ? Math.min(discountAmount, discount.maxDiscount) : discountAmount;
-    } else {
-      return discount.value;
+    if (typeof discount.discountAmount === 'number') {
+      return discount.discountAmount;
     }
+    // Chỉ giảm tiền (fixed)
+    return Math.min(discount.value ?? 0, orderTotal);
   };
 
   const createOrder = async (orderData: any): Promise<string> => {

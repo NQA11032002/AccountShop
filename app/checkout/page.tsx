@@ -88,6 +88,12 @@ function CheckoutPageContent() {
   });
   const [agreeTOS, setAgreeTOS] = useState(false);
 
+  // Khi vào trang checkout: mặc định xóa mã giảm giá đã áp dụng (nếu có), ô nhập để trống cho khách
+  useEffect(() => {
+    removeDiscountCode();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ chạy 1 lần khi vào trang
+  }, []);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
   };
@@ -112,10 +118,11 @@ function CheckoutPageContent() {
   const calculateFinalTotal = () => {
     const { totalAmount: effectiveTotalAmount } = getEffectiveTotals();
 
-    const discountAmount = appliedDiscount ?
-      (appliedDiscount.type === 'percentage' ?
-        Math.min((effectiveTotalAmount * appliedDiscount.value) / 100, appliedDiscount.maxDiscount || Infinity) :
-        appliedDiscount.value) : 0;
+    const discountAmount = appliedDiscount
+      ? (typeof appliedDiscount.discountAmount === 'number'
+        ? appliedDiscount.discountAmount
+        : Math.min(appliedDiscount.value ?? 0, effectiveTotalAmount))
+      : 0;
 
     // No processing fees for coin payments - always free
     const processingFee = 0;
@@ -714,9 +721,9 @@ function CheckoutPageContent() {
                           <span>Giảm giá ({appliedDiscount.code}):</span>
                           <span>
                             -{formatPrice(
-                              appliedDiscount.type === 'percentage' ?
-                                Math.min((effectiveTotalAmount * appliedDiscount.value) / 100, appliedDiscount.maxDiscount || Infinity) :
-                                appliedDiscount.value
+                              typeof appliedDiscount.discountAmount === 'number'
+                                ? appliedDiscount.discountAmount
+                                : Math.min(appliedDiscount.value ?? 0, effectiveTotalAmount)
                             )}
                           </span>
                         </div>

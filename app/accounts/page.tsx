@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePayment } from '@/contexts/PaymentContext';
 import {
   Shield,
   Clock,
@@ -21,7 +20,9 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
-  X
+  X,
+  CalendarPlus,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +33,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { fetchMyAccounts, renewAccount } from '@/lib/api';
+import { useWallet } from '@/contexts/WalletContext';
 
 interface AccountData {
   id: string;
@@ -46,87 +49,78 @@ interface AccountData {
   status: 'active' | 'expired' | 'suspended';
   duration: string;
   orderId: string;
+  productId?: number | null;
+  /** Giá (coin) tương ứng để gia hạn */
+  productPrice?: number | null;
   profilePins?: string[];
   notes?: string;
   link?: string;
+  hasPendingRenewal?: boolean;
 }
 
 export default function AccountsPage() {
-  const { user } = useAuth();
-  const { orders } = usePayment();
+  const { user, sessionId, setUser } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const { balance, canAfford, formatCoins, syncBalanceFromServer } = useWallet();
 
   const [accounts, setAccounts] = useState<AccountData[]>([]);
   const [filteredAccounts, setFilteredAccounts] = useState<AccountData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
+  const [loading, setLoading] = useState(true);
+  const [renewingAccountId, setRenewingAccountId] = useState<string | null>(null);
 
-  // console.log("AccountsPage rendered", { 
-  //   user: user?.email, 
-  //   ordersCount: orders.length,
-  //   accountsCount: accounts.length
-  // });
-
+  // Load tài khoản đã mua từ API (danh sách từ backend - gắn với đơn hàng đã giao)
   useEffect(() => {
-
-    // Extract account data from completed orders
-    const extractedAccounts: AccountData[] = [];
-
-    orders.forEach(order => {
-      if (order.status === 'completed' && order.deliveryInfo?.accountCredentials) {
-        order.deliveryInfo.accountCredentials.forEach((accountInfo: any) => {
-          const orderItem = order.items.find((item: any) => item.id === accountInfo.itemId);
-          if (orderItem && accountInfo.credentials) {
-            // Calculate expiry date based on duration
-            const purchaseDate = new Date(order.date);
-            const expiryDate = new Date(purchaseDate);
-
-            // Parse duration to add to expiry date
-            const durationMatch = orderItem.duration.match(/(\d+)\s*(tháng|ngày|năm)/i);
-            if (durationMatch) {
-              const amount = parseInt(durationMatch[1]);
-              const unit = durationMatch[2].toLowerCase();
-
-              if (unit === 'tháng') {
-                expiryDate.setMonth(expiryDate.getMonth() + amount);
-              } else if (unit === 'ngày') {
-                expiryDate.setDate(expiryDate.getDate() + amount);
-              } else if (unit === 'năm') {
-                expiryDate.setFullYear(expiryDate.getFullYear() + amount);
-              }
-            }
-
-            // Determine status
-            const now = new Date();
-            const status: 'active' | 'expired' | 'suspended' =
-              now > expiryDate ? 'expired' : 'active';
-
-            extractedAccounts.push({
-              id: `${order.id}-${accountInfo.itemId}`,
-              accountEmail: accountInfo.credentials.email,
-              accountPassword: accountInfo.credentials.password,
-              productName: orderItem.name,
-              productIcon: orderItem.image,
-              productColor: orderItem.color,
-              purchaseDate: new Date(order.date),
-              expiryDate,
-              platform: orderItem.name.split(' ')[0], // Extract platform name
-              status,
-              duration: orderItem.duration,
-              orderId: order.id,
-              profilePins: accountInfo.credentials.profilePins,
-              notes: accountInfo.credentials.note,
-              link: accountInfo.credentials.link
-            });
-          }
+    if (!user || !sessionId) {
+      setLoading(false);
+      setAccounts([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    fetchMyAccounts(sessionId)
+      .then((res) => {
+        if (cancelled) return;
+        const list = (res.data ?? []).map((a: any) => {
+          const purchaseDate = a.purchaseDate ? new Date(a.purchaseDate) : new Date();
+          const expiryDate = a.expiryDate ? new Date(a.expiryDate) : new Date();
+          const now = new Date();
+          let status: 'active' | 'expired' | 'suspended' = (a.status === 'expired' || now > expiryDate) ? 'expired' : 'active';
+          if (a.status === 'renew' || a.status === 'suspended') status = 'suspended';
+          return {
+            id: String(a.id),
+            accountEmail: a.accountEmail ?? '',
+            accountPassword: a.accountPassword ?? '',
+            productName: a.productType ?? 'Tài khoản',
+            productIcon: a.productIcon ?? '🔐',
+            productColor: a.productColor ?? 'bg-gray-100',
+            purchaseDate,
+            expiryDate,
+            platform: a.productType ?? 'Premium',
+            status,
+            duration: a.duration ? `${a.duration} tháng` : '—',
+            orderId: String(a.orderId ?? ''),
+            productId: a.productId != null ? Number(a.productId) : null,
+            productPrice: a.productPrice != null ? Number(a.productPrice) : null,
+            profilePins: a.securityCode ? [a.securityCode] : undefined,
+            notes: a.instructions ?? undefined,
+            link: a.link ?? undefined,
+            hasPendingRenewal: !!a.hasPendingRenewal,
+          } as AccountData;
         });
-      }
-    });
-
-    setAccounts(extractedAccounts);
-  }, [orders]);
+        setAccounts(list);
+      })
+      .catch(() => {
+        if (!cancelled) setAccounts([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [user, sessionId]);
 
   useEffect(() => {
     let filtered = accounts;
@@ -197,6 +191,92 @@ export default function AccountsPage() {
     }));
   };
 
+  const handleRenewAccount = async (account: AccountData) => {
+    if (typeof window === 'undefined' || !sessionId) return;
+    const price = account.productPrice != null ? Number(account.productPrice) : null;
+    if (price == null || price <= 0) {
+      toast({
+        title: 'Không xác định giá gia hạn',
+        description: 'Vui lòng liên hệ hỗ trợ.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!canAfford(price)) {
+      toast({
+        title: 'Số dư không đủ',
+        description: `Cần thêm ${formatCoins(Math.max(0, price - balance))} để gia hạn. Chuyển đến trang nạp tiền.`,
+        variant: 'destructive',
+      });
+      router.push('/wallet');
+      return;
+    }
+    setRenewingAccountId(account.id);
+    try {
+      const data = await renewAccount(sessionId, Number(account.id));
+      if (data.new_coins != null) {
+        syncBalanceFromServer(data.new_coins);
+        if (user) {
+          const updatedUser = { ...user, coins: data.new_coins };
+          setUser(updatedUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('qai_user', JSON.stringify(updatedUser));
+          }
+        }
+      }
+      const res = await fetchMyAccounts(sessionId);
+      const list = (res.data ?? []).map((a: any) => {
+        const purchaseDate = a.purchaseDate ? new Date(a.purchaseDate) : new Date();
+        const expiryDate = a.expiryDate ? new Date(a.expiryDate) : new Date();
+        const now = new Date();
+        let status: 'active' | 'expired' | 'suspended' = (a.status === 'expired' || now > expiryDate) ? 'expired' : 'active';
+        if (a.status === 'renew' || a.status === 'suspended') status = 'suspended';
+        return {
+          id: String(a.id),
+          accountEmail: a.accountEmail ?? '',
+          accountPassword: a.accountPassword ?? '',
+          productName: a.productType ?? 'Tài khoản',
+          productIcon: a.productIcon ?? '🔐',
+          productColor: a.productColor ?? 'bg-gray-100',
+          purchaseDate,
+          expiryDate,
+          platform: a.productType ?? 'Premium',
+          status,
+          duration: a.duration ? `${a.duration} tháng` : '—',
+          orderId: String(a.orderId ?? ''),
+          productId: a.productId != null ? Number(a.productId) : null,
+          productPrice: a.productPrice != null ? Number(a.productPrice) : null,
+          profilePins: a.securityCode ? [a.securityCode] : undefined,
+          notes: a.instructions ?? undefined,
+          link: a.link ?? undefined,
+          hasPendingRenewal: !!a.hasPendingRenewal,
+        } as AccountData;
+      });
+      setAccounts(list);
+      toast({
+        title: 'Gia hạn thành công',
+        description: data.expiry_date ? `Tài khoản gia hạn đến ${new Date(data.expiry_date).toLocaleDateString('vi-VN')}` : 'Đã gia hạn tài khoản.',
+      });
+    } catch (e: any) {
+      if (e?.status === 402) {
+        toast({
+          title: 'Số dư không đủ',
+          description: 'Vui lòng nạp thêm tiền để gia hạn.',
+          variant: 'destructive',
+        });
+        router.push('/wallet');
+      } else {
+        toast({
+          title: 'Gia hạn thất bại',
+          description: e?.message || 'Vui lòng thử lại sau.',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setRenewingAccountId(null);
+    }
+  };
+
   const getDaysUntilExpiry = (expiryDate: Date) => {
     const now = new Date();
     const timeDiff = expiryDate.getTime() - now.getTime();
@@ -220,7 +300,7 @@ export default function AccountsPage() {
         <Card className="w-full max-w-md p-6 text-center">
           <Shield className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h2 className="text-2xl font-bold mb-4">Cần đăng nhập</h2>
-          <p className="text-gray-600 mb-6">Vui lòng đăng nhập để xem tài khoản của bạn.</p>
+          <p className="text-gray-600 mb-6">Vui lòng đăng nhập để xem Tài khoản của tôi.</p>
           <div className="space-y-3">
             <Button onClick={() => router.push('/login')} className="w-full">
               Đăng nhập
@@ -234,21 +314,32 @@ export default function AccountsPage() {
     );
   }
 
-  const AccountDetailDialog = ({ account }: { account: AccountData }) => (
-    <DialogContent className="max-w-2xl">
-      <DialogHeader>
+  const AccountDetailDialog = ({
+    account,
+    onRenewAccount,
+    renewingAccountId: renewingId,
+  }: {
+    account: AccountData;
+    onRenewAccount?: (account: AccountData) => void;
+    renewingAccountId?: string | null;
+  }) => (
+    <DialogContent
+      className="max-w-2xl w-[calc(100vw-2rem)] max-h-[90vh] flex flex-col overflow-hidden"
+      onFocusOutside={(e) => e.preventDefault()}
+    >
+      <DialogHeader className="flex-shrink-0">
         <DialogTitle className="flex items-center space-x-3">
           <div className={`w-10 h-10 ${account.productColor} rounded-lg flex items-center justify-center text-lg`}>
             {account.productIcon}
           </div>
-          <div>
-            <div className="font-bold">{account.productName}</div>
+          <div className="min-w-0">
+            <div className="font-bold truncate">{account.productName}</div>
             <div className="text-sm text-gray-600 font-normal">Chi tiết tài khoản</div>
           </div>
         </DialogTitle>
       </DialogHeader>
 
-      <div className="space-y-6">
+      <div className="space-y-6 overflow-y-auto overflow-x-hidden pr-1 min-h-0 flex-1">
         {/* Status Overview */}
         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-brand-blue/10 to-brand-emerald/10 rounded-lg">
           <div className="flex items-center space-x-3">
@@ -276,9 +367,14 @@ export default function AccountsPage() {
                   {account.accountEmail}
                 </code>
                 <Button
+                  type="button"
                   size="sm"
                   variant="outline"
-                  onClick={() => handleCopyCredential(account.accountEmail)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setTimeout(() => handleCopyCredential(account.accountEmail), 0);
+                  }}
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -293,16 +389,26 @@ export default function AccountsPage() {
                 </code>
                 <div className="flex space-x-1">
                   <Button
+                    type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => togglePasswordVisibility(account.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setTimeout(() => togglePasswordVisibility(account.id), 0);
+                    }}
                   >
                     {showPasswords[account.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                   <Button
+                    type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => handleCopyCredential(account.accountPassword)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setTimeout(() => handleCopyCredential(account.accountPassword), 0);
+                    }}
                   >
                     <Copy className="w-4 h-4" />
                   </Button>
@@ -327,29 +433,34 @@ export default function AccountsPage() {
 
           {/* Notes */}
           {account.notes && (
-            <div className="p-4 border rounded-lg">
+            <div className="p-4 border rounded-lg min-w-0">
               <label className="text-sm font-medium text-gray-600">Ghi chú</label>
-              <p className="text-sm mt-1">{account.notes}</p>
+              <p className="text-sm mt-1 break-words">{account.notes}</p>
             </div>
           )}
 
           {/* Direct Link */}
           {account.link && (
-            <div className="p-4 border rounded-lg">
+            <div className="p-4 border rounded-lg min-w-0">
               <label className="text-sm font-medium text-gray-600">Liên kết trực tiếp</label>
-              <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center gap-2 mt-1 min-w-0">
                 <a
                   href={account.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-brand-blue hover:underline text-sm flex-1 mr-2 truncate"
+                  className="text-brand-blue hover:underline text-sm break-all min-w-0"
                 >
                   {account.link}
                 </a>
                 <Button
+                  type="button"
                   size="sm"
                   variant="outline"
-                  onClick={() => window.open(account.link, '_blank')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setTimeout(() => window.open(account.link, '_blank'), 0);
+                  }}
                 >
                   <ExternalLink className="w-4 h-4" />
                 </Button>
@@ -377,6 +488,29 @@ export default function AccountsPage() {
             <p className="text-sm mt-1">{account.orderId}</p>
           </div>
         </div>
+
+        {onRenewAccount && (
+          <div className="pt-4 border-t mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-amber-300 text-amber-700 hover:bg-amber-50"
+              disabled={renewingId === account.id}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRenewAccount(account);
+              }}
+            >
+              {renewingId === account.id ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <CalendarPlus className="w-4 h-4 mr-2" />
+              )}
+              Gia hạn
+            </Button>
+          </div>
+        )}
       </div>
     </DialogContent>
   );
@@ -579,7 +713,14 @@ export default function AccountsPage() {
           </Card>
 
           {/* Enhanced Accounts Table */}
-          {filteredAccounts.length > 0 ? (
+          {loading ? (
+            <Card className="border-0 shadow-2xl bg-white overflow-hidden">
+              <CardContent className="py-20 text-center">
+                <RefreshCw className="w-12 h-12 mx-auto text-brand-blue animate-spin mb-4" />
+                <p className="text-gray-600">Đang tải danh sách tài khoản của bạn...</p>
+              </CardContent>
+            </Card>
+          ) : filteredAccounts.length > 0 ? (
             <Card className="border-0 shadow-2xl bg-white overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-brand-blue/5 via-brand-purple/5 to-brand-emerald/5 border-b-0 pb-8">
                 <CardTitle className="flex items-center justify-between">
@@ -684,19 +825,40 @@ export default function AccountsPage() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right py-6">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                                >
-                                  <Eye className="w-4 h-4 mr-2" />
-                                  Xem chi tiết
-                                </Button>
-                              </DialogTrigger>
-                              <AccountDetailDialog account={account} />
-                            </Dialog>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                                disabled={renewingAccountId === account.id}
+                                onClick={() => handleRenewAccount(account)}
+                              >
+                                {renewingAccountId === account.id ? (
+                                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                ) : (
+                                  <CalendarPlus className="w-4 h-4 mr-1" />
+                                )}
+                                Gia hạn
+                              </Button>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                                  >
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    Xem chi tiết
+                                  </Button>
+                                </DialogTrigger>
+                                <AccountDetailDialog
+                                  account={account}
+                                  onRenewAccount={handleRenewAccount}
+                                  renewingAccountId={renewingAccountId}
+                                />
+                              </Dialog>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -719,12 +881,12 @@ export default function AccountsPage() {
 
                 <div className="max-w-lg mx-auto">
                   <h3 className="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent mb-4">
-                    {searchQuery || statusFilter !== 'all' ? '🔍 Không tìm thấy tài khoản' : '🎯 Chưa có tài khoản nào'}
+                    {searchQuery || statusFilter !== 'all' ? '🔍 Không tìm thấy tài khoản' : '🎯 Tài khoản của tôi'}
                   </h3>
                   <p className="text-gray-600 text-lg mb-8 leading-relaxed">
                     {searchQuery || statusFilter !== 'all'
                       ? 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm để tìm thấy tài khoản bạn đang cần.'
-                      : 'Bạn chưa có tài khoản premium nào. Hãy khám phá và mua các sản phẩm chất lượng của chúng tôi!'
+                      : 'Chưa có tài khoản nào được giao. Sau khi đơn hàng hoàn thành và shop gửi tài khoản, danh sách sẽ hiển thị tại đây.'
                     }
                   </p>
 

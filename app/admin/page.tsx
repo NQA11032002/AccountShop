@@ -45,7 +45,11 @@ import {
   UserPlus,
   MessageSquare,
   FileText,
-  Zap
+  Zap,
+  Tag,
+  Ticket,
+  Award,
+  Gift,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -92,6 +96,7 @@ import { EditProductDialog } from '@/components/admin/EditProductDialog';
 import { EditChatGPTDialog } from '@/components/admin/EditChatGPTDialog';
 import { EditCodeDialog } from '@/components/admin/EditCodeDialog';
 import { EditOnetimeCodeDialog } from '@/components/admin/EditOnetimeCodeDialog';
+import { EditDiscountCodeDialog, type AdminDiscountCode } from '@/components/admin/EditDiscountCodeDialog';
 import { EditOrderDialog } from '@/components/admin/EditOrderDialog';
 import { EditCustomerAccountDialog } from '@/components/admin/EditCustomerAccountDialog';
 import { DeleteConfirmDialog } from '@/components/admin/DeleteConfirmDialog';
@@ -122,11 +127,39 @@ import {
 } from '@/components/CustomerRankingSystem';
 import { User } from '@/types/user.interface';
 import {
-  fetchAdminUsers, getProductsAdmin, deleteProduct, checkRole, fetchAdminOrdersData,
+  fetchAdminUsers,
+  getProductsAdmin,
+  deleteProduct,
+  checkRole,
+  fetchAdminOrdersData,
+  fetchAdminRevenueByMonth,
+  fetchAdminTopSellingProducts,
+  fetchAdminTrafficStats,
+  fetchAdminRevenueComparison,
+  fetchDiscountCodes,
+  createDiscountCode,
+  updateDiscountCode,
+  deleteDiscountCode,
+  fetchCustomerVouchersAdmin,
+  createCustomerVoucherAdmin,
+  deleteCustomerVoucherAdmin,
+  type AdminCustomerVoucherItem,
+  fetchAdminRanks,
+  fetchRankRewardVouchersAdmin,
+  createRankRewardVoucherAdmin,
+  updateRankRewardVoucherAdmin,
+  deleteRankRewardVoucherAdmin,
+  type AdminRankRewardVoucherItem,
+  type AdminRankItem,
+  fetchRewardsAdmin,
+  createRewardAdmin,
+  updateRewardAdmin,
+  deleteRewardAdmin,
+  type AdminRewardItem,
 } from '@/lib/api';
 import { Product } from '@/types/product.interface';
 import { deleteOrder } from '@/lib/api';
-import { sendOrderEmail, getOnetimecodes, getListAccounts, deleteAccount } from '@/lib/api';
+import { sendOrderEmail, getOnetimecodes, getListAccounts, deleteAccount, sendCustomerAccountRenewalEmail, fetchAdminRenewalRequests, updateAdminRenewalRequest } from '@/lib/api';
 import { Onetimecode, userOnetimecode } from '@/types/Onetimecode';
 import * as XLSX from "xlsx";
 import { CustomerAccount } from '@/types/CustomerAccount';
@@ -187,6 +220,8 @@ interface Order {
   completedAt?: string;
   discount?: number;
   originalTotal?: number;
+  /** Đơn gia hạn: ID tài khoản được gia hạn */
+  renewalForAccountId?: number | null;
 }
 
 
@@ -204,12 +239,62 @@ export default function AdminDashboard() {
   const [onlyEndToday, setOnlyEndToday] = useState(false);        // end_date = hôm nay
   const [categoryFilter, setCategoryFilter] = useState<"all" | "Plus" | "Business">("all");
   const [products, setProducts] = useState<Product[]>([]);
+  const [topSellingProducts, setTopSellingProducts] = useState<{ product_id: number; name: string; category_name: string; sales: number; rating: number }[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [customerAccounts, setCustomerAccounts] = useState<CustomerAccount[]>([]);
   const [userWallets, setUserWallets] = useState<any[]>([]);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingRole, setIsCheckingRole] = useState(true); // để kiểm tra loading
   const [onetimecodes, setOnetimecodes] = useState<userOnetimecode[]>([]);
+  const [discountCodes, setDiscountCodes] = useState<AdminDiscountCode[]>([]);
+  const [editDiscountDialog, setEditDiscountDialog] = useState<{
+    open: boolean;
+    code: AdminDiscountCode | null;
+  }>({
+    open: false,
+    code: null,
+  });
+  const [customerVouchers, setCustomerVouchers] = useState<AdminCustomerVoucherItem[]>([]);
+  const [customerVoucherStatus, setCustomerVoucherStatus] = useState<string>('all');
+  const [createVoucherOpen, setCreateVoucherOpen] = useState(false);
+  const [rankRewardVouchers, setRankRewardVouchers] = useState<AdminRankRewardVoucherItem[]>([]);
+  const [adminRanks, setAdminRanks] = useState<AdminRankItem[]>([]);
+  const [rankRewardFilter, setRankRewardFilter] = useState<string>('');
+  const [rankRewardDialogOpen, setRankRewardDialogOpen] = useState(false);
+  const [editingRankRewardId, setEditingRankRewardId] = useState<number | null>(null);
+  const [rankRewardForm, setRankRewardForm] = useState({
+    rank_id: '',
+    title: '',
+    type: 'fixed' as 'fixed',
+    value: 10000,
+    min_amount: 0,
+    max_discount: null as number | null,
+    expiry_days: 30,
+  });
+  const [rewards, setRewards] = useState<AdminRewardItem[]>([]);
+  const [rewardDialogOpen, setRewardDialogOpen] = useState(false);
+  const [editingRewardId, setEditingRewardId] = useState<number | null>(null);
+  const [rewardForm, setRewardForm] = useState({
+    name: '',
+    description: '',
+    icon_url: '',
+    points_cost: 100,
+    voucher_type: 'fixed' as 'fixed' | '',
+    voucher_value: 10000,
+    voucher_min_amount: 0,
+    voucher_max_discount: null as number | null,
+    voucher_expiry_days: 30,
+  });
+  const [createVoucherForm, setCreateVoucherForm] = useState({
+    user_id: '',
+    code: '',
+    title: '',
+    type: 'fixed' as 'fixed',
+    value: 10000,
+    min_amount: 0,
+    max_discount: null as number | null,
+    expires_at: '',
+  });
   const [isImporting, setIsImporting] = useState(false);
   const [advancedFilter, setAdvancedFilter] = useState<
     "all" | "smallTeam" | "endToday" | "smallTeamAndEndToday"
@@ -269,13 +354,12 @@ Cảm ơn bạn đã tin tưởng và mua hàng tại QAI Store!
 Thông tin tài khoản:
 📧 Email: {accountEmail}
 🔑 Mật khẩu: {accountPassword}
+🔐 Mã bảo mật: {securityCode}
 🔗 Link truy cập: {accountLink}
-⏰ Thời hạn: {duration}
+⏰ Thời hạn sử dụng: {duration}
 
 Hướng dẫn sử dụng:
-1. Truy cập link ở trên
-2. Đăng nhập bằng thông tin được cung cấp
-3. Thay đổi mật khẩu nếu cần thiết
+{instructions}
 
 Lưu ý quan trọng:
 - Vui lòng không chia sẻ thông tin này cho người khác
@@ -302,12 +386,20 @@ QAI Store - Tài khoản premium uy tín #1
 
   // Data generation functions moved outside component to avoid errors
   const [analyticsData, setAnalyticsData] = useState<any[]>([]);
-  const [trafficData, setTrafficData] = useState<any[]>([]);
+  const [trafficData, setTrafficData] = useState<{ name: string; visitors: number; pageViews: number }[]>([]);
+  const [trafficMetrics, setTrafficMetrics] = useState<{ todayVisitors: number; todayPageViews: number; completionRate: number }>({ todayVisitors: 0, todayPageViews: 0, completionRate: 0 });
   const [revenueComparisonData, setRevenueComparisonData] = useState<any[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ChatgptPayload | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Thông tin tài khoản tuỳ chỉnh khi gửi cho khách
+  const [accountEmailInput, setAccountEmailInput] = useState<string>('');
+  const [accountPasswordInput, setAccountPasswordInput] = useState<string>('');
+  const [securityCodeInput, setSecurityCodeInput] = useState<string>('');
+  const [instructionsInput, setInstructionsInput] = useState<string>('');
+  const [durationInput, setDurationInput] = useState<string>('');
   const [deleteTarget, setDeleteTarget] = useState<userOnetimecode | null>(null);
 
   const handleLogout = async () => {
@@ -365,65 +457,6 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
 
-
-  useEffect(() => {
-    // Generate analytics data
-    const generateAnalyticsData = () => {
-      const currentDate = new Date();
-      const months: any[] = [];
-
-      // Generate last 6 months of data
-      for (let i = 5; i >= 0; i--) {
-        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-        const monthName = date.toLocaleDateString('vi-VN', { month: 'short' });
-
-        months.push({
-          name: monthName,
-          revenue: Math.floor(Math.random() * 50000000) + 20000000,
-          orders: Math.floor(Math.random() * 200) + 50,
-          users: Math.floor(Math.random() * 100) + 20,
-          traffic: Math.floor(Math.random() * 10000) + 2000
-        });
-      }
-      return months;
-    };
-
-    const generateDailyTrafficData = () => {
-      const days: any[] = [];
-
-      // Generate last 7 days of traffic data
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dayName = date.toLocaleDateString('vi-VN', { weekday: 'short' });
-
-        days.push({
-          name: dayName,
-          visitors: Math.floor(Math.random() * 800) + 200,
-          pageViews: Math.floor(Math.random() * 2000) + 500,
-          bounceRate: Math.floor(Math.random() * 30) + 20
-        });
-      }
-
-      return days;
-    };
-
-    const generateRevenueComparisonData = () => {
-      const currentMonth = orders.reduce((sum, order) => sum + order.total, 0);
-      const previousMonth = Math.floor(currentMonth * (0.8 + Math.random() * 0.4));
-      const nextMonthProjection = Math.floor(currentMonth * (1.1 + Math.random() * 0.2));
-
-      return [
-        { name: 'Tháng trước', value: previousMonth, color: '#8884d8' },
-        { name: 'Tháng này', value: currentMonth, color: '#00C49F' },
-        { name: 'Dự báo tháng sau', value: nextMonthProjection, color: '#FFBB28' }
-      ];
-    };
-
-    setAnalyticsData(generateAnalyticsData());
-    setTrafficData(generateDailyTrafficData());
-    setRevenueComparisonData(generateRevenueComparisonData());
-  }, [orders, users, products]);
 
   useEffect(() => {
     const fetchRoleAndRedirect = async () => {
@@ -528,6 +561,54 @@ QAI Store - Tài khoản premium uy tín #1
         await loadOnetimecode();
         await loadOrders();
         await loadChatGPTS();
+        await loadDiscountCodes();
+        // Doanh thu 6 tháng gần đây từ database
+        try {
+          const revRes = await fetchAdminRevenueByMonth(sessionId, 6);
+          if (revRes?.data?.length) {
+            setAnalyticsData(revRes.data.map((d: { month_label: string; revenue: number }) => ({
+              name: d.month_label,
+              revenue: d.revenue,
+            })));
+          } else {
+            setAnalyticsData([]);
+          }
+        } catch (_e) {
+          setAnalyticsData([]);
+        }
+        try {
+          const topRes = await fetchAdminTopSellingProducts(sessionId, 5);
+          setTopSellingProducts(topRes?.data ?? []);
+        } catch (_e) {
+          setTopSellingProducts([]);
+        }
+        try {
+          const revCompRes = await fetchAdminRevenueComparison(sessionId);
+          setRevenueComparisonData(revCompRes?.data ?? []);
+        } catch (_e) {
+          setRevenueComparisonData([]);
+        }
+        try {
+          const trafficRes = await fetchAdminTrafficStats(sessionId, 7);
+          const d = trafficRes?.data;
+          if (d?.by_day?.length) {
+            setTrafficData(d.by_day.map((day: { day_label: string; visitors: number; page_views: number }) => ({
+              name: day.day_label,
+              visitors: day.visitors,
+              pageViews: day.page_views,
+            })));
+          } else {
+            setTrafficData([]);
+          }
+          setTrafficMetrics({
+            todayVisitors: d?.today_visitors ?? 0,
+            todayPageViews: d?.today_page_views ?? 0,
+            completionRate: d?.completion_rate ?? 0,
+          });
+        } catch (_e) {
+          setTrafficData([]);
+          setTrafficMetrics({ todayVisitors: 0, todayPageViews: 0, completionRate: 0 });
+        }
       }
 
 
@@ -535,6 +616,261 @@ QAI Store - Tài khoản premium uy tín #1
       console.error('❌ Error loading dashboard data:', error);
     }
   };
+
+  const loadDiscountCodes = async () => {
+    if (!sessionId) return;
+    try {
+      const res = await fetchDiscountCodes(sessionId, 1, 50);
+      setDiscountCodes(res.data ?? []);
+    } catch (error) {
+      console.error("Failed to load discount codes", error);
+    }
+  };
+
+  const handleOpenCreateDiscount = () => {
+    setEditDiscountDialog({ open: true, code: null });
+  };
+
+  const handleOpenEditDiscount = (code: AdminDiscountCode) => {
+    setEditDiscountDialog({ open: true, code });
+  };
+
+  const handleSaveDiscount = async (payload: AdminDiscountCode) => {
+    if (!sessionId) return;
+    try {
+      if (payload.id) {
+        await updateDiscountCode(sessionId, payload.id, payload);
+        toast({
+          title: "Cập nhật mã giảm giá thành công",
+          description: `Đã cập nhật mã ${payload.code}`,
+        });
+      } else {
+        await createDiscountCode(sessionId, payload);
+        toast({
+          title: "Tạo mã giảm giá thành công",
+          description: `Đã tạo mã ${payload.code}`,
+        });
+      }
+      await loadDiscountCodes();
+    } catch (error: any) {
+      console.error("Failed to save discount code", error);
+      toast({
+        title: "Lỗi",
+        description: error?.message || "Không thể lưu mã giảm giá",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const handleDeleteDiscount = async (code: AdminDiscountCode) => {
+    if (!sessionId) return;
+    if (!window.confirm(`Bạn chắc chắn muốn xoá mã ${code.code}?`)) return;
+    try {
+      await deleteDiscountCode(sessionId, code.id!);
+      toast({
+        title: "Đã xoá mã giảm giá",
+        description: `Mã ${code.code} đã được xoá`,
+      });
+      await loadDiscountCodes();
+    } catch (error: any) {
+      console.error("Failed to delete discount code", error);
+      toast({
+        title: "Lỗi",
+        description: error?.message || "Không thể xoá mã giảm giá",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const loadCustomerVouchers = async () => {
+    if (!sessionId) return;
+    try {
+      const res = await fetchCustomerVouchersAdmin(sessionId, { per_page: 100, status: customerVoucherStatus || undefined });
+      setCustomerVouchers(res.data ?? []);
+    } catch (e) {
+      console.error("Failed to load customer vouchers", e);
+      toast({ title: "Lỗi", description: "Không tải được kho voucher", variant: "destructive" });
+    }
+  };
+
+  const handleCreateCustomerVoucher = async () => {
+    if (!sessionId || !createVoucherForm.user_id || !createVoucherForm.code.trim()) {
+      toast({ title: "Lỗi", description: "Chọn khách hàng và nhập mã voucher", variant: "destructive" });
+      return;
+    }
+    try {
+      await createCustomerVoucherAdmin(sessionId, {
+        user_id: createVoucherForm.user_id,
+        code: createVoucherForm.code.trim().toUpperCase(),
+        title: createVoucherForm.title.trim() || undefined,
+        type: createVoucherForm.type,
+        value: createVoucherForm.value,
+        min_amount: createVoucherForm.min_amount || undefined,
+        max_discount: createVoucherForm.max_discount ?? undefined,
+        expires_at: createVoucherForm.expires_at || undefined,
+      });
+      toast({ title: "Đã tạo voucher", description: `Mã ${createVoucherForm.code} đã cấp cho khách.` });
+      setCreateVoucherOpen(false);
+      setCreateVoucherForm({ user_id: '', code: '', title: '', type: 'fixed', value: 10000, min_amount: 0, max_discount: null, expires_at: '' });
+      await loadCustomerVouchers();
+    } catch (e: any) {
+      toast({ title: "Lỗi", description: e?.message || "Không thể tạo voucher", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteCustomerVoucher = async (v: AdminCustomerVoucherItem) => {
+    if (!sessionId) return;
+    if (v.is_used) {
+      toast({ title: "Không thể xóa", description: "Voucher đã sử dụng không thể xóa.", variant: "destructive" });
+      return;
+    }
+    if (!window.confirm(`Xóa voucher ${v.code} của khách?`)) return;
+    try {
+      await deleteCustomerVoucherAdmin(sessionId, v.id);
+      toast({ title: "Đã xóa voucher" });
+      await loadCustomerVouchers();
+    } catch (e: any) {
+      toast({ title: "Lỗi", description: e?.message || "Không thể xóa", variant: "destructive" });
+    }
+  };
+
+  const loadAdminRanks = async () => {
+    if (!sessionId) return;
+    try {
+      const res = await fetchAdminRanks(sessionId);
+      setAdminRanks(res.data ?? []);
+    } catch {
+      setAdminRanks([]);
+    }
+  };
+  const loadRankRewardVouchers = async () => {
+    if (!sessionId) return;
+    try {
+      const res = await fetchRankRewardVouchersAdmin(sessionId, rankRewardFilter ? { rank_id: rankRewardFilter } : undefined);
+      setRankRewardVouchers(res.data ?? []);
+    } catch {
+      setRankRewardVouchers([]);
+    }
+  };
+  const handleSaveRankReward = async () => {
+    if (!sessionId || !rankRewardForm.rank_id || rankRewardForm.value < 1) {
+      toast({ title: "Lỗi", description: "Chọn hạng và nhập giá trị.", variant: "destructive" });
+      return;
+    }
+    try {
+      if (editingRankRewardId) {
+        await updateRankRewardVoucherAdmin(sessionId, editingRankRewardId, {
+          rank_id: rankRewardForm.rank_id,
+          title: rankRewardForm.title || undefined,
+          type: rankRewardForm.type,
+          value: rankRewardForm.value,
+          min_amount: rankRewardForm.min_amount,
+          max_discount: rankRewardForm.max_discount,
+          expiry_days: rankRewardForm.expiry_days,
+        });
+        toast({ title: "Đã cập nhật phần thưởng hạng" });
+      } else {
+        await createRankRewardVoucherAdmin(sessionId, {
+          rank_id: rankRewardForm.rank_id,
+          title: rankRewardForm.title || undefined,
+          type: rankRewardForm.type,
+          value: rankRewardForm.value,
+          min_amount: rankRewardForm.min_amount,
+          max_discount: rankRewardForm.max_discount ?? undefined,
+          expiry_days: rankRewardForm.expiry_days,
+        });
+        toast({ title: "Đã thêm phần thưởng hạng" });
+      }
+      setRankRewardDialogOpen(false);
+      setEditingRankRewardId(null);
+      setRankRewardForm({ rank_id: '', title: '', type: 'fixed', value: 10000, min_amount: 0, max_discount: null, expiry_days: 30 });
+      await loadRankRewardVouchers();
+    } catch (e: any) {
+      toast({ title: "Lỗi", description: e?.message || "Không thể lưu", variant: "destructive" });
+    }
+  };
+  const handleDeleteRankReward = async (r: AdminRankRewardVoucherItem) => {
+    if (!sessionId) return;
+    try {
+      await deleteRankRewardVoucherAdmin(sessionId, r.id);
+      toast({ title: "Đã xóa phần thưởng" });
+      await loadRankRewardVouchers();
+    } catch (e: any) {
+      toast({ title: "Lỗi", description: e?.message || "Không thể xóa", variant: "destructive" });
+    }
+  };
+
+  const loadRewards = async () => {
+    if (!sessionId) return;
+    try {
+      const res = await fetchRewardsAdmin(sessionId);
+      setRewards(res.data ?? []);
+    } catch {
+      setRewards([]);
+    }
+  };
+  const handleSaveReward = async () => {
+    if (!sessionId || !rewardForm.name.trim() || rewardForm.points_cost < 1) {
+      toast({ title: "Lỗi", description: "Nhập tên và điểm đổi.", variant: "destructive" });
+      return;
+    }
+    const type = rewardForm.voucher_type || 'fixed';
+    const value = rewardForm.voucher_value ?? 0;
+    if (value < 1) {
+      toast({ title: "Lỗi", description: "Nhập Giá trị voucher (số tiền giảm, VD: 10000) để khách đổi được đúng voucher.", variant: "destructive" });
+      return;
+    }
+    try {
+      const payload = {
+        name: rewardForm.name.trim(),
+        description: rewardForm.description.trim() || undefined,
+        icon_url: rewardForm.icon_url.trim() || undefined,
+        points_cost: rewardForm.points_cost,
+        voucher_type: type,
+        voucher_value: value,
+        voucher_min_amount: rewardForm.voucher_min_amount,
+        voucher_max_discount: rewardForm.voucher_max_discount ?? undefined,
+        voucher_expiry_days: rewardForm.voucher_expiry_days,
+      };
+      if (editingRewardId) {
+        await updateRewardAdmin(sessionId, editingRewardId, payload);
+        toast({ title: "Đã cập nhật phần thưởng đổi điểm" });
+      } else {
+        await createRewardAdmin(sessionId, payload);
+        toast({ title: "Đã thêm phần thưởng đổi điểm" });
+      }
+      setRewardDialogOpen(false);
+      setEditingRewardId(null);
+      setRewardForm({ name: '', description: '', icon_url: '', points_cost: 100, voucher_type: 'fixed', voucher_value: 10000, voucher_min_amount: 0, voucher_max_discount: null, voucher_expiry_days: 30 });
+      await loadRewards();
+    } catch (e: any) {
+      toast({ title: "Lỗi", description: e?.message || "Không thể lưu", variant: "destructive" });
+    }
+  };
+  const handleDeleteReward = async (r: AdminRewardItem) => {
+    if (!sessionId) return;
+    try {
+      await deleteRewardAdmin(sessionId, r.id);
+      toast({ title: "Đã xóa phần thưởng" });
+      await loadRewards();
+    } catch (e: any) {
+      toast({ title: "Lỗi", description: e?.message || "Không thể xóa", variant: "destructive" });
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'customer-vouchers' && sessionId) loadCustomerVouchers();
+    if (activeTab === 'rank-rewards' && sessionId) {
+      loadAdminRanks();
+      loadRankRewardVouchers();
+    }
+    if (activeTab === 'exchange-rewards' && sessionId) loadRewards();
+  }, [activeTab, sessionId]);
+
+  useEffect(() => {
+    if (activeTab === 'rank-rewards' && sessionId) loadRankRewardVouchers();
+  }, [rankRewardFilter]);
 
   const [refreshing, setRefreshing] = useState(false);
   const handleRefresh = async () => {
@@ -705,6 +1041,23 @@ QAI Store - Tài khoản premium uy tín #1
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, page, perPage /*, orderFilterStatus, orderSearchTerm, sort... */]);
 
+  // Khi chuyển sang tab Đơn hàng: luôn tải lại danh sách để hiển thị đơn mới
+  useEffect(() => {
+    if (activeTab === 'orders' && sessionId) {
+      loadOrders();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  // Tự động làm mới danh sách đơn hàng mỗi 30s khi đang xem tab Đơn hàng (để thấy đơn khách vừa tạo)
+  useEffect(() => {
+    if (activeTab !== 'orders' || !sessionId) return;
+    const interval = setInterval(() => {
+      loadOrders();
+    }, 30000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, sessionId]);
 
   const loadProducts = async () => {
     if (sessionId) {
@@ -869,6 +1222,31 @@ QAI Store - Tài khoản premium uy tín #1
     totalItems
   );
 
+  // Đơn yêu cầu gia hạn tài khoản (admin)
+  const [renewalRequests, setRenewalRequests] = useState<any[]>([]);
+  const [renewalMeta, setRenewalMeta] = useState<any>(null);
+  const [renewalStatusFilter, setRenewalStatusFilter] = useState<string>('pending');
+  const [renewalUpdatingId, setRenewalUpdatingId] = useState<number | null>(null);
+  useEffect(() => {
+    if (!sessionId) return;
+    fetchAdminRenewalRequests(sessionId, { per_page: 50, status: renewalStatusFilter })
+      .then((res) => {
+        setRenewalRequests(res.data ?? []);
+        setRenewalMeta(res.meta ?? null);
+      })
+      .catch(() => setRenewalRequests([]));
+  }, [sessionId, renewalStatusFilter]);
+
+  const handleRenewalRequestUpdate = async (id: number, status: 'approved' | 'rejected', adminNote?: string) => {
+    if (!sessionId) return;
+    setRenewalUpdatingId(id);
+    try {
+      await updateAdminRenewalRequest(sessionId, id, { status, admin_note: adminNote });
+      setRenewalRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+    } finally {
+      setRenewalUpdatingId(null);
+    }
+  };
 
   const statusStyles: Record<number, string> = {
     0: "bg-red-500 text-white",
@@ -929,9 +1307,18 @@ QAI Store - Tài khoản premium uy tín #1
       cancelled: 'bg-red-100 text-red-800'
     };
 
+    const orderStatusLabels: { [key: string]: string } = {
+      pending: 'Chờ xử lý',
+      processing: 'Đang xử lý',
+      completed: 'Hoàn thành',
+      cancelled: 'Đã hủy'
+    };
+
+    const label = type === 'order' ? (orderStatusLabels[status] ?? status) : status;
+
     return (
       <Badge className={variants[status] || 'bg-gray-100 text-gray-800'}>
-        {status}
+        {label}
       </Badge>
     );
   };
@@ -1731,7 +2118,6 @@ QAI Store - Tài khoản premium uy tín #1
     }
   };
 
-
   const handleDeleteAccount = (account: CustomerAccount) => {
     // Đoạn code dưới đây giả sử bạn đã có một dialog để xác nhận xóa tài khoản
     setDeleteDialog({
@@ -1763,6 +2149,32 @@ QAI Store - Tài khoản premium uy tín #1
         }
       },
     });
+  };
+
+  const handleSendAccountRenewalReminder = async (account: CustomerAccount) => {
+    if (!sessionId) {
+      toast({
+        title: "Thiếu phiên đăng nhập",
+        description: "Vui lòng đăng nhập lại để gửi email gia hạn.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await sendCustomerAccountRenewalEmail(sessionId, account.id);
+
+      toast({
+        title: "Đã gửi thông báo gia hạn",
+        description: `Email đã gửi đến ${account.customer_email || account.account_email}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Lỗi khi gửi thông báo gia hạn",
+        description: error?.message || "Có lỗi xảy ra khi gửi email.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Quick action functions for orders
@@ -1943,6 +2355,17 @@ QAI Store - Tài khoản premium uy tín #1
   // Send Accounts Functions
   const handleSendAccountToCustomer = (order: Order) => {
     console.log("Send account to customer clicked", { orderId: order.id });
+
+    // Prefill: để admin tự nhập tài khoản, mật khẩu...
+    setAccountEmailInput('');
+    setAccountPasswordInput(''); // admin nhập tay cho bảo mật
+    setSecurityCodeInput('');
+    const firstProduct = order.products[0];
+    setDurationInput(firstProduct?.duration || '1 tháng');
+    setInstructionsInput(
+      '1. Truy cập trang dịch vụ.\n2. Đăng nhập bằng email và mật khẩu ở trên.\n3. Nếu có yêu cầu bảo mật 2 lớp, nhập mã bảo mật tương ứng.\n4. Không chia sẻ tài khoản cho người khác.'
+    );
+
     setSendAccountModal({ open: true, order });
   };
 
@@ -1977,15 +2400,48 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const generateAccountCredentials = (order: Order) => {
-    // Generate sample account credentials for demonstration
-    const productName = order.products[0]?.name || 'Premium Account';
-    const baseEmail = productName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
+    const numericId = toNumericId(order.id);
+
+    // Nếu đang gửi cho 1 đơn cụ thể trong modal → ưu tiên dùng dữ liệu admin nhập
+    if (sendAccountModal.order && sendAccountModal.order.id === order.id) {
+      const firstProduct = order.products[0];
+      const typeAccount = firstProduct?.name || 'Tài khoản Premium';
+      const duration = durationInput || firstProduct?.duration || '1 tháng';
+
+      return {
+        accountEmail: accountEmailInput || order.userEmail,
+        accountPassword: accountPasswordInput || 'MẬT_KHẨU_SẼ_GỬI_RIÊNG',
+        accountLink: firstProduct ? getProductLink(firstProduct.name) : 'https://example.com',
+        duration,
+        typeAccount,
+        securityCode: securityCodeInput || '',
+        instructions: instructionsInput || '',
+      };
+    }
+
+    // Trường hợp gửi hàng loạt hoặc không mở modal chi tiết: lấy từ tài khoản đã gán (nếu có), fallback auto
+    const accountForOrder = numericId
+      ? customerAccounts.find(acc => acc.order_id === numericId)
+      : undefined;
+
+    const firstProduct = order.products[0];
+    const typeAccount = accountForOrder?.product_type || firstProduct?.name || 'Tài khoản Premium';
+
+    const accountEmail = accountForOrder?.account_email || order.userEmail;
+    const accountPassword = accountForOrder?.account_password || 'MẬT_KHẨU_SẼ_GỬI_RIÊNG';
+    const accountLink = accountForOrder?.link || (firstProduct ? getProductLink(firstProduct.name) : 'https://example.com');
+    const duration = accountForOrder?.duration
+      ? `${accountForOrder.duration} tháng`
+      : (firstProduct?.duration || '1 tháng');
 
     return {
-      accountEmail: `examlple@example.com`,
-      accountPassword: `qaistore}!`,
-      accountLink: 'https://example.com',
-      duration: '1 tháng'
+      accountEmail,
+      accountPassword,
+      accountLink,
+      duration,
+      typeAccount,
+      securityCode: '',
+      instructions: '',
     };
   };
 
@@ -2007,7 +2463,9 @@ QAI Store - Tài khoản premium uy tín #1
       .replace('{accountPassword}', credentials.accountPassword)
       .replace('{typeAccount}', credentials.typeAccount)
       .replace('{accountLink}', credentials.accountLink)
-      .replace('{duration}', credentials.duration);
+      .replace('{duration}', credentials.duration)
+      .replace('{securityCode}', credentials.securityCode || '')
+      .replace('{instructions}', credentials.instructions || '');
   };
   const toNumericId = (id: string | number): number | null => {
     if (typeof id === 'number') return id;
@@ -2042,6 +2500,37 @@ QAI Store - Tài khoản premium uy tín #1
 
           const credentials = generateAccountCredentials(order);
           const emailContent = formatEmailContent(order, credentials);
+
+          // ✅ Lưu (hoặc bổ sung) tài khoản vào DB để khách xem trong "Tài khoản đã giao"
+          if (sessionId) {
+            try {
+              await createAccount(sessionId, {
+                account_email: credentials.accountEmail,
+                account_password: credentials.accountPassword,
+                customer_name: order.customerName || order.userEmail,
+                customer_email: order.userEmail,
+                customer_phone: order.customerPhone || '',
+                product_type: credentials.typeAccount,
+                product_icon: null,
+                product_color: null,
+                purchase_date: new Date().toISOString().slice(0, 10),
+                expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10), // +30 ngày
+                status: 'active',
+                link: credentials.accountLink,
+                order_id: numericId,
+                duration: durationInput
+                  ? parseInt(durationInput.replace(/[^0-9]/g, ''), 10) || 1
+                  : 1,
+                purchase_price: order.total,
+                chatgpt_id: null,
+                security_code: credentials.securityCode || null,
+                instructions: credentials.instructions || null,
+              });
+            } catch (accError) {
+              console.error(`❌ Lỗi lưu tài khoản cho đơn #${order.id}:`, accError);
+              // Không chặn việc gửi email nếu chỉ lỗi lưu tài khoản
+            }
+          }
 
           // Gọi API Laravel: POST /admin/orders/{id}/email
           const result = await sendOrderEmail(sessionId, numericId, {
@@ -2113,13 +2602,12 @@ Cảm ơn bạn đã tin tưởng và mua hàng tại QAI Store!
 Thông tin tài khoản:
 📧 Email: {accountEmail}
 🔑 Mật khẩu: {accountPassword}
+🔐 Mã bảo mật: {securityCode}
 🔗 Link truy cập: {accountLink}
-⏰ Thời hạn: {duration}
+⏰ Thời hạn sử dụng: {duration}
 
 Hướng dẫn sử dụng:
-1. Truy cập link ở trên
-2. Đăng nhập bằng thông tin được cung cấp
-3. Thay đổi mật khẩu nếu cần thiết
+{instructions}
 
 Lưu ý quan trọng:
 - Vui lòng không chia sẻ thông tin này cho người khác
@@ -2538,7 +3026,7 @@ QAI Store - Tài khoản premium uy tín #1
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Modern Floating Navigation */}
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 p-2">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 bg-transparent gap-2 h-auto p-0">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 bg-transparent gap-2 h-auto p-0">
               <TabsTrigger
                 value="overview"
                 disabled={role != "admin"}
@@ -2580,6 +3068,50 @@ QAI Store - Tài khoản premium uy tín #1
                 <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
                 <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
                   Đơn hàng &amp; Gửi TK
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="discount-codes"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <Tag className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Mã giảm giá
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="customer-vouchers"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <Ticket className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Kho voucher
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="rank-rewards"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <Award className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Phần thưởng hạng
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="exchange-rewards"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <Gift className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Đổi điểm
                 </span>
               </TabsTrigger>
 
@@ -2820,9 +3352,10 @@ QAI Store - Tài khoản premium uy tín #1
                             {item.value.toLocaleString("vi-VN")}đ
                           </div>
 
-                          {index === 1 && (
+                          {index === 1 && revenueComparisonData[0]?.value > 0 && (
                             <div className="text-xs text-green-600 mt-1">
-                              +{(((item.value - revenueComparisonData[0].value) / revenueComparisonData[0].value) * 100).toFixed(1)}%
+                              {((item.value - revenueComparisonData[0].value) / revenueComparisonData[0].value * 100) >= 0 ? '+' : ''}
+                              {(((item.value - revenueComparisonData[0].value) / revenueComparisonData[0].value) * 100).toFixed(1)}%
                             </div>
                           )}
                         </div>
@@ -2840,19 +3373,19 @@ QAI Store - Tài khoản premium uy tín #1
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                       <Globe className="w-5 h-5 text-purple-600" />
-                      <span>Lưu lượng truy cập 7 ngày gần đây</span>
+                      <span>Hoạt động 7 ngày gần đây (phiên đăng nhập & đơn hàng)</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 sm:p-6">
                     <ChartContainer
                       config={{
-                        visitors: { label: "Lượt truy cập", color: "hsl(var(--chart-3))" },
-                        pageViews: { label: "Lượt xem trang", color: "hsl(var(--chart-4))" },
+                        visitors: { label: "Phiên đăng nhập", color: "hsl(var(--chart-3))" },
+                        pageViews: { label: "Đơn hàng", color: "hsl(var(--chart-4))" },
                       }}
                       className="h-56 sm:h-64 lg:h-72 w-full"
                     >
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trafficData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+                        <LineChart data={trafficData.length ? trafficData : [{ name: '-', visitors: 0, pageViews: 0 }]} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
 
                           <XAxis
@@ -2905,9 +3438,9 @@ QAI Store - Tài khoản premium uy tín #1
                     <div className="space-y-4">
                       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200">
                         <div>
-                          <p className="text-sm text-blue-600 font-medium">Tổng lượt truy cập hôm nay</p>
+                          <p className="text-sm text-blue-600 font-medium">Phiên đăng nhập hôm nay</p>
                           <p className="text-2xl font-bold text-blue-700">
-                            {trafficData[trafficData.length - 1]?.visitors || 0}
+                            {trafficMetrics.todayVisitors}
                           </p>
                         </div>
                         <Activity className="w-8 h-8 text-blue-500" />
@@ -2915,9 +3448,9 @@ QAI Store - Tài khoản premium uy tín #1
 
                       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border border-purple-200">
                         <div>
-                          <p className="text-sm text-purple-600 font-medium">Lượt xem trang hôm nay</p>
+                          <p className="text-sm text-purple-600 font-medium">Đơn hàng hôm nay</p>
                           <p className="text-2xl font-bold text-purple-700">
-                            {trafficData[trafficData.length - 1]?.pageViews || 0}
+                            {trafficMetrics.todayPageViews}
                           </p>
                         </div>
                         <Eye className="w-8 h-8 text-purple-500" />
@@ -2925,9 +3458,9 @@ QAI Store - Tài khoản premium uy tín #1
 
                       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200">
                         <div>
-                          <p className="text-sm text-orange-600 font-medium">Tỷ lệ thoát trung bình</p>
+                          <p className="text-sm text-orange-600 font-medium">Tỷ lệ đơn hoàn thành (7 ngày)</p>
                           <p className="text-2xl font-bold text-orange-700">
-                            {Math.round(trafficData.reduce((sum, day) => sum + day.bounceRate, 0) / trafficData.length)}%
+                            {trafficMetrics.completionRate}%
                           </p>
                         </div>
                         <TrendingUp className="w-8 h-8 text-orange-500" />
@@ -2991,52 +3524,591 @@ QAI Store - Tài khoản premium uy tín #1
 
                   <CardContent className="p-4 sm:p-6">
                     <div className="space-y-3 sm:space-y-4">
-                      {products.slice(0, 5).map((product) => (
-                        <div
-                          key={product.id}
-                          className="
+                      {topSellingProducts.length === 0 ? (
+                        <p className="text-sm text-gray-500 py-4">Chưa có dữ liệu bán chạy từ đơn hàng.</p>
+                      ) : (
+                        topSellingProducts.map((product) => (
+                          <div
+                            key={product.product_id}
+                            className="
             flex flex-col sm:flex-row sm:items-center sm:justify-between
             gap-3 p-3 sm:p-4
             bg-white rounded-xl shadow-sm border border-purple-100
             hover:shadow-md transition-shadow
           "
-                        >
-                          {/* Left */}
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
-                              <Package className="w-5 h-5 text-white" />
+                          >
+                            {/* Left */}
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
+                                <Package className="w-5 h-5 text-white" />
+                              </div>
+
+                              <div className="min-w-0">
+                                <p className="font-medium text-gray-900 line-clamp-1">
+                                  {product.name}
+                                </p>
+                                <p className="text-sm text-gray-600 truncate max-w-[260px] sm:max-w-[340px]">
+                                  {product.category_name}
+                                </p>
+                              </div>
                             </div>
 
-                            <div className="min-w-0">
-                              <p className="font-medium text-gray-900 line-clamp-1">
-                                {product.name}
+                            {/* Right */}
+                            <div className="text-left sm:text-right">
+                              <p className="font-medium text-gray-900">
+                                {product.sales} đã bán
                               </p>
-                              <p className="text-sm text-gray-600 truncate max-w-[260px] sm:max-w-[340px]">
-                                {product.category.name}
-                              </p>
+                              <div className="flex items-center gap-1 sm:justify-end">
+                                <TrendingUp className="w-4 h-4 text-green-500" />
+                                <span className="text-sm text-green-600">
+                                  ★{product.rating}
+                                </span>
+                              </div>
                             </div>
                           </div>
-
-                          {/* Right */}
-                          <div className="text-left sm:text-right">
-                            <p className="font-medium text-gray-900">
-                              {product.sales} đã bán
-                            </p>
-                            <div className="flex items-center gap-1 sm:justify-end">
-                              <TrendingUp className="w-4 h-4 text-green-500" />
-                              <span className="text-sm text-green-600">
-                                ★{product.rating}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </CardContent>
                 </Card>
 
               </div>
             </div>
+          </TabsContent>
+
+          {/* Discount Codes Tab */}
+          <TabsContent value="discount-codes">
+            <div className="space-y-6">
+              <Card className="mt-2">
+                <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                    <Tag className="w-5 h-5 text-indigo-600" />
+                    <span>Mã giảm giá</span>
+                  </CardTitle>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={loadDiscountCodes}>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Làm mới
+                    </Button>
+                    <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={handleOpenCreateDiscount}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Thêm mã
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {discountCodes.length === 0 ? (
+                    <p className="text-sm text-gray-500">Chưa có mã giảm giá nào.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Mã</TableHead>
+                            <TableHead>Mô tả</TableHead>
+                            <TableHead>Loại</TableHead>
+                            <TableHead>Giá trị</TableHead>
+                            <TableHead>Tối thiểu</TableHead>
+                            <TableHead>Giảm tối đa</TableHead>
+                            <TableHead>Hết hạn</TableHead>
+                            <TableHead>Số lần dùng</TableHead>
+                            <TableHead>Đã dùng</TableHead>
+                            <TableHead>Trạng thái</TableHead>
+                            <TableHead>Thao tác</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {discountCodes.map((dc) => (
+                            <TableRow key={dc.id}>
+                              <TableCell className="font-mono text-sm">{dc.code}</TableCell>
+                              <TableCell className="max-w-[220px]">
+                                <span className="line-clamp-2 text-sm text-gray-700">
+                                  {dc.description || "-"}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <Badge className="bg-sky-100 text-sky-700 border border-sky-200">
+                                  Giảm tiền
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {(dc.value ?? 0).toLocaleString("vi-VN")}đ
+                              </TableCell>
+                              <TableCell>
+                                {dc.min_amount
+                                  ? `${dc.min_amount.toLocaleString("vi-VN")}đ`
+                                  : "-"}
+                              </TableCell>
+                              <TableCell>
+                                {dc.max_discount
+                                  ? `${dc.max_discount.toLocaleString("vi-VN")}đ`
+                                  : "-"}
+                              </TableCell>
+                              <TableCell>
+                                {dc.expiry_date
+                                  ? new Date(dc.expiry_date).toLocaleDateString("vi-VN")
+                                  : "Không giới hạn"}
+                              </TableCell>
+                              <TableCell>{dc.usage_limit ?? "∞"}</TableCell>
+                              <TableCell>{dc.used_count ?? 0}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  className={
+                                    dc.is_active
+                                      ? "bg-green-100 text-green-700 border border-green-200"
+                                      : "bg-gray-100 text-gray-600 border border-gray-200"
+                                  }
+                                >
+                                  {dc.is_active ? "Đang hoạt động" : "Tạm tắt"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    title="Chỉnh sửa"
+                                    onClick={() => handleOpenEditDiscount(dc)}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    title="Xoá"
+                                    onClick={() => handleDeleteDiscount(dc)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Kho voucher khách hàng */}
+          <TabsContent value="customer-vouchers">
+            <div className="space-y-6">
+              <Card className="mt-2">
+                <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                    <Ticket className="w-5 h-5 text-amber-600" />
+                    <span>Kho voucher khách hàng</span>
+                  </CardTitle>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <Select value={customerVoucherStatus} onValueChange={(v) => {
+                      setCustomerVoucherStatus(v);
+                      if (!sessionId) return;
+                      fetchCustomerVouchersAdmin(sessionId, { per_page: 100, status: v === 'all' ? undefined : v }).then((r) => setCustomerVouchers(r.data ?? [])).catch(() => { });
+                    }}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Trạng thái" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="available">Có thể dùng</SelectItem>
+                        <SelectItem value="used">Đã dùng</SelectItem>
+                        <SelectItem value="expired">Hết hạn</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="sm" onClick={loadCustomerVouchers}>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Làm mới
+                    </Button>
+                    <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setCreateVoucherOpen(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Cấp voucher
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {customerVouchers.length === 0 ? (
+                    <p className="text-sm text-gray-500">Chưa có voucher nào trong kho.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Mã</TableHead>
+                            <TableHead>Khách hàng</TableHead>
+                            <TableHead>Tiêu đề</TableHead>
+                            <TableHead>Loại</TableHead>
+                            <TableHead>Giá trị</TableHead>
+                            <TableHead>HSD</TableHead>
+                            <TableHead>Nguồn</TableHead>
+                            <TableHead>Trạng thái</TableHead>
+                            <TableHead>Thao tác</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {customerVouchers.map((cv) => (
+                            <TableRow key={cv.id}>
+                              <TableCell className="font-mono text-sm">{cv.code}</TableCell>
+                              <TableCell>
+                                {cv.user ? (
+                                  <span className="text-sm">{cv.user.name} ({cv.user.email})</span>
+                                ) : (
+                                  <span className="text-gray-400">{cv.user_id}</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="max-w-[160px] truncate">{cv.title || '-'}</TableCell>
+                              <TableCell>Giảm tiền</TableCell>
+                              <TableCell>
+                                {cv.value.toLocaleString('vi-VN')}đ
+                              </TableCell>
+                              <TableCell>{cv.expires_at ? new Date(cv.expires_at).toLocaleDateString('vi-VN') : '-'}</TableCell>
+                              <TableCell>{cv.source === 'reward_exchange' ? 'Đổi điểm' : cv.source === 'rank_reward' ? 'Phần thưởng hạng' : cv.source === 'mission' ? 'Nhiệm vụ' : 'Tặng'}</TableCell>
+                              <TableCell>
+                                <Badge className={cv.is_used ? 'bg-gray-100 text-gray-600' : cv.is_valid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                                  {cv.is_used ? 'Đã dùng' : cv.is_valid ? 'Còn hiệu lực' : 'Hết hạn'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {!cv.is_used && (
+                                  <Button variant="ghost" size="icon" className="text-red-600 hover:bg-red-50" title="Xóa" onClick={() => handleDeleteCustomerVoucher(cv)}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Dialog tạo voucher cho khách */}
+            {createVoucherOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <Card className="w-full max-w-md mx-4">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Cấp voucher cho khách</CardTitle>
+                    <Button variant="ghost" size="icon" onClick={() => setCreateVoucherOpen(false)}><XCircle className="w-5 h-5" /></Button>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label>Khách hàng</Label>
+                      <Select value={createVoucherForm.user_id} onValueChange={(v) => setCreateVoucherForm((f) => ({ ...f, user_id: v }))}>
+                        <SelectTrigger><SelectValue placeholder="Chọn khách hàng" /></SelectTrigger>
+                        <SelectContent>
+                          {users.filter((u: User) => u.role === 'user').map((u: User) => (
+                            <SelectItem key={u.id} value={u.id}>{u.name} ({u.email})</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Mã voucher</Label>
+                      <Input value={createVoucherForm.code} onChange={(e) => setCreateVoucherForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="VD: TANG10" />
+                    </div>
+                    <div>
+                      <Label>Tiêu đề (tùy chọn)</Label>
+                      <Input value={createVoucherForm.title} onChange={(e) => setCreateVoucherForm((f) => ({ ...f, title: e.target.value }))} placeholder="VD: Giảm 10% đơn hàng" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label>Loại</Label>
+                        <div className="rounded-md border px-3 py-2 text-sm bg-muted/50">Giảm tiền</div>
+                      </div>
+                      <div>
+                        <Label>Giá trị (đ)</Label>
+                        <Input type="number" min={1} value={createVoucherForm.value} onChange={(e) => setCreateVoucherForm((f) => ({ ...f, value: parseInt(e.target.value, 10) || 0 }))} placeholder="10000" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label>Đơn tối thiểu (đ)</Label>
+                        <Input type="number" min={0} value={createVoucherForm.min_amount || ''} onChange={(e) => setCreateVoucherForm((f) => ({ ...f, min_amount: parseInt(e.target.value, 10) || 0 }))} />
+                      </div>
+                      <div>
+                        <Label>Giảm tối đa (đ)</Label>
+                        <Input type="number" min={0} value={createVoucherForm.max_discount ?? ''} onChange={(e) => setCreateVoucherForm((f) => ({ ...f, max_discount: e.target.value ? parseInt(e.target.value, 10) : null }))} />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Hết hạn (tùy chọn)</Label>
+                      <Input type="date" value={createVoucherForm.expires_at} onChange={(e) => setCreateVoucherForm((f) => ({ ...f, expires_at: e.target.value }))} />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setCreateVoucherOpen(false)}>Hủy</Button>
+                      <Button onClick={handleCreateCustomerVoucher}>Tạo voucher</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Phần thưởng hạng */}
+          <TabsContent value="rank-rewards">
+            <div className="space-y-6">
+              <Card className="mt-2">
+                <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                    <Award className="w-5 h-5 text-violet-600" />
+                    <span>Phần thưởng hạng – Voucher theo hạng khách hàng</span>
+                  </CardTitle>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <Select value={rankRewardFilter || 'all'} onValueChange={(v) => setRankRewardFilter(v === 'all' ? '' : v)}>
+                      <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Lọc theo hạng" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả hạng</SelectItem>
+                        {adminRanks.map((r) => (
+                          <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="sm" onClick={loadRankRewardVouchers}>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Làm mới
+                    </Button>
+                    <Button size="sm" className="bg-violet-600 hover:bg-violet-700" onClick={() => { setEditingRankRewardId(null); setRankRewardForm({ rank_id: '', title: '', type: 'fixed', value: 10000, min_amount: 0, max_discount: null, expiry_days: 30 }); setRankRewardDialogOpen(true); }}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Thêm phần thưởng
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 mb-4">Khách đạt hạng sẽ tự động nhận voucher theo cấu hình bên dưới (mỗi mẫu chỉ nhận 1 lần).</p>
+                  {rankRewardVouchers.length === 0 ? (
+                    <p className="text-sm text-gray-500">Chưa có cấu hình phần thưởng nào. Thêm phần thưởng cho từng hạng.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Hạng</TableHead>
+                            <TableHead>Tiêu đề</TableHead>
+                            <TableHead>Loại</TableHead>
+                            <TableHead>Giá trị</TableHead>
+                            <TableHead>Đơn tối thiểu</TableHead>
+                            <TableHead>Giảm tối đa</TableHead>
+                            <TableHead>HSD (ngày)</TableHead>
+                            <TableHead>Thao tác</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {rankRewardVouchers.map((r) => (
+                            <TableRow key={r.id}>
+                              <TableCell className="font-medium">{r.rank_name ?? r.rank_id}</TableCell>
+                              <TableCell className="max-w-[180px] truncate">{r.title || '-'}</TableCell>
+                              <TableCell><Badge variant="outline">đ</Badge></TableCell>
+                              <TableCell>{r.value.toLocaleString('vi-VN')}đ</TableCell>
+                              <TableCell>{r.min_amount ? r.min_amount.toLocaleString('vi-VN') + 'đ' : '-'}</TableCell>
+                              <TableCell>{r.max_discount != null ? r.max_discount.toLocaleString('vi-VN') + 'đ' : '-'}</TableCell>
+                              <TableCell>{r.expiry_days}</TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" title="Sửa" onClick={() => { setEditingRankRewardId(r.id); setRankRewardForm({ rank_id: r.rank_id, title: r.title || '', type: 'fixed', value: r.value, min_amount: r.min_amount, max_discount: r.max_discount ?? null, expiry_days: r.expiry_days }); setRankRewardDialogOpen(true); }}>
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="text-red-600 hover:bg-red-50" title="Xóa" onClick={() => handleDeleteRankReward(r)}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {rankRewardDialogOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <Card className="w-full max-w-md mx-4">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>{editingRankRewardId ? 'Sửa phần thưởng hạng' : 'Thêm phần thưởng hạng'}</CardTitle>
+                    <Button variant="ghost" size="icon" onClick={() => { setRankRewardDialogOpen(false); setEditingRankRewardId(null); }}><XCircle className="w-5 h-5" /></Button>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label>Hạng khách hàng</Label>
+                      <Select value={rankRewardForm.rank_id} onValueChange={(v) => setRankRewardForm((f) => ({ ...f, rank_id: v }))}>
+                        <SelectTrigger><SelectValue placeholder="Chọn hạng" /></SelectTrigger>
+                        <SelectContent>
+                          {adminRanks.map((r) => (
+                            <SelectItem key={r.id} value={r.id}>{r.name} (đơn tối thiểu {r.min_spent.toLocaleString('vi-VN')}đ)</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Tiêu đề voucher (tùy chọn)</Label>
+                      <Input value={rankRewardForm.title} onChange={(e) => setRankRewardForm((f) => ({ ...f, title: e.target.value }))} placeholder="VD: Voucher hạng Vàng" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label>Loại</Label>
+                        <div className="rounded-md border px-3 py-2 text-sm bg-muted/50">Giảm tiền</div>
+                      </div>
+                      <div>
+                        <Label>Giá trị (đ)</Label>
+                        <Input type="number" min={1} value={rankRewardForm.value} onChange={(e) => setRankRewardForm((f) => ({ ...f, value: parseInt(e.target.value, 10) || 0 }))} placeholder="10000" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label>Đơn tối thiểu (đ)</Label>
+                        <Input type="number" min={0} value={rankRewardForm.min_amount} onChange={(e) => setRankRewardForm((f) => ({ ...f, min_amount: parseInt(e.target.value, 10) || 0 }))} />
+                      </div>
+                      <div>
+                        <Label>Giảm tối đa (đ)</Label>
+                        <Input type="number" min={0} value={rankRewardForm.max_discount ?? ''} onChange={(e) => setRankRewardForm((f) => ({ ...f, max_discount: e.target.value ? parseInt(e.target.value, 10) : null }))} placeholder="Bỏ trống = không giới hạn" />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Hiệu lực (số ngày từ lúc cấp)</Label>
+                      <Input type="number" min={0} value={rankRewardForm.expiry_days} onChange={(e) => setRankRewardForm((f) => ({ ...f, expiry_days: parseInt(e.target.value, 10) || 0 }))} />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => { setRankRewardDialogOpen(false); setEditingRankRewardId(null); }}>Hủy</Button>
+                      <Button onClick={handleSaveRankReward}>{editingRankRewardId ? 'Cập nhật' : 'Thêm'}</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Phần thưởng đổi điểm */}
+          <TabsContent value="exchange-rewards">
+            <div className="space-y-6">
+              <Card className="mt-2">
+                <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                    <Gift className="w-5 h-5 text-emerald-600" />
+                    <span>Phần thưởng có thể đổi (đổi điểm lấy voucher)</span>
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={loadRewards}>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Làm mới
+                    </Button>
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { setEditingRewardId(null); setRewardForm({ name: '', description: '', icon_url: '', points_cost: 100, voucher_type: 'fixed', voucher_value: 10000, voucher_min_amount: 0, voucher_max_discount: null, voucher_expiry_days: 30 }); setRewardDialogOpen(true); }}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Thêm phần thưởng
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 mb-4">Khách dùng điểm tích lũy để đổi lấy voucher. Khi đổi thành công, voucher sẽ được thêm vào Kho voucher của khách.</p>
+                  {rewards.length === 0 ? (
+                    <p className="text-sm text-gray-500">Chưa có phần thưởng nào. Thêm phần thưởng (tên, điểm đổi, cấu hình voucher).</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Tên</TableHead>
+                            <TableHead>Mô tả</TableHead>
+                            <TableHead>Điểm đổi</TableHead>
+                            <TableHead>Loại</TableHead>
+                            <TableHead>Giá trị</TableHead>
+                            <TableHead>HSD (ngày)</TableHead>
+                            <TableHead>Thao tác</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {rewards.map((r) => (
+                            <TableRow key={r.id}>
+                              <TableCell className="font-medium">{r.name}</TableCell>
+                              <TableCell className="max-w-[200px] truncate">{r.description || '-'}</TableCell>
+                              <TableCell>{r.points_cost} điểm</TableCell>
+                              <TableCell>{r.voucher_type ? 'Giảm tiền' : '-'}</TableCell>
+                              <TableCell>
+                                {r.voucher_type && (r.voucher_value ?? 0) > 0 ? (
+                                  <span>{(r.voucher_value ?? 0).toLocaleString('vi-VN')}đ {r.voucher_min_amount > 0 ? `(đơn ≥ ${r.voucher_min_amount.toLocaleString('vi-VN')}đ)` : ''}</span>
+                                ) : '-'}
+                              </TableCell>
+                              <TableCell>{r.voucher_expiry_days}</TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" title="Sửa" onClick={() => { setEditingRewardId(r.id); setRewardForm({ name: r.name, description: r.description || '', icon_url: r.icon_url || '', points_cost: r.points_cost, voucher_type: 'fixed', voucher_value: r.voucher_value ?? 10000, voucher_min_amount: r.voucher_min_amount, voucher_max_discount: r.voucher_max_discount ?? null, voucher_expiry_days: r.voucher_expiry_days }); setRewardDialogOpen(true); }}>
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="text-red-600 hover:bg-red-50" title="Xóa" onClick={() => handleDeleteReward(r)}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {rewardDialogOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <Card className="w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>{editingRewardId ? 'Sửa phần thưởng đổi điểm' : 'Thêm phần thưởng đổi điểm'}</CardTitle>
+                    <Button variant="ghost" size="icon" onClick={() => { setRewardDialogOpen(false); setEditingRewardId(null); }}><XCircle className="w-5 h-5" /></Button>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label>Tên phần thưởng</Label>
+                      <Input value={rewardForm.name} onChange={(e) => setRewardForm((f) => ({ ...f, name: e.target.value }))} placeholder="VD: Voucher giảm 10%" />
+                    </div>
+                    <div>
+                      <Label>Mô tả (tùy chọn)</Label>
+                      <Input value={rewardForm.description} onChange={(e) => setRewardForm((f) => ({ ...f, description: e.target.value }))} placeholder="VD: Áp dụng cho đơn hàng tiếp theo" />
+                    </div>
+                    <div>
+                      <Label>Điểm đổi</Label>
+                      <Input type="number" min={1} value={rewardForm.points_cost} onChange={(e) => setRewardForm((f) => ({ ...f, points_cost: parseInt(e.target.value, 10) || 0 }))} />
+                    </div>
+                    <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">Nhập <strong>Giá trị</strong> (số tiền giảm, VD: 10000) để khách đổi thưởng nhận đúng voucher.</p>
+                    <div>
+                      <Label>Loại voucher</Label>
+                      <div className="rounded-md border px-3 py-2 text-sm bg-muted/50">Giảm tiền</div>
+                    </div>
+                    <div>
+                      <Label>Giá trị voucher (bắt buộc)</Label>
+                      <Input type="number" min={0} value={rewardForm.voucher_value} onChange={(e) => setRewardForm((f) => ({ ...f, voucher_value: parseInt(e.target.value, 10) || 0 }))} placeholder="10000 (đ)" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label>Đơn tối thiểu (đ)</Label>
+                        <Input type="number" min={0} value={rewardForm.voucher_min_amount} onChange={(e) => setRewardForm((f) => ({ ...f, voucher_min_amount: parseInt(e.target.value, 10) || 0 }))} />
+                      </div>
+                      <div>
+                        <Label>Giảm tối đa (đ)</Label>
+                        <Input type="number" min={0} value={rewardForm.voucher_max_discount ?? ''} onChange={(e) => setRewardForm((f) => ({ ...f, voucher_max_discount: e.target.value ? parseInt(e.target.value, 10) : null }))} placeholder="Tùy chọn" />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Hiệu lực voucher (ngày)</Label>
+                      <Input type="number" min={0} value={rewardForm.voucher_expiry_days} onChange={(e) => setRewardForm((f) => ({ ...f, voucher_expiry_days: parseInt(e.target.value, 10) || 30 }))} />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => { setRewardDialogOpen(false); setEditingRewardId(null); }}>Hủy</Button>
+                      <Button onClick={handleSaveReward}>{editingRewardId ? 'Cập nhật' : 'Thêm'}</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
 
           {/* Users Tab */}
@@ -3132,8 +4204,8 @@ QAI Store - Tài khoản premium uy tín #1
                         <TableCell>{user.phone}</TableCell>
                         <TableCell>{user.rank}</TableCell>
                         <TableCell>{user.joinDate}</TableCell>
-                        <TableCell>{user.totalOrders}</TableCell>
-                        <TableCell>{user.totalSpent?.toLocaleString('vi-VN')}đ</TableCell>
+                        <TableCell>{(user.totalOrders ?? 0)}</TableCell>
+                        <TableCell>{(user.totalSpent ?? 0).toLocaleString('vi-VN')}đ</TableCell>
                         <TableCell className="text-center">
                           <span className="font-semibold text-gray-800">
                             {(user.points || 0)}
@@ -3296,6 +4368,15 @@ QAI Store - Tài khoản premium uy tín #1
                     <UserCheck className="w-4 h-4" />
                     <span className="hidden sm:inline">Tài khoản khách hàng</span>
                     <span className="sm:hidden">Khách hàng</span>
+                  </TabsTrigger>
+
+                  <TabsTrigger
+                    value="renewal-requests"
+                    className="flex w-full items-center justify-center gap-2 text-sm sm:text-base"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span className="hidden sm:inline">Yêu cầu gia hạn</span>
+                    <span className="sm:hidden">Gia hạn</span>
                   </TabsTrigger>
 
                   <TabsTrigger
@@ -3722,6 +4803,7 @@ QAI Store - Tài khoản premium uy tín #1
                           <TableRow>
                             <TableHead>ID</TableHead>
                             <TableHead>Sản phẩm</TableHead>
+                            <TableHead>Nhãn</TableHead>
                             <TableHead>Danh mục</TableHead>
                             <TableHead>Giá</TableHead>
                             <TableHead>Kho</TableHead>
@@ -3736,6 +4818,15 @@ QAI Store - Tài khoản premium uy tín #1
                             <TableRow key={product.id}>
                               <TableCell className="font-medium">{product.id}</TableCell>
                               <TableCell className="font-medium">{product.name}</TableCell>
+                              <TableCell>
+                                {product.badge ? (
+                                  <Badge className={`${product.badge_color} text-white px-2 py-1 text-xs font-semibold rounded-md`}>
+                                    {product.badge}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-xs text-gray-400">Không</span>
+                                )}
+                              </TableCell>
                               <TableCell>{product.category.name}</TableCell>
                               <TableCell>{product.price.toLocaleString('vi-VN')}đ</TableCell>
                               <TableCell>{product.stock}</TableCell>
@@ -3835,33 +4926,33 @@ QAI Store - Tài khoản premium uy tín #1
 
                           <div>
                             <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-brand-blue to-brand-emerald bg-clip-text text-transparent">
-                              Tài khoản khách hàng
+                              Tài khoản đã mua
                             </CardTitle>
                             <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                              Theo dõi và quản lý tất cả tài khoản đã bán
+                              Danh sách tài khoản đã giao cho khách hàng (gắn với đơn hàng)
                             </p>
                           </div>
                         </div>
 
-                        {/* RIGHT: Stats */}
+                        {/* RIGHT: Stats (từ API meta - tài khoản đã mua) */}
                         <div className="grid grid-cols-3 gap-4 sm:gap-6 text-sm text-center">
                           <div>
                             <div className="text-brand-blue font-bold text-lg sm:text-xl">
-                              {stats.totalCustomerAccounts}
+                              {metaAccounts?.total ?? 0}
                             </div>
-                            <div className="text-gray-500">Tổng TK</div>
+                            <div className="text-gray-500">Tổng TK đã mua</div>
                           </div>
 
                           <div>
                             <div className="text-green-600 font-bold text-lg sm:text-xl">
-                              {stats.activeCustomerAccounts}
+                              {metaAccounts?.total_active ?? 0}
                             </div>
                             <div className="text-gray-500">Hoạt động</div>
                           </div>
 
                           <div>
                             <div className="text-red-600 font-bold text-lg sm:text-xl">
-                              {stats.expiredCustomerAccounts}
+                              {metaAccounts?.total_expired ?? 0}
                             </div>
                             <div className="text-gray-500">Hết hạn</div>
                           </div>
@@ -4041,7 +5132,13 @@ QAI Store - Tài khoản premium uy tín #1
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {accounts.map((account, index) => (
+                            {accounts.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={10} className="py-12 text-center text-gray-500">
+                                  Chưa có tài khoản đã mua nào. Danh sách chỉ hiển thị tài khoản đã giao cho khách (gắn với đơn hàng).
+                                </TableCell>
+                              </TableRow>
+                            ) : accounts.map((account, index) => (
                               <TableRow
                                 key={account.id}
                                 className={`hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-emerald-50/50 transition-all duration-200 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
@@ -4155,6 +5252,17 @@ QAI Store - Tài khoản premium uy tín #1
                                     <Button
                                       variant="outline"
                                       size="sm"
+                                      className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 h-7 px-2 transition-all duration-200 hover:scale-105"
+                                      onClick={() => handleSendAccountRenewalReminder(account)}
+                                      title="Gửi thông báo gia hạn"
+                                      disabled={!account.customer_email && !account.account_email}
+                                    >
+                                      <Send className="w-3 h-3 mr-1" />
+                                      Nhắc gia hạn
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
                                       className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300 h-7 px-2 transition-all duration-200 hover:scale-105"
                                       onClick={() => handleEditAccount(account)}
                                       title="Chỉnh sửa tài khoản"
@@ -4249,6 +5357,117 @@ QAI Store - Tài khoản premium uy tín #1
                       )}
 
 
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Đơn yêu cầu gia hạn tài khoản */}
+                <TabsContent value="renewal-requests">
+                  <Card className="border-0 shadow-2xl bg-white">
+                    <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 border-b">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                          <CardTitle className="text-xl">Yêu cầu gia hạn tài khoản</CardTitle>
+                          <p className="text-sm text-gray-600 mt-1">Xem và duyệt/từ chối đơn yêu cầu gia hạn từ khách hàng</p>
+                        </div>
+                        <Select value={renewalStatusFilter} onValueChange={setRenewalStatusFilter}>
+                          <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Chờ xử lý</SelectItem>
+                            <SelectItem value="approved">Đã duyệt</SelectItem>
+                            <SelectItem value="rejected">Đã từ chối</SelectItem>
+                            <SelectItem value="all">Tất cả</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="overflow-x-auto rounded-lg border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-gray-50">
+                              <TableHead className="font-semibold">ID</TableHead>
+                              <TableHead className="font-semibold">Tài khoản</TableHead>
+                              <TableHead className="font-semibold">Sản phẩm</TableHead>
+                              <TableHead className="font-semibold">Khách hàng</TableHead>
+                              <TableHead className="font-semibold">Ghi chú</TableHead>
+                              <TableHead className="font-semibold">Ngày tạo</TableHead>
+                              <TableHead className="font-semibold">Trạng thái</TableHead>
+                              <TableHead className="text-right font-semibold">Thao tác</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {renewalRequests.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={8} className="py-8 text-center text-gray-500">
+                                  Chưa có đơn yêu cầu gia hạn nào.
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              renewalRequests.map((req) => (
+                                <TableRow key={req.id}>
+                                  <TableCell>{req.id}</TableCell>
+                                  <TableCell className="font-mono text-sm">{req.accountEmail}</TableCell>
+                                  <TableCell>{req.productType || '—'}</TableCell>
+                                  <TableCell>
+                                    <div className="text-sm">{req.userName || '—'}</div>
+                                    <div className="text-xs text-gray-500">{req.userEmail}</div>
+                                  </TableCell>
+                                  <TableCell className="max-w-[200px] truncate text-sm">{req.note || '—'}</TableCell>
+                                  <TableCell className="text-sm text-gray-600">
+                                    {req.createdAt ? new Date(req.createdAt).toLocaleDateString('vi-VN') : '—'}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      className={
+                                        req.status === 'pending'
+                                          ? 'bg-amber-100 text-amber-800'
+                                          : req.status === 'approved'
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-red-100 text-red-800'
+                                      }
+                                    >
+                                      {req.status === 'pending' ? 'Chờ xử lý' : req.status === 'approved' ? 'Đã duyệt' : 'Đã từ chối'}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    {req.status === 'pending' && (
+                                      <div className="flex items-center justify-end gap-1">
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="text-green-600 border-green-300 hover:bg-green-50"
+                                          disabled={renewalUpdatingId === req.id}
+                                          onClick={() => handleRenewalRequestUpdate(req.id, 'approved')}
+                                        >
+                                          {renewalUpdatingId === req.id ? '...' : 'Duyệt'}
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="text-red-600 border-red-300 hover:bg-red-50"
+                                          disabled={renewalUpdatingId === req.id}
+                                          onClick={() => handleRenewalRequestUpdate(req.id, 'rejected')}
+                                        >
+                                          Từ chối
+                                        </Button>
+                                      </div>
+                                    )}
+                                    {req.status !== 'pending' && req.adminNote && (
+                                      <span className="text-xs text-gray-500">{req.adminNote}</span>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      {renewalMeta?.total > 0 && (
+                        <p className="text-sm text-gray-500 mt-3">Tổng: {renewalMeta.total} đơn</p>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -4444,9 +5663,13 @@ QAI Store - Tài khoản premium uy tín #1
                             />
                           </TableCell> */}
                           <TableCell>
-                            <div className="flex items-center space-x-2">
-
+                            <div className="flex items-center flex-wrap gap-2">
                               <span className="font-medium">#{order.id}</span>
+                              {order.renewalForAccountId && (
+                                <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                                  Đơn gia hạn
+                                </Badge>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -5035,6 +6258,13 @@ QAI Store - Tài khoản premium uy tín #1
           onSave={handleSaveOnetimeCode}
         />
 
+        <EditDiscountCodeDialog
+          code={editDiscountDialog.code}
+          open={editDiscountDialog.open}
+          onOpenChange={(open) => setEditDiscountDialog({ ...editDiscountDialog, open })}
+          onSave={handleSaveDiscount}
+        />
+
         <EditOrderDialog
           order={editOrderDialog.order}
           open={editOrderDialog.open}
@@ -5130,6 +6360,70 @@ QAI Store - Tài khoản premium uy tín #1
                 </Card>
               )}
 
+              {/* Thông tin tài khoản gửi cho khách (nhập tay) */}
+              {sendAccountModal.order && (
+                <Card className="border-green-200 bg-green-50/60">
+                  <CardContent className="p-4 space-y-4">
+                    <h4 className="font-semibold text-green-900 mb-1">
+                      Thông tin tài khoản sẽ gửi
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-green-800 mb-1">
+                          Email / Tài khoản
+                        </label>
+                        <Input
+                          value={accountEmailInput}
+                          onChange={(e) => setAccountEmailInput(e.target.value)}
+                          placeholder="account@example.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-green-800 mb-1">
+                          Mật khẩu
+                        </label>
+                        <Input
+                          value={accountPasswordInput}
+                          onChange={(e) => setAccountPasswordInput(e.target.value)}
+                          placeholder="Nhập mật khẩu sẽ gửi cho khách"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-green-800 mb-1">
+                          Mã bảo mật (nếu có)
+                        </label>
+                        <Input
+                          value={securityCodeInput}
+                          onChange={(e) => setSecurityCodeInput(e.target.value)}
+                          placeholder="VD: mã backup / mã 2FA"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-green-800 mb-1">
+                          Thời hạn sử dụng
+                        </label>
+                        <Input
+                          value={durationInput}
+                          onChange={(e) => setDurationInput(e.target.value)}
+                          placeholder="VD: 6 tháng, 1 năm..."
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-green-800 mb-1">
+                        Hướng dẫn sử dụng
+                      </label>
+                      <Textarea
+                        value={instructionsInput}
+                        onChange={(e) => setInstructionsInput(e.target.value)}
+                        rows={4}
+                        className="text-sm"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Bulk Send Information */}
               {!sendAccountModal.order && selectedOrders.length > 0 && (
                 <Card className="bg-green-50 border-green-200">
@@ -5212,6 +6506,8 @@ QAI Store - Tài khoản premium uy tín #1
                               <>
                                 <div><strong>Email:</strong> {credentials.accountEmail}</div>
                                 <div><strong>Mật khẩu:</strong> {credentials.accountPassword}</div>
+                                <div><strong>Mã bảo mật:</strong> {credentials.securityCode || '—'}</div>
+                                <div><strong>Thời hạn:</strong> {credentials.duration}</div>
                                 <div><strong>Link:</strong> {credentials.accountLink}</div>
                               </>
                             );

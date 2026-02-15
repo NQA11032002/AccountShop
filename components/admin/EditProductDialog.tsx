@@ -79,24 +79,13 @@ export function EditProductDialog({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
 
-  // auto sync badge/badge_color/color
-  function applyStatusBadge(status: "active" | "inactive") {
-    const isActive = status === "active";
-    return {
-      status,
-      badge: isActive ? "còn hàng" : "hết hàng",
-      badge_color: isActive ? "bg-green-500" : "bg-red-500",
-      color: "white",
-    };
-  }
-
   const [formData, setFormData] = useState<FormState>(() => {
     const durs = (product?.durations ?? []).map(normalizeDuration(product?.id));
     const base = product
       ? ({ ...(product as Product), durations: durs } as FormState)
       : defaultForm;
 
-    return { ...base, ...applyStatusBadge(base.status as "active" | "inactive") };
+  return base;
   });
 
   // Helper to show preview for existing image filename
@@ -126,11 +115,7 @@ export function EditProductDialog({
         ? ({ ...(product as Product), durations: durs } as FormState)
         : { ...defaultForm, id: 0 };
 
-      const withStatusFields = {
-        ...base,
-        ...applyStatusBadge(base.status as "active" | "inactive"),
-      };
-      setFormData(withStatusFields);
+      setFormData(base);
 
       // reset upload states
       setImageFile(null);
@@ -245,18 +230,12 @@ export function EditProductDialog({
       // 1) upload ảnh (nếu có)
       const uploaded = await uploadImageIfNeeded(); // { filename, url } | null
 
-      // 2) đồng bộ badge theo status
-      const normalizedForm: FormState = {
-        ...formData,
-        ...applyStatusBadge(formData.status as "active" | "inactive"),
-      };
-
-      // 3) CHỈ LƯU FILENAME VÀO DB
-      const currentFilename = fileNameOnly(normalizedForm.image);
+      // 2) CHỈ LƯU FILENAME VÀO DB
+      const currentFilename = fileNameOnly(formData.image);
       const imageName = uploaded?.filename ?? currentFilename; // <-- filename, không phải url
 
-      // 4) build durations
-      const durationsPayload = normalizedForm.durations.map((d) => {
+      // 3) build durations
+      const durationsPayload = formData.durations.map((d) => {
         const base = {
           name: d.name,
           price: Number(d.price) || 0,
@@ -268,13 +247,13 @@ export function EditProductDialog({
       });
 
       const payload = {
-        ...normalizedForm,
+        ...formData,
         image: imageName,                       // <-- DB chỉ lưu "tên.đuôi"
-        category: normalizedForm.category.id,   // gửi ID
+        category: formData.category.id,         // gửi ID
         durations: durationsPayload,
       };
 
-      if (!normalizedForm.id || normalizedForm.id === 0) {
+      if (!formData.id || formData.id === 0) {
         const result = await createProduct(sessionId, payload);
         const newCategory = categories.find((c) => c.id === result.category) || defaultCategory;
         onSave({
@@ -298,7 +277,7 @@ export function EditProductDialog({
           slug: result.slug,
         });
       } else {
-        const result = await updateProduct(sessionId, normalizedForm.id, payload);
+        const result = await updateProduct(sessionId, formData.id, payload);
         const updatedCategory = categories.find((c) => c.id === result.category) || defaultCategory;
         onSave({
           id: result.id,
@@ -326,6 +305,16 @@ export function EditProductDialog({
     } catch (err: any) {
       console.error("❌ Failed to save product:", err?.message || err);
     }
+  };
+
+  // Xác định loại nhãn hiện tại dựa trên giá trị badge
+  const getBadgeType = (): "none" | "hot" | "ban_chay" | "sale" => {
+    const b = (formData.badge || "").toLowerCase().trim();
+    if (!b) return "none";
+    if (b === "hot") return "hot";
+    if (b === "bán chạy" || b === "ban chay") return "ban_chay";
+    if (b === "sale") return "sale";
+    return "none";
   };
 
 
@@ -481,6 +470,53 @@ export function EditProductDialog({
             ))}
           </div>
 
+          {/* Badge (Nhãn) */}
+          <div>
+            <Label>Loại nhãn hiển thị</Label>
+            <Select
+              value={getBadgeType()}
+              onValueChange={(value: "none" | "hot" | "ban_chay" | "sale") => {
+                if (value === "none") {
+                  setFormData((prev) => ({ ...prev, badge: "", badge_color: "" }));
+                  return;
+                }
+
+                if (value === "hot") {
+                  setFormData((prev) => ({
+                    ...prev,
+                    badge: "Hot",
+                    badge_color: "bg-red-500",
+                  }));
+                } else if (value === "ban_chay") {
+                  setFormData((prev) => ({
+                    ...prev,
+                    badge: "Bán chạy",
+                    badge_color: "bg-yellow-500",
+                  }));
+                } else if (value === "sale") {
+                  setFormData((prev) => ({
+                    ...prev,
+                    badge: "Sale",
+                    badge_color: "bg-orange-500",
+                  }));
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn nhãn" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Không dùng nhãn</SelectItem>
+                <SelectItem value="hot">Hot (nền đỏ)</SelectItem>
+                <SelectItem value="ban_chay">Bán chạy (nền vàng)</SelectItem>
+                <SelectItem value="sale">Sale (nền cam)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Nhãn sẽ hiển thị trên thẻ sản phẩm, và được dùng để chọn sản phẩm Hot trên trang chủ.
+            </p>
+          </div>
+
           {/* Stock & Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -499,7 +535,7 @@ export function EditProductDialog({
               <Select
                 value={formData.status}
                 onValueChange={(value: "active" | "inactive") =>
-                  setFormData((prev) => ({ ...prev, ...applyStatusBadge(value) }))
+                  setFormData((prev) => ({ ...prev, status: value }))
                 }
               >
                 <SelectTrigger>

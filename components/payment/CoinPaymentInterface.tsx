@@ -25,7 +25,7 @@ import {
 import Link from 'next/link';
 import { addToCart } from '@/lib/api'; // đường dẫn đến file api.ts
 import { useCart } from '@/contexts/CartContext';
-import { createOrder, updateUserCoins } from '@/lib/api'; // đường dẫn bạn đặt
+import { createOrder, updateUserCoins, consumeDiscountCodeApi, updateCustomerRankingOnOrder } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { toast } from "@/hooks/use-toast";
 
@@ -74,11 +74,11 @@ export default function CoinPaymentInterface({
     setShowConfetti(true);
 
     try {
-      const orderData = {
+      const orderData: Record<string, unknown> = {
         customer_name: user?.name || 'Không tên',
         customer_phone: user?.phone || '0123456789',
         shipping_address: 'Mặc định',
-        notes: (notes ?? '').trim(), // 👈 dùng ghi chú thật
+        notes: (notes ?? '').trim(),
         total: amount,
         original_total: amount,
         discount: 0,
@@ -91,6 +91,7 @@ export default function CoinPaymentInterface({
           price: item.price,
           duration: item.duration,
         })),
+        status: 'processing',
       };
 
       // ✅ 1. Tạo đơn hàng (hàm đã xử lý lỗi)
@@ -110,6 +111,25 @@ export default function CoinPaymentInterface({
       localStorage.setItem('qai_user', JSON.stringify(updatedUser));
       setUser(updatedUser);
 
+      const orderId = typeof orderRes.order_id === 'number' ? orderRes.order_id : parseInt(orderRes.order_id, 10);
+
+      // ✅ 3. Nếu có mã giảm giá đã áp dụng thì đánh dấu đã dùng (sau khi thanh toán thành công)
+      if (appliedDiscount?.code && !isNaN(orderId)) {
+        try {
+          await consumeDiscountCodeApi(appliedDiscount.code, orderId, sessionId ?? undefined);
+        } catch (err) {
+          console.error("Failed to consume discount code after payment", err);
+        }
+      }
+
+      // ✅ 4. Mua hàng tăng điểm hạng: cập nhật ranking (điểm, total_spent, total_orders)
+      if (!isNaN(orderId)) {
+        try {
+          await updateCustomerRankingOnOrder(sessionId!, orderId, amount, items.length);
+        } catch (err) {
+          console.warn("Failed to update customer ranking after payment", err);
+        }
+      }
 
       toast({
         title: "Thanh toán thành công",
@@ -117,13 +137,13 @@ export default function CoinPaymentInterface({
         variant: "default",
       });
 
-      // ✅ 3. Xóa giỏ hàng
+      // ✅ 4. Xóa giỏ hàng
       setTimeout(() => {
         clearAllCart();
       }, 1500);
 
 
-      // ✅ 4. Hiển thị confetti và chuyển hướng nếu muốn
+      // ✅ 5. Hiển thị confetti và chuyển hướng nếu muốn
       // setTimeout(() => setShowConfetti(false), 3000);
 
     } catch (error: any) {
@@ -314,18 +334,14 @@ export default function CoinPaymentInterface({
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Tạm tính:</span>
-              <span>{formatCoins(amount + (appliedDiscount ? (appliedDiscount.type === 'percentage' ? Math.min((amount * appliedDiscount.value) / 100, appliedDiscount.maxDiscount || Infinity) : appliedDiscount.value) : 0))}</span>
+              <span>{formatCoins(amount + (appliedDiscount ? (appliedDiscount.discountAmount ?? appliedDiscount.value ?? 0) : 0))}</span>
             </div>
 
             {appliedDiscount && (
               <div className="flex justify-between text-sm text-green-600">
                 <span>Giảm giá ({appliedDiscount.code}):</span>
                 <span>
-                  -{formatCoins(
-                    appliedDiscount.type === 'percentage' ?
-                      Math.min((amount * appliedDiscount.value) / 100, appliedDiscount.maxDiscount || Infinity) :
-                      appliedDiscount.value
-                  )}
+                  -{formatCoins(appliedDiscount.discountAmount ?? appliedDiscount.value ?? 0)}
                 </span>
               </div>
             )}

@@ -20,92 +20,99 @@ const PRODUCT_CATEGORIES = [
 ];
 
 export default function TopProducts() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
   const { products, loading, error } = useProducts();
 
-  const filteredProducts =
-    selectedCategory === 'all'
-      ? products
-      : products.filter((product) => {
-        const categorySlug = product.category?.parent_id?.toString() ?? '';
-        return categorySlug === selectedCategory.toString();
-      });
+  // Lọc các sản phẩm có nhãn "Hot" (không phân biệt hoa/thường)
+  const hotProducts = products.filter(
+    (p) => p.badge && p.badge.toLowerCase() === 'hot'
+  );
 
-  // Sắp xếp theo doanh số (nếu có thuộc tính sales hoặc rating)
-  const sortedProducts = [...filteredProducts].sort((a, b) => b.sales - a.sales);
+  // Lấy 9 sản phẩm đầu tiên có nhãn Hot
+  const hotDisplayedProducts = hotProducts.slice(0, 9);
 
+  // Lấy giá hiệu dụng: ưu tiên durations[0].price nếu có, fallback về product.price
+  const getEffectivePrice = (p: any) =>
+    (p.durations?.[0]?.price ?? p.price ?? 0);
 
+  // Sắp xếp theo giá tăng dần và lấy 9 sản phẩm rẻ nhất
+  const cheapestProducts = [...products]
+    .sort((a, b) => getEffectivePrice(a) - getEffectivePrice(b))
+    .slice(0, 9);
 
   return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium mb-4 border border-green-200">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Sản phẩm bán chạy nhất
+    <>
+      {/* Mục 1: Tài khoản Premium Chất lượng cao (Hot) */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 max-w-7xl">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium mb-4 border border-green-200">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Tài khoản Premium chất lượng cao
+            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Tài khoản Premium Chất lượng cao
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Hiển thị tối đa 9 sản phẩm được gắn nhãn <strong>Hot</strong>, giúp bạn nhanh chóng chọn các gói nổi bật nhất.
+            </p>
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Top Tài Khoản Hot Nhất
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Những tài khoản được khách hàng tin tưởng và mua nhiều nhất, chất lượng đảm bảo 100%
-          </p>
-        </div>
 
-        {/* Category Filter */}
-        {/* <div className="flex flex-wrap justify-center gap-3 mb-10">
-          <Button
-            variant={selectedCategory === 'all' ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory('all')}
-            className={`rounded-full px-6 ${selectedCategory === 'all'
-              ? 'bg-gray-900 text-white hover:bg-gray-800'
-              : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-          >
-            🔥 Tất cả
-          </Button>
-          {PRODUCT_CATEGORIES.map((category) => (
-            <Button
-              key={category.id}
-              variant={selectedCategory === category.id ? 'default' : 'outline'}
-              onClick={() => setSelectedCategory(category.id)}
-              className={`rounded-full px-6 ${selectedCategory === category.id
-                ? 'bg-gray-900 text-white hover:bg-gray-800'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-            >
-              <span className="mr-2">{category.icon}</span>
-              {category.name}
-            </Button>
-          ))}
-        </div> */}
-
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.slice(0, 6).map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              size="medium"
-              showFeatures={true}
-              showFavoriteButton={true}
-              className="h-full"
-            />
-          ))}
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {hotDisplayedProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                size="medium"
+                showFeatures={true}
+                showFavoriteButton={true}
+                className="h-full"
+              />
+            ))}
+          </div>
         </div>
+      </section>
 
-        {/* View All Products Button */}
-        <div className="text-center mt-12">
-          <Link href="/products">
-            <Button className="bg-white border-brand-purple text-brand-purple hover:bg-gradient-to-r hover:from-brand-gray hover:to-brand-blue hover:text-white px-8 py-3 font-medium transition-all duration-300 shadow-lg hover:shadow-xl">
-              Xem tất cả sản phẩm
-              <TrendingUp className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+      {/* Mục 2: 9 tài khoản giá tốt nhất hôm nay (rẻ nhất) */}
+      <section className="py-8 bg-gray-50">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium mb-4 border border-blue-200">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              9 tài khoản giá tốt nhất hôm nay
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              9 tài khoản giá tốt nhất hôm nay
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Tự động chọn 9 sản phẩm có giá thấp nhất để bạn dễ dàng lựa chọn, vẫn đảm bảo chất lượng dịch vụ.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {cheapestProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                size="medium"
+                showFeatures={true}
+                showFavoriteButton={true}
+                className="h-full"
+              />
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link href="/products">
+              <Button className="bg-white border-brand-purple text-brand-purple hover:bg-gradient-to-r hover:from-brand-gray hover:to-brand-blue hover:text-white px-8 py-3 font-medium transition-all duration-300 shadow-lg hover:shadow-xl">
+                Xem tất cả sản phẩm
+                <TrendingUp className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
-    </section >
+      </section>
+    </>
   );
 }

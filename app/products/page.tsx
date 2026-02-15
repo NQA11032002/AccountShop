@@ -10,25 +10,30 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/ProductCard';
 import { ProductBase } from '@/lib/products';
-import { fetchProducts, fetchCategories } from '@/lib/api';
+import { fetchProducts, fetchCategories, fetchProductsPaginated, type ProductsMeta } from '@/lib/api';
 import { Category } from '@/types/category.interface';
 import DOMPurify from 'dompurify';
+
+const PER_PAGE = 12;
 
 function ProductsContent() {
   const [products, setProducts] = useState<ProductBase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all'); // parent id filter
-  const [selectedSlug, setSelectedSlug] = useState<string | null>(null); // NEW: slug từ URL
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('popular');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const searchParams = useSearchParams();
-  const [categories, setCategories] = useState<Category[]>([]); // top-level parents cho sidebar
-  const [flatCategories, setFlatCategories] = useState<any[]>([]); // toàn bộ categories (nếu cần)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [flatCategories, setFlatCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [allProducts, setAllProducts] = useState<ProductBase[]>([]);
   const [filterSlug, setFilterSlug] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsMeta, setProductsMeta] = useState<ProductsMeta | null>(null);
 
   // Fetch data (products + categories)
   useEffect(() => {
@@ -113,12 +118,46 @@ function ProductsContent() {
       }
     }
 
+    loadCategories();
+    return () => { mounted = false; };
+  }, []);
+
+  // Reset trang về 1 khi đổi danh mục, tìm kiếm hoặc slug
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, debouncedSearchQuery, filterSlug]);
+
+  // Tải sản phẩm: phân trang server (khi không có slug) hoặc load hết rồi lọc theo slug
+  useEffect(() => {
+    let mounted = true;
+
     async function loadProducts() {
+      setLoading(true);
+      setError(null);
       try {
-        const data = await fetchProducts();
-        if (!mounted) return;
-        setAllProducts(data);
-        setProducts(data);
+        if (filterSlug) {
+          const data = await fetchProducts();
+          if (!mounted) return;
+          setAllProducts(data);
+          setProductsMeta(null);
+          // Lọc theo slug sẽ do useEffect filter bên dưới xử lý
+          const slug = String(filterSlug).toLowerCase();
+          const filtered = data.filter((p: ProductBase) =>
+            String((p as any)?.category?.slug ?? (p as any)?.slug ?? '').toLowerCase() === slug
+          );
+          setProducts(filtered);
+        } else {
+          const res = await fetchProductsPaginated({
+            page: currentPage,
+            perPage: PER_PAGE,
+            categoryId: selectedCategory === 'all' ? undefined : selectedCategory,
+            search: debouncedSearchQuery.trim() || undefined,
+          });
+          if (!mounted) return;
+          setProducts(res.data);
+          setProductsMeta(res.meta);
+          setAllProducts([]);
+        }
       } catch (err: any) {
         console.error('Failed to load products', err);
         if (mounted) setError(err.message || 'Failed to fetch data');
@@ -127,11 +166,23 @@ function ProductsContent() {
       }
     }
 
-    loadCategories();
     loadProducts();
-
     return () => { mounted = false; };
-  }, []);
+  }, [currentPage, selectedCategory, debouncedSearchQuery, filterSlug]);
+
+  // Debounce 1 giây trước khi áp dụng search vào danh sách sản phẩm
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setDebouncedSearchQuery('');
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Replace your existing "Read ?category=..." useEffect with this one
   useEffect(() => {
@@ -175,52 +226,38 @@ function ProductsContent() {
 
   }, [searchParams?.toString(), flatCategories]);
 
-
-  // Filter products: priority -> selectedSlug (exact match on product.category.slug), else selectedCategory (parent)
+  // Chỉ chạy khi có allProducts (chế độ filter theo slug/category từ full list). Khi phân trang server thì allProducts rỗng, không ghi đè products.
   useEffect(() => {
-    if (!allProducts || allProducts.length === 0) {
-      setProducts([]);
-      return;
-    }
+    if (!allProducts || allProducts.length === 0) return;
 
-    // If URL asked for slug -> priority: filter by slug (do NOT change sidebar selection)
     if (filterSlug) {
       const slug = String(filterSlug).toLowerCase();
-      const filtered = allProducts.filter(p =>
-        String(p?.slug ?? '').toLowerCase() === slug
+      const filtered = allProducts.filter((p: ProductBase) =>
+        String((p as any)?.category?.slug ?? (p as any)?.slug ?? '').toLowerCase() === slug
       );
       setProducts(filtered);
-
       return;
     }
-    else {
-      // If no slug filter, fallback to category id filtering (sidebar behavior)
-      if (selectedCategory === 'all') {
-        setProducts(allProducts);
-        return;
-      }
 
-      const catId = Number(selectedCategory);
-
-      const filteredById = allProducts.filter(p => {
-        const cat = (p as any).category;
-        if (!cat) return false;
-
-        if (typeof cat === 'object') {
-          const matchesSelf = typeof cat.id === 'number' && cat.id === catId;
-          const matchesParent = typeof (cat as any).parent_id === 'number' && (cat as any).parent_id === catId;
-          return matchesSelf || matchesParent;
-        }
-
-        const parsed = parseInt(String(cat), 10);
-        if (!isNaN(parsed) && parsed === catId) return true;
-
-        return String(cat).toLowerCase() === String(catId).toLowerCase();
-      });
-
-      setProducts(filteredById);
+    if (selectedCategory === 'all') {
+      setProducts(allProducts);
+      return;
     }
-  }, [selectedCategory, allProducts, filterSlug, flatCategories]);
+
+    const catId = Number(selectedCategory);
+    const filteredById = allProducts.filter((p: ProductBase) => {
+      const cat = (p as any).category;
+      if (!cat) return false;
+      if (typeof cat === 'object') {
+        const matchesSelf = typeof cat.id === 'number' && cat.id === catId;
+        const matchesParent = typeof (cat as any).parent_id === 'number' && (cat as any).parent_id === catId;
+        return matchesSelf || matchesParent;
+      }
+      const parsed = parseInt(String(cat), 10);
+      return !isNaN(parsed) && parsed === catId;
+    });
+    setProducts(filteredById);
+  }, [selectedCategory, allProducts, filterSlug]);
 
 
   // When user clicks a category button in sidebar -> set selectedCategory and clear slug
@@ -262,19 +299,63 @@ function ProductsContent() {
     });
   }
 
+  // Hàm bỏ dấu tiếng Việt + đưa về lowercase để search linh hoạt hơn
+  const normalizeText = (value?: string | null) =>
+    (value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+  // Gợi ý sản phẩm ngay khi gõ (không chờ debounce)
+  const suggestedProducts = useMemo(() => {
+    if (searchQuery.trim() === '') return [];
+
+    const normalizedQuery = normalizeText(searchQuery);
+    const tokens = normalizedQuery
+      .split(/\s+/)
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const matches = products.filter((p) => {
+      const haystack = [
+        normalizeText(p.name),
+        normalizeText(p.description),
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      return tokens.every((token) => haystack.includes(token));
+    });
+
+    return matches.slice(0, 8); // tối đa 8 gợi ý
+  }, [products, searchQuery]);
+
   const filteredAndSortedProducts = useMemo(() => {
     let list = [...products];
-
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(p =>
-        (p.name?.toLowerCase().includes(q) || '')
-        || (p.description?.toLowerCase().includes(q) || '')
-      );
+    if (debouncedSearchQuery.trim() !== '' && filterSlug) {
+      const normalizedQuery = normalizeText(debouncedSearchQuery);
+      const tokens = normalizedQuery.split(/\s+/).map((t) => t.trim()).filter(Boolean);
+      list = list.filter((p) => {
+        const haystack = [normalizeText(p.name), normalizeText(p.description)].filter(Boolean).join(' ');
+        return tokens.every((token) => haystack.includes(token));
+      });
     }
-
     return sortProducts(list, sortBy);
-  }, [products, searchQuery, sortBy]);
+  }, [products, debouncedSearchQuery, sortBy, filterSlug]);
+
+  // Danh sách hiển thị: khi có filterSlug thì cắt theo trang (client-side), không thì dùng đúng 1 trang từ API
+  const displayProducts = useMemo(() => {
+    if (filterSlug && filteredAndSortedProducts.length > PER_PAGE) {
+      const start = (currentPage - 1) * PER_PAGE;
+      return filteredAndSortedProducts.slice(start, start + PER_PAGE);
+    }
+    return filteredAndSortedProducts;
+  }, [filteredAndSortedProducts, currentPage, filterSlug]);
+
+  const paginationTotal = productsMeta?.total ?? (filterSlug ? products.length : 0);
+  const paginationLastPage = productsMeta?.last_page ?? Math.max(1, Math.ceil(products.length / PER_PAGE));
+  const canPrev = currentPage > 1;
+  const canNext = currentPage < paginationLastPage;
 
   const handleBuyNow = (productId: number) => {
     if (typeof window !== 'undefined') {
@@ -396,6 +477,31 @@ function ProductsContent() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10 pr-4"
                     />
+                    {suggestedProducts.length > 0 && (
+                      <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-auto">
+                        {suggestedProducts.map((product) => (
+                          <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => {
+                              const name = product.name || '';
+                              setSearchQuery(name);
+                              setDebouncedSearchQuery(name);
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between"
+                          >
+                            <span className="text-sm text-gray-800">
+                              {product.name}
+                            </span>
+                            {product.durations?.[0]?.price && (
+                              <span className="text-xs text-gray-500">
+                                {product.durations[0].price.toLocaleString('vi-VN')}đ
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Sort and View Mode */}
@@ -415,7 +521,7 @@ function ProductsContent() {
               {/* Results Count */}
               <div className="flex items-center justify-between">
                 <p className="text-gray-600">
-                  Hiển thị {filteredAndSortedProducts?.length} sản phẩm
+                  Hiển thị {displayProducts.length} / {paginationTotal} sản phẩm
                   {searchQuery && ` cho "${searchQuery}"`}
                 </p>
 
@@ -435,12 +541,12 @@ function ProductsContent() {
               </div>
 
               {/* Products */}
-              {filteredAndSortedProducts.length ? (
+              {displayProducts.length ? (
                 <div className={viewMode === 'grid'
                   ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-2 gap-4 lg:gap-6'
                   : 'space-y-4'
                 }>
-                  {filteredAndSortedProducts.map((product) => (
+                  {displayProducts.map((product) => (
                     <ProductCard
                       key={product.id}
                       product={product}
@@ -451,7 +557,34 @@ function ProductsContent() {
                     />
                   ))}
                 </div>
-              ) : (
+              ) : null}
+
+              {/* Phân trang */}
+              {displayProducts.length > 0 && paginationLastPage > 1 && (
+                <div className="flex items-center justify-center gap-2 flex-wrap pt-6 pb-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={!canPrev}
+                  >
+                    Trang trước
+                  </Button>
+                  <span className="text-sm text-gray-600 px-2">
+                    Trang <strong>{currentPage}</strong> / {paginationLastPage}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.min(paginationLastPage, p + 1))}
+                    disabled={!canNext}
+                  >
+                    Trang sau
+                  </Button>
+                </div>
+              )}
+
+              {displayProducts.length === 0 && (
                 <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
                   <div className="text-6xl mb-4">🔍</div>
                   <h3 className="text-xl font-semibold text-gray-700 mb-2">

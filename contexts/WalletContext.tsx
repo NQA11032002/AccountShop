@@ -51,6 +51,8 @@ interface WalletContextType {
   canAfford: (amount: number) => boolean;
   formatCoins: (amount: number) => string;
   isProcessingDeposit: boolean;
+  /** Cập nhật số dư từ server (sau khi backend đã trừ coin, ví dụ gia hạn tài khoản) */
+  syncBalanceFromServer: (newBalance: number) => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -782,7 +784,13 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     syncDepositStatus,
     canAfford,
     formatCoins,
-    isProcessingDeposit
+    isProcessingDeposit,
+    syncBalanceFromServer: useCallback((newBalance: number) => {
+      setBalance(newBalance);
+      if (user) {
+        DataSyncHelper.syncWalletData(user.id, { balance: newBalance, transactions });
+      }
+    }, [user, transactions]),
   };
 
   return (

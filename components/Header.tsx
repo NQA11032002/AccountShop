@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Crown, Grid3X3, ChevronDown, LogOut, Heart } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Crown, Grid3X3, ChevronDown, LogOut, Heart, Ticket } from 'lucide-react';
 import DataSyncHelper from '@/lib/syncHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,8 +16,9 @@ import { useFavorites } from '@/contexts/FavoritesContext';
 import { useWallet } from '@/contexts/WalletContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { fetchCategories } from '@/lib/api';
+import { fetchCategories, fetchProducts } from '@/lib/api';
 import type { Category, ParentCategory } from '@/types/category.interface';
+import type { ProductBase } from '@/lib/products';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,8 +36,13 @@ export default function Header() {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
+  // products for header search suggestions
+  const [products, setProducts] = useState<ProductBase[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
   // search input
   const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearchInput, setDebouncedSearchInput] = useState('');
 
   // Enhanced real-time cart sync for Header
   useEffect(() => {
@@ -101,10 +107,23 @@ export default function Header() {
     router.push('/cart');
   };
 
-  // SEARCH: submit -> try match category by slug/name, else perform search
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // SEARCH: debounce 3 giây, không cần Enter/click
+  useEffect(() => {
     const q = (searchInput || '').trim();
+    if (!q) {
+      setDebouncedSearchInput('');
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setDebouncedSearchInput(q);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
+    const q = debouncedSearchInput;
     if (!q) return;
 
     const qLower = q.toLowerCase();
@@ -119,15 +138,16 @@ export default function Header() {
       const val = matched.slug ? matched.slug : String(matched.id);
       router.push(`/products?category=${encodeURIComponent(val)}`);
     } else {
-      router.push(`/products?search=${q}`);
+      router.push(`/products?search=${encodeURIComponent(q)}`);
     }
-  };
+  }, [debouncedSearchInput, categories, router]);
 
-  // Load categories from API and normalize into flat Category[] matching your interface
+  // Load categories & products cho search header
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       setLoadingCategories(true);
+      setLoadingProducts(true);
       setCategoriesError(null);
 
       try {
@@ -187,6 +207,12 @@ export default function Header() {
         if (mounted) {
           setCategories(unique);
         }
+
+        // load products cho gợi ý search
+        const productData = await fetchProducts();
+        if (mounted) {
+          setProducts(productData || []);
+        }
       } catch (err: any) {
         console.error('Failed to load categories in Header:', err);
         if (mounted) {
@@ -194,13 +220,48 @@ export default function Header() {
           setCategories([]);
         }
       } finally {
-        if (mounted) setLoadingCategories(false);
+        if (mounted) {
+          setLoadingCategories(false);
+          setLoadingProducts(false);
+        }
       }
     };
 
     load();
     return () => { mounted = false; };
   }, []);
+
+  // Hàm bỏ dấu tiếng Việt + lowercase để search linh hoạt
+  const normalizeText = (value?: string | null) =>
+    (value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+  // Gợi ý sản phẩm ngay khi gõ (không chờ debounce), tối đa 8 sản phẩm
+  const suggestedProducts = useMemo(() => {
+    if (loadingProducts) return [];
+    if (searchInput.trim() === '') return [];
+
+    const normalizedQuery = normalizeText(searchInput);
+    const tokens = normalizedQuery
+      .split(/\s+/)
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const matches = products.filter((p) => {
+      const haystack = [
+        normalizeText(p.name),
+        normalizeText((p as any).description),
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      return tokens.every((token) => haystack.includes(token));
+    });
+
+    return matches.slice(0, 8);
+  }, [products, searchInput, loadingProducts]);
 
   // Build grouped categories: top-level parents with their children
   const groupedCategories = (() => {
@@ -239,7 +300,7 @@ export default function Header() {
 
           {/* Center - Search (Desktop/Tablet) */}
           <form
-            onSubmit={handleSearchSubmit}
+            onSubmit={(e) => e.preventDefault()}
             className="hidden md:flex items-center flex-1 max-w-xl mx-2 lg:mx-8"
           >
             <div className="relative w-full">
@@ -251,11 +312,38 @@ export default function Header() {
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-12 pr-12 py-3 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition"
               />
+              {suggestedProducts.length > 0 && (
+                <div className="absolute z-30 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-auto">
+                  {suggestedProducts.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => {
+                        const name = product.name || '';
+                        setSearchInput(name);
+                        setDebouncedSearchInput(name);
+                        router.push(`/products/${product.id}`);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between"
+                    >
+                      <span className="text-sm text-gray-800 line-clamp-1">
+                        {product.name}
+                      </span>
+                      {(product as any).durations?.[0]?.price && (
+                        <span className="text-xs text-gray-500">
+                          {(product as any).durations[0].price.toLocaleString('vi-VN')}đ
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
               <Button
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-blue hover:bg-brand-blue/90 p-2 rounded-md"
+                type="button"
+                disabled
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-blue/60 text-white p-2 rounded-md cursor-default"
               >
-                <Search className="w-4 h-4 text-white" />
+                <Search className="w-4 h-4 text-white opacity-80" />
               </Button>
             </div>
           </form>
@@ -337,6 +425,12 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link href="/my-vouchers" className="flex items-center px-4 py-3 hover:bg-amber-50 rounded-lg">
+                      <Ticket className="mr-3 h-4 w-4 text-amber-600" />
+                      <span>Voucher của tôi</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/orders" className="flex items-center px-4 py-3 hover:bg-blue-50 rounded-lg">
                       <ShoppingCart className="mr-3 h-4 w-4 text-blue-600" />
                       <span>Đơn hàng của tôi</span>
@@ -382,7 +476,7 @@ export default function Header() {
 
         {/* Mobile Search (below top bar) */}
         <div className="md:hidden pb-3">
-          <form onSubmit={handleSearchSubmit}>
+          <form onSubmit={(e) => e.preventDefault()}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
               <Input
@@ -392,6 +486,32 @@ export default function Header() {
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-9 pr-3 py-2 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500"
               />
+              {suggestedProducts.length > 0 && (
+                <div className="absolute z-30 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-auto">
+                  {suggestedProducts.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => {
+                        const name = product.name || '';
+                        setSearchInput(name);
+                        setDebouncedSearchInput(name);
+                        router.push(`/products/${product.id}`);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between"
+                    >
+                      <span className="text-sm text-gray-800 line-clamp-1">
+                        {product.name}
+                      </span>
+                      {(product as any).durations?.[0]?.price && (
+                        <span className="text-xs text-gray-500">
+                          {(product as any).durations[0].price.toLocaleString('vi-VN')}đ
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </form>
         </div>

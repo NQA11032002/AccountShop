@@ -28,6 +28,13 @@ export interface Order {
     };
 }
 
+export interface OrdersMeta {
+    current_page: number;
+    per_page: number;
+    last_page: number;
+    total: number;
+}
+
 export interface OrdersData {
     orders: Order[];
     statistics: {
@@ -38,4 +45,5 @@ export interface OrdersData {
         lastOrderDate: string | null;
         totalOrderProducts: number;
     };
+    meta: OrdersMeta;
 }

@@ -68,11 +68,10 @@ export default function MyRankingPage() {
     }
 
     try {
-      // Gọi API Laravel để thực hiện đổi thưởng thật sự
-      await claimUserReward(rewardId, sessionId as string);
+      const data = await claimUserReward(rewardId, sessionId as string);
 
-      // Nếu thành công, cập nhật UI
-      const newPointsTotal = rankingData.rankingPoints - reward.pointsCost;
+      const newPointsTotal = (data as { remaining_points?: number }).remaining_points ?? rankingData.rankingPoints - reward.pointsCost;
+      const voucherCode = (data as { voucher_code?: string }).voucher_code;
 
       const updatedRewards = rankingData.availableRewards.map(r =>
         r.id === rewardId ? { ...r, claimed: true } : r
@@ -87,11 +86,11 @@ export default function MyRankingPage() {
       const { toast } = await import('@/hooks/use-toast');
       toast({
         title: "🎉 Đổi thưởng thành công!",
-        description: `Bạn đã nhận ${reward.name}. Điểm còn lại: ${newPointsTotal.toLocaleString('vi-VN')}`,
-        duration: 5000,
+        description: voucherCode
+          ? `Bạn đã nhận ${reward.name}. Voucher đã thêm vào Kho voucher (mã: ${voucherCode}). Điểm còn lại: ${newPointsTotal.toLocaleString('vi-VN')}`
+          : `Bạn đã nhận ${reward.name}. Điểm còn lại: ${newPointsTotal.toLocaleString('vi-VN')}`,
+        duration: 6000,
       });
-
-      console.log("✅ Reward claimed via API:", rewardId);
     } catch (error) {
       console.error("❌ Error claiming reward:", error);
 

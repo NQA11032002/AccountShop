@@ -33,6 +33,40 @@ export async function fetchProducts(): Promise<ProductBase[]> {
     return res.json();
 }
 
+export interface ProductsMeta {
+    current_page: number;
+    per_page: number;
+    last_page: number;
+    total: number;
+}
+
+export interface FetchProductsPaginatedResponse {
+    data: ProductBase[];
+    meta: ProductsMeta;
+}
+
+export async function fetchProductsPaginated(params: {
+    page: number;
+    perPage?: number;
+    categoryId?: number | 'all';
+    search?: string;
+}): Promise<FetchProductsPaginatedResponse> {
+    const { page, perPage = 12, categoryId, search } = params;
+    const qs = new URLSearchParams();
+    qs.set('page', String(page));
+    qs.set('per_page', String(perPage));
+    if (categoryId !== undefined && categoryId !== 'all') {
+        qs.set('category_id', String(categoryId));
+    }
+    if (search?.trim()) {
+        qs.set('search', search.trim());
+    }
+    const res = await fetch(`${API_URL}/products?${qs.toString()}`, {
+        cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch products');
+    return res.json();
+}
 
 export async function fetchProductById(id: number): Promise<ProductBase> {
     const res = await fetch(`${API_URL}/products/${id}`, {
@@ -315,16 +349,108 @@ export const updateCartItemQuantity = async (cartId: number, quantity: number, s
     return await res.json();
 };
 
-export const fetchOrders = async (sessionId: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+interface UserOrdersMeta {
+    current_page: number;
+    per_page: number;
+    last_page: number;
+    total: number;
+}
+
+interface UserOrdersStatistics {
+    totalOrders: number;
+    totalSpent: number;
+    totalOrderCompleted: number;
+    averageOrderValue: number;
+    lastOrderDate: string | null;
+    totalOrderProducts: number;
+}
+
+export interface FetchUserOrdersResponse {
+    orders: any[];
+    statistics: UserOrdersStatistics;
+    meta: UserOrdersMeta;
+}
+
+export const fetchOrders = async (
+    sessionId: string,
+    page: number = 1,
+    perPage: number = 10
+): Promise<FetchUserOrdersResponse> => {
+    const params = new URLSearchParams({
+        page: String(page),
+        per_page: String(perPage),
+    }).toString();
+
+    const res = await fetch(`${API_URL}/orders?${params}`, {
         headers: {
             Authorization: `Bearer ${sessionId}`,
         },
+        cache: 'no-store',
     });
 
     if (!res.ok) throw new Error('Không thể lấy danh sách đơn hàng');
 
     return await res.json();
+};
+
+/** GET /api/my-accounts - Danh sách tài khoản đã mua của khách (đã giao, gắn đơn hàng) */
+export const fetchMyAccounts = async (sessionId: string): Promise<{ success: boolean; data: any[] }> => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/my-accounts`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Không thể tải tài khoản của bạn');
+    return res.json();
+};
+
+/** POST /api/my-accounts/{id}/renew - Gia hạn tài khoản (trừ coin, gia hạn expiry). Trả 402 nếu không đủ coin. */
+export const renewAccount = async (
+    sessionId: string,
+    accountId: number
+): Promise<{ success: boolean; message?: string; new_coins?: number; expiry_date?: string }> => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/my-accounts/${accountId}/renew`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 402) {
+        const err = new Error(data?.message || 'Số dư không đủ') as Error & { status: number };
+        err.status = 402;
+        throw err;
+    }
+    if (!res.ok) throw new Error(data?.message || 'Gia hạn thất bại');
+    return data;
+};
+
+/** POST /api/renewal-requests - Gửi yêu cầu gia hạn tài khoản */
+export const createRenewalRequest = async (
+    sessionId: string,
+    payload: { account_id: number; note?: string }
+): Promise<{ success: boolean; message?: string; data?: any }> => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/renewal-requests`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Không thể gửi yêu cầu gia hạn');
+    return data;
+};
+
+/** GET /api/renewal-requests - Danh sách yêu cầu gia hạn của tôi */
+export const getMyRenewalRequests = async (sessionId: string): Promise<{ success: boolean; data: any[] }> => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/renewal-requests`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Không thể tải yêu cầu gia hạn');
+    return res.json();
 };
 
 export const getFavorites = async (sessionId: string) => {
@@ -358,14 +484,35 @@ export const fetchUserRankingData = async (sessionId: string): Promise<RankingDa
         method: 'GET',
         headers: {
             Authorization: `Bearer ${sessionId}`,
+            Accept: 'application/json',
         },
     });
 
     if (!res.ok) {
-        throw new Error('Failed to fetch user ranking data');
+        // Thử đọc JSON lỗi, nếu không được thì log text thuần
+        let errorText = 'Failed to fetch user ranking data';
+        try {
+            const errJson = await res.json();
+            errorText = errJson?.message || errorText;
+        } catch {
+            try {
+                const text = await res.text();
+                console.error('Ranking API error (non‑JSON):', text.slice(0, 300));
+            } catch {
+                // ignore
+            }
+        }
+        throw new Error(errorText);
     }
 
-    return res.json();
+    // Đảm bảo chỉ parse JSON khi thực sự là JSON
+    try {
+        return await res.json();
+    } catch (e) {
+        const text = await res.text().catch(() => '');
+        console.error('Ranking API returned invalid JSON:', text.slice(0, 300));
+        throw new Error('Server trả về dữ liệu xếp hạng không hợp lệ');
+    }
 };
 
 export const fetchRanks = async (spent: number, orders: number, sessionId: string) => {
@@ -379,6 +526,71 @@ export const fetchRanks = async (spent: number, orders: number, sessionId: strin
         throw new Error("Failed to fetch ranks");
     }
 
+    return res.json();
+};
+
+/** Danh sách voucher của khách (kho voucher) */
+export interface CustomerVoucherItem {
+    id: number;
+    code: string;
+    title: string | null;
+    type: 'percentage' | 'fixed';
+    value: number;
+    min_amount: number;
+    max_discount: number | null;
+    expires_at: string | null;
+    source: string;
+    used_at: string | null;
+    order_id: number | null;
+    created_at: string;
+    is_used: boolean;
+    is_valid: boolean;
+}
+
+export const getMyVouchers = async (
+    sessionId: string,
+    params?: { status?: 'all' | 'available' | 'used' | 'expired' }
+): Promise<{ data: CustomerVoucherItem[] }> => {
+    const qs = new URLSearchParams();
+    if (params?.status && params.status !== 'all') qs.set('status', params.status);
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/user/vouchers${qs.toString() ? '?' + qs.toString() : ''}`;
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            Accept: 'application/json',
+        },
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Không thể tải voucher');
+    }
+    return res.json();
+};
+
+/** Cập nhật điểm hạng khi đơn hàng thanh toán thành công (mua hàng tăng điểm) */
+export const updateCustomerRankingOnOrder = async (
+    sessionId: string,
+    orderId: number,
+    orderTotal: number,
+    itemCount: number
+) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/ranking/update`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            order_id: orderId,
+            order_total: orderTotal,
+            item_count: itemCount,
+        }),
+    });
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Không thể cập nhật điểm hạng');
+    }
     return res.json();
 };
 
@@ -683,7 +895,10 @@ export const deleteProduct = async (sessionId: string, productId: number) => {
 };
 
 export const fetchCategories = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
+    if (!API_URL) {
+        throw new Error('NEXT_PUBLIC_API_URL is not set. Add it to .env.local (e.g. NEXT_PUBLIC_API_URL=http://localhost:8000/api).');
+    }
+    const res = await fetch(`${API_URL}/categories`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -691,7 +906,7 @@ export const fetchCategories = async () => {
     });
 
     if (!res.ok) {
-        const error = await res.json();
+        const error = await res.json().catch(() => ({}));
         throw new Error(error.message || 'Failed to fetch categories');
     }
 
@@ -826,6 +1041,74 @@ export async function fetchAdminOrdersData(
     });
 
     return res.json();
+}
+
+/** GET /api/admin/orders/revenue-by-month — doanh thu 6 tháng gần đây từ DB */
+export async function fetchAdminRevenueByMonth(
+    sessionId: string,
+    months: number = 6
+): Promise<{ success: boolean; data: { year: number; month: number; month_label: string; revenue: number; orders_count: number }[] }> {
+    const res = await fetch(`${API_URL}/admin/orders/revenue-by-month?months=${months}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || 'Không lấy được doanh thu theo tháng');
+    return data;
+}
+
+/** GET /api/admin/orders/top-selling-products — sản phẩm bán chạy từ DB */
+export async function fetchAdminTopSellingProducts(
+    sessionId: string,
+    limit: number = 5
+): Promise<{ success: boolean; data: { product_id: number; name: string; category_name: string; sales: number; rating: number }[] }> {
+    const res = await fetch(`${API_URL}/admin/orders/top-selling-products?limit=${limit}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || 'Không lấy được sản phẩm bán chạy');
+    return data;
+}
+
+/** GET /api/admin/statistics/traffic — thống kê truy cập (phiên đăng nhập + đơn hàng theo ngày) */
+export async function fetchAdminTrafficStats(
+    sessionId: string,
+    days: number = 7
+): Promise<{
+    success: boolean;
+    data: {
+        by_day: { date: string; day_label: string; visitors: number; page_views: number }[];
+        today_visitors: number;
+        today_page_views: number;
+        completion_rate: number;
+    };
+}> {
+    const res = await fetch(`${API_URL}/admin/statistics/traffic?days=${days}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || 'Không lấy được thống kê truy cập');
+    return data;
+}
+
+/** GET /api/admin/statistics/revenue-comparison — so sánh doanh thu tháng trước / tháng này / dự báo */
+export async function fetchAdminRevenueComparison(sessionId: string): Promise<{
+    success: boolean;
+    data: { name: string; label: string; value: number; color: string }[];
+}> {
+    const res = await fetch(`${API_URL}/admin/statistics/revenue-comparison`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || 'Không lấy được so sánh doanh thu');
+    return data;
 }
 
 export type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled';
@@ -1065,6 +1348,365 @@ export const deleteMasterOnetimecode = async (sessionId: string, id: number) => 
     return res.json();
 };
 
+// ============ Discount Codes ============ //
+
+export async function fetchDiscountCodes(sessionId: string, page: number = 1, perPage: number = 20, q: string = '') {
+    const qs = new URLSearchParams();
+    qs.set('page', String(page));
+    qs.set('per_page', String(perPage));
+    if (q.trim()) qs.set('q', q.trim());
+
+    const res = await fetch(`${API_URL}/admin/discount-codes?${qs.toString()}`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.message || 'Failed to fetch discount codes');
+    }
+    return data; // { success, data, meta }
+}
+
+export async function createDiscountCode(sessionId: string, payload: any) {
+    const res = await fetch(`${API_URL}/admin/discount-codes`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.message || 'Failed to create discount code');
+    }
+    return data;
+}
+
+export async function updateDiscountCode(sessionId: string, id: number, payload: any) {
+    const res = await fetch(`${API_URL}/admin/discount-codes/${id}`, {
+        method: 'PUT',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.message || 'Failed to update discount code');
+    }
+    return data;
+}
+
+export async function deleteDiscountCode(sessionId: string, id: number) {
+    const res = await fetch(`${API_URL}/admin/discount-codes/${id}`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(data.message || 'Failed to delete discount code');
+    }
+    return data;
+}
+
+// ============ Customer Vouchers (Kho voucher khách) ============ //
+
+export interface AdminCustomerVoucherItem {
+    id: number;
+    user_id: string;
+    user: { id: string; name: string; email: string } | null;
+    code: string;
+    title: string | null;
+    type: 'percentage' | 'fixed';
+    value: number;
+    min_amount: number;
+    max_discount: number | null;
+    expires_at: string | null;
+    source: string;
+    used_at: string | null;
+    order_id: number | null;
+    created_at: string;
+    is_used: boolean;
+    is_valid: boolean;
+}
+
+export async function fetchCustomerVouchersAdmin(
+    sessionId: string,
+    params?: { page?: number; per_page?: number; user_id?: string; status?: string; q?: string }
+) {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.per_page) qs.set('per_page', String(params.per_page));
+    if (params?.user_id) qs.set('user_id', params.user_id);
+    if (params?.status) qs.set('status', params.status);
+    if (params?.q) qs.set('q', params.q);
+
+    const res = await fetch(`${API_URL}/admin/customer-vouchers?${qs.toString()}`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            Accept: 'application/json',
+        },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể tải danh sách voucher');
+    return data as { success: boolean; data: AdminCustomerVoucherItem[]; meta: { current_page: number; per_page: number; last_page: number; total: number } };
+}
+
+export async function createCustomerVoucherAdmin(sessionId: string, payload: {
+    user_id: string;
+    code: string;
+    title?: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    min_amount?: number;
+    max_discount?: number;
+    expires_at?: string;
+}) {
+    const res = await fetch(`${API_URL}/admin/customer-vouchers`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể tạo voucher');
+    return data;
+}
+
+export async function deleteCustomerVoucherAdmin(sessionId: string, id: number) {
+    const res = await fetch(`${API_URL}/admin/customer-vouchers/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${sessionId}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Không thể xóa voucher');
+    return data;
+}
+
+// --- Phần thưởng hạng (voucher theo hạng) ---
+export interface AdminRankItem {
+    id: string;
+    name: string;
+    min_spent: number;
+    min_orders: number;
+}
+export interface AdminRankRewardVoucherItem {
+    id: number;
+    rank_id: string;
+    rank_name?: string;
+    title: string | null;
+    type: 'percentage' | 'fixed';
+    value: number;
+    min_amount: number;
+    max_discount: number | null;
+    expiry_days: number;
+    created_at: string;
+    updated_at: string;
+}
+export async function fetchAdminRanks(sessionId: string): Promise<{ success: boolean; data: AdminRankItem[] }> {
+    const res = await fetch(`${API_URL}/admin/ranks`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${sessionId}`, Accept: 'application/json' },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể tải danh sách hạng');
+    return data;
+}
+export async function fetchRankRewardVouchersAdmin(
+    sessionId: string,
+    params?: { rank_id?: string }
+): Promise<{ success: boolean; data: AdminRankRewardVoucherItem[] }> {
+    const qs = new URLSearchParams();
+    if (params?.rank_id) qs.set('rank_id', params.rank_id);
+    const url = `${API_URL}/admin/rank-reward-vouchers${qs.toString() ? '?' + qs.toString() : ''}`;
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${sessionId}`, Accept: 'application/json' },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể tải phần thưởng hạng');
+    return data;
+}
+export async function createRankRewardVoucherAdmin(sessionId: string, payload: {
+    rank_id: string;
+    title?: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    min_amount?: number;
+    max_discount?: number;
+    expiry_days?: number;
+}) {
+    const res = await fetch(`${API_URL}/admin/rank-reward-vouchers`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${sessionId}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể tạo phần thưởng');
+    return data as { success: boolean; data: AdminRankRewardVoucherItem };
+}
+export async function updateRankRewardVoucherAdmin(sessionId: string, id: number, payload: Partial<{
+    rank_id: string;
+    title: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    min_amount: number;
+    max_discount: number | null;
+    expiry_days: number;
+}>) {
+    const res = await fetch(`${API_URL}/admin/rank-reward-vouchers/${id}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${sessionId}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể cập nhật phần thưởng');
+    return data as { success: boolean; data: AdminRankRewardVoucherItem };
+}
+export async function deleteRankRewardVoucherAdmin(sessionId: string, id: number) {
+    const res = await fetch(`${API_URL}/admin/rank-reward-vouchers/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${sessionId}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Không thể xóa phần thưởng');
+    return data;
+}
+
+// --- Phần thưởng có thể đổi (đổi điểm lấy voucher) ---
+export interface AdminRewardItem {
+    id: number;
+    name: string;
+    description: string | null;
+    icon_url: string | null;
+    points_cost: number;
+    voucher_type: 'percentage' | 'fixed' | null;
+    voucher_value: number | null;
+    voucher_min_amount: number;
+    voucher_max_discount: number | null;
+    voucher_expiry_days: number;
+    created_at: string;
+    updated_at: string;
+}
+export async function fetchRewardsAdmin(sessionId: string): Promise<{ success: boolean; data: AdminRewardItem[] }> {
+    const res = await fetch(`${API_URL}/admin/rewards`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${sessionId}`, Accept: 'application/json' },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể tải phần thưởng');
+    return data;
+}
+export async function createRewardAdmin(sessionId: string, payload: {
+    name: string;
+    description?: string;
+    icon_url?: string;
+    points_cost: number;
+    voucher_type?: 'percentage' | 'fixed';
+    voucher_value?: number;
+    voucher_min_amount?: number;
+    voucher_max_discount?: number;
+    voucher_expiry_days?: number;
+}) {
+    const res = await fetch(`${API_URL}/admin/rewards`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${sessionId}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể tạo phần thưởng');
+    return data as { success: boolean; data: AdminRewardItem };
+}
+export async function updateRewardAdmin(sessionId: string, id: number, payload: Partial<{
+    name: string;
+    description: string;
+    icon_url: string;
+    points_cost: number;
+    voucher_type: 'percentage' | 'fixed';
+    voucher_value: number;
+    voucher_min_amount: number;
+    voucher_max_discount: number | null;
+    voucher_expiry_days: number;
+}>) {
+    const res = await fetch(`${API_URL}/admin/rewards/${id}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${sessionId}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Không thể cập nhật phần thưởng');
+    return data as { success: boolean; data: AdminRewardItem };
+}
+export async function deleteRewardAdmin(sessionId: string, id: number) {
+    const res = await fetch(`${API_URL}/admin/rewards/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${sessionId}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Không thể xóa phần thưởng');
+    return data;
+}
+
+export async function applyDiscountCodeApi(code: string, orderTotal: number, sessionId?: string) {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (sessionId) headers['Authorization'] = `Bearer ${sessionId}`;
+    const res = await fetch(`${API_URL}/discount-codes/apply`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ code, order_total: orderTotal }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.valid) {
+        throw new Error(data.message || 'Mã giảm giá không hợp lệ');
+    }
+    return data as {
+        code: string;
+        type: 'percentage' | 'fixed';
+        value: number;
+        discountAmount: number;
+        finalTotal: number;
+        message: string;
+    };
+}
+
+export async function consumeDiscountCodeApi(code: string, orderId?: number, sessionId?: string) {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (sessionId) headers['Authorization'] = `Bearer ${sessionId}`;
+    const res = await fetch(`${API_URL}/discount-codes/consume`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ code, order_id: orderId ?? undefined }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Không thể cập nhật số lần dùng của mã giảm giá');
+    }
+    return data as {
+        success: boolean;
+        code: string;
+        used_count: number;
+        is_active: boolean;
+    };
+}
+
 export const getListAccounts = async (
     sessionId: string,
     params?: {
@@ -1172,6 +1814,61 @@ export const deleteAccount = async (sessionId: string, accountId: string) => {
     }
 
     return res.json(); // Returns a success message or empty response
+};
+
+export const sendCustomerAccountRenewalEmail = async (sessionId: string, accountId: number) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts/${accountId}/renewal-email`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+        throw new Error(data.message || 'Failed to send renewal email');
+    }
+
+    return data;
+};
+
+/** GET /api/admin/renewal-requests - Danh sách đơn yêu cầu gia hạn (admin) */
+export const fetchAdminRenewalRequests = async (
+    sessionId: string,
+    params?: { page?: number; per_page?: number; status?: string }
+): Promise<{ success: boolean; data: any[]; meta: any }> => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.per_page) qs.set('per_page', String(params.per_page));
+    if (params?.status) qs.set('status', params.status);
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/admin/renewal-requests${qs.toString() ? `?${qs}` : ''}`;
+    const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Không thể tải đơn yêu cầu gia hạn');
+    return res.json();
+};
+
+/** PUT /api/admin/renewal-requests/{id} - Duyệt / từ chối yêu cầu gia hạn */
+export const updateAdminRenewalRequest = async (
+    sessionId: string,
+    id: number,
+    payload: { status: 'approved' | 'rejected'; admin_note?: string }
+): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/renewal-requests/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Cập nhật thất bại');
+    return data;
 };
 
 

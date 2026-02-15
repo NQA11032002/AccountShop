@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,9 +23,11 @@ import {
   XCircle
 } from 'lucide-react';
 import OrderDetailModal from './OrderDetailModal';
-import { Order, OrdersData } from '@/types/order.interface';
+import { Order, OrdersData, OrdersMeta } from '@/types/order.interface';
 import { toast } from '@/hooks/use-toast';
-import { fetchOrders } from '@/lib/api';
+import { fetchOrders, FetchUserOrdersResponse } from '@/lib/api';
+
+const PER_PAGE = 5;
 
 
 export default function AccountOrdersDisplay() {
@@ -38,39 +40,44 @@ export default function AccountOrdersDisplay() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { sessionId } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [paginationMeta, setPaginationMeta] = useState<OrdersMeta | null>(null);
+
+  const loadOrders = useCallback(async () => {
+    if (!user || !sessionId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response: FetchUserOrdersResponse = await fetchOrders(sessionId, currentPage, PER_PAGE);
+
+      setOrders(response.orders);
+      setPaginationMeta(response.meta);
+
+      setOrdersData({
+        orders: response.orders,
+        statistics: {
+          totalOrders: response.statistics.totalOrders ?? response.meta.total,
+          totalSpent: response.statistics.totalSpent,
+          totalOrderCompledted: response.statistics.totalOrderCompleted,
+          averageOrderValue: response.statistics.averageOrderValue,
+          lastOrderDate: response.statistics.lastOrderDate,
+          totalOrderProducts: response.statistics.totalOrderProducts,
+        },
+        meta: response.meta,
+      });
+    } catch (err) {
+      console.error('❌ Lỗi tải đơn hàng:', err);
+      setError('Không thể tải dữ liệu đơn hàng');
+    } finally {
+      setLoading(false);
+    }
+  }, [user, sessionId, currentPage]);
 
   useEffect(() => {
-    const loadOrders = async () => {
-      if (!user || !sessionId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetchOrders(sessionId); // API trả về { orders, statistics }
-
-        setOrders(response.orders); // danh sách đơn hàng
-        setOrdersData({
-          orders: response.orders,
-          statistics: {
-            totalOrders: response.statistics.totalOrders,
-            totalSpent: response.statistics.totalSpent,
-            totalOrderCompledted: response.statistics.totalOrderCompleted,
-            averageOrderValue: response.statistics.averageOrderValue,
-            lastOrderDate: response.statistics.lastOrderDate,
-            totalOrderProducts: response.statistics.totalOrderProducts,
-          },
-        });
-      } catch (err) {
-        console.error('❌ Lỗi tải đơn hàng:', err);
-        setError('Không thể tải dữ liệu đơn hàng');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadOrders();
-  }, [user, sessionId]);
+  }, [loadOrders]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -188,6 +195,7 @@ export default function AccountOrdersDisplay() {
         order={selectedOrder}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
+        onRenewSuccess={loadOrders}
       />
 
       {/* Statistics Overview */}
@@ -197,7 +205,9 @@ export default function AccountOrdersDisplay() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100">Tổng đơn hàng</p>
-                <p className="text-3xl font-bold">{orders.length}</p>
+                <p className="text-3xl font-bold">
+                  {ordersData?.statistics.totalOrders ?? orders.length}
+                </p>
               </div>
               <Package className="w-8 h-8 text-blue-200" />
             </div>
@@ -326,17 +336,15 @@ export default function AccountOrdersDisplay() {
                       <div className="space-y-2">
                         {order.customerAccounts.map((account, index) => (
                           <div key={index} className="flex items-center justify-between text-sm">
-                            <span className="text-green-800">{account.productType}</span>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="outline" className="text-green-600 border-green-300">
-                                {account.status}
-                              </Badge>
-                              {account.link && (
-                                <Button size="sm" variant="ghost" onClick={() => window.open(account.link, '_blank')}>
-                                  <ExternalLink className="w-3 h-3" />
-                                </Button>
-                              )}
+                            <div className="flex flex-col">
+                              <span className="text-green-800 font-medium">{account.productType}</span>
+                              <span className="text-xs text-green-700">
+                                Thời hạn sử dụng: {account.duration ? `${account.duration} tháng` : 'Không giới hạn'}
+                              </span>
                             </div>
+                            <Badge variant="outline" className="text-green-600 border-green-300">
+                              {account.status}
+                            </Badge>
                           </div>
                         ))}
                       </div>
@@ -377,6 +385,51 @@ export default function AccountOrdersDisplay() {
               </Card>
             ))}
           </div>
+
+          {paginationMeta && (
+            <div className="mt-6 flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Hiển thị{" "}
+                {Math.min(
+                  (paginationMeta.current_page - 1) * paginationMeta.per_page + 1,
+                  paginationMeta.total
+                )}
+                {" - "}
+                {Math.min(
+                  paginationMeta.current_page * paginationMeta.per_page,
+                  paginationMeta.total
+                )}{" "}
+                trong tổng {paginationMeta.total} đơn hàng
+              </p>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={paginationMeta.current_page <= 1}
+                  onClick={() =>
+                    setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev))
+                  }
+                >
+                  Trang trước
+                </Button>
+                <span className="text-sm text-gray-700">
+                  Trang {paginationMeta.current_page}/{paginationMeta.last_page}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={paginationMeta.current_page >= paginationMeta.last_page}
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      prev < paginationMeta.last_page ? prev + 1 : prev
+                    )
+                  }
+                >
+                  Trang sau
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

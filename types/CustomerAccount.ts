@@ -23,4 +23,8 @@ export interface CustomerAccount {
     purchase_price: number | null;
     chatgpt_id: number | null;
 
+    // Trường bổ sung phục vụ gửi/hiển thị tài khoản
+    security_code?: string | null;
+    instructions?: string | null;
+
 }

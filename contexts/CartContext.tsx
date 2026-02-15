@@ -24,21 +24,24 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const { sessionId } = useAuth();
+  const { sessionId, role } = useAuth();
 
   useEffect(() => {
     const loadCart = async () => {
-      if (sessionId) {
+      // Chỉ gọi API giỏ hàng khi đăng nhập với role "user" (API cart chỉ chấp nhận user)
+      if (sessionId && role === 'user') {
         try {
           const cartItems = await fetchCart(sessionId);
           setItems(cartItems);
         } catch (error) {
           console.error('Failed to fetch cart', error);
         }
+      } else if (!sessionId || role !== 'user') {
+        setItems([]);
       }
     };
     loadCart();
-  }, [sessionId]);
+  }, [sessionId, role]);
 
   const addItem = async (item: CartItem) => {
     if (!sessionId) return;
