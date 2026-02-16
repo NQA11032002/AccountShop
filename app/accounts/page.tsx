@@ -72,9 +72,10 @@ export default function AccountsPage() {
   const [loading, setLoading] = useState(true);
   const [renewingAccountId, setRenewingAccountId] = useState<string | null>(null);
 
-  // Load tài khoản đã mua từ API (danh sách từ backend - gắn với đơn hàng đã giao)
+  // Load tài khoản đã mua từ API (chỉ chạy khi đăng nhập/đổi user, không chạy khi user chỉ cập nhật coins)
+  const userId = user?.id;
   useEffect(() => {
-    if (!user || !sessionId) {
+    if (!userId || !sessionId) {
       setLoading(false);
       setAccounts([]);
       return;
@@ -120,7 +121,7 @@ export default function AccountsPage() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [user, sessionId]);
+  }, [userId, sessionId]);
 
   useEffect(() => {
     let filtered = accounts;

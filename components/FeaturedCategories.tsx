@@ -1,18 +1,47 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/ProductCard';
-// import { DataSyncHelper } from '@/lib/syncHelper';
-import { fetchProducts } from '@/lib/api';
 import { useProducts } from '@/lib/products';
 
+const FEATURED_LIMIT = 9;
+
 export default function FeaturedCategories() {
+  const { products } = useProducts();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const { products, loading, error } = useProducts();
+  const featuredProducts = products.slice(0, FEATURED_LIMIT);
 
+  const updateScrollState = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener('scroll', updateScrollState);
+    window.addEventListener('resize', updateScrollState);
+    return () => {
+      el.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [featuredProducts.length]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const step = el.clientWidth * 0.85;
+    el.scrollBy({ left: direction === 'left' ? -step : step, behavior: 'smooth' });
+  };
 
   return (
     <section id="categories" className="section-spacing bg-white">
@@ -31,18 +60,49 @@ export default function FeaturedCategories() {
           </p>
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-10 sm:mb-12">
-          {products.map((product, index) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              size="large"
-              showFeatures={true}
-              showFavoriteButton={true}
-              className={`animate-fade-in animation-delay-${index * 100}`}
-            />
-          ))}
+        {/* Carousel với mũi tên */}
+        <div className="relative mb-10 sm:mb-12">
+          {canScrollLeft && (
+            <button
+              type="button"
+              onClick={() => scroll('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white border-2 border-brand-blue/30 text-brand-blue shadow-lg hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center"
+              aria-label="Xem trước"
+            >
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          )}
+          {canScrollRight && (
+            <button
+              type="button"
+              onClick={() => scroll('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white border-2 border-brand-blue/30 text-brand-blue shadow-lg hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center"
+              aria-label="Xem tiếp"
+            >
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          )}
+
+          <div
+            ref={scrollRef}
+            className="flex gap-6 sm:gap-8 overflow-x-auto scroll-smooth scrollbar-hide py-2 px-1"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {featuredProducts.map((product, index) => (
+              <div
+                key={product.id}
+                className="flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[340px] animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <ProductCard
+                  product={product}
+                  size="large"
+                  showFeatures={true}
+                  showFavoriteButton={true}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* View All Button */}

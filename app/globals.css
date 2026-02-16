@@ -138,6 +138,11 @@
   .animation-delay-600 {
     animation-delay: 600ms;
   }
+
+  /* Ẩn thanh cuộn ngang cho carousel */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Hide Next.js badge and error messages */

@@ -88,9 +88,11 @@ function CheckoutPageContent() {
   });
   const [agreeTOS, setAgreeTOS] = useState(false);
 
-  // Khi vào trang checkout: mặc định xóa mã giảm giá đã áp dụng (nếu có), ô nhập để trống cho khách
+  // Khi vào trang checkout: chỉ xóa mã giảm giá nếu đang có mã đã áp dụng; không có mã thì không cần xóa
   useEffect(() => {
-    removeDiscountCode();
+    if (appliedDiscount) {
+      removeDiscountCode();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ chạy 1 lần khi vào trang
   }, []);
 
@@ -244,9 +246,39 @@ function CheckoutPageContent() {
       return;
     }
 
+    const effectiveItems = getEffectiveItems();
+    if (!effectiveItems?.length) {
+      setIsSubmitting(false);
+      toast({
+        title: "Không có sản phẩm",
+        description: "Giỏ hàng trống hoặc không có sản phẩm để thanh toán.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const finalTotal = calculateFinalTotal();
+    if (finalTotal <= 0) {
+      setIsSubmitting(false);
+      toast({
+        title: "Số tiền không hợp lệ",
+        description: "Tổng đơn hàng phải lớn hơn 0.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!canAfford(finalTotal)) {
+      setIsSubmitting(false);
+      toast({
+        title: "Số dư không đủ",
+        description: `Bạn cần thêm ${formatCoins(finalTotal - balance)} để thanh toán đơn này. Vui lòng nạp thêm coins.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      const effectiveItems = getEffectiveItems();
-      const finalTotal = calculateFinalTotal();
 
       const orderData = {
         items: effectiveItems,

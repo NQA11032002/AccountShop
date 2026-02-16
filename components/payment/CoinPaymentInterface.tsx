@@ -79,6 +79,18 @@ export default function CoinPaymentInterface({
       toast({ title: "Giỏ hàng trống", description: "Không có sản phẩm để thanh toán.", variant: "destructive" });
       return;
     }
+    if (amount <= 0) {
+      toast({ title: "Số tiền không hợp lệ", description: "Tổng đơn hàng phải lớn hơn 0.", variant: "destructive" });
+      return;
+    }
+    if (!canAfford(amount)) {
+      toast({
+        title: "Số dư không đủ",
+        description: `Bạn cần thêm ${formatCoins(amount - balance)} để hoàn tất giao dịch.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsProcessingPayment(true); // Bắt đầu xử lý thanh toán
     setShowConfetti(true);

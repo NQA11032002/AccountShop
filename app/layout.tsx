@@ -9,6 +9,7 @@ import { PaymentProvider } from '@/contexts/PaymentContext';
 import { WalletProvider } from '@/contexts/WalletContext';
 import DataSyncManager from '@/components/DataSyncManager';
 import NavigationManager from '@/components/NavigationManager';
+import CoinsSync from '@/components/CoinsSync';
 import './globals.css';
 
 const inter = Inter({
@@ -60,6 +61,7 @@ export default function RootLayout({
                     {/* <AdminProvider> */}
                     <DataSyncManager />
                     <NavigationManager />
+                    <CoinsSync />
                     {children}
                     <Toaster />
                     {/* </AdminProvider> */}

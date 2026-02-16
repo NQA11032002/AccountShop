@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { loginUser, logoutUser, registerUser } from '@/lib/api';  // Import các hàm API từ api.ts
+import { loginUser, logoutUser, registerUser, getUserCoins } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -21,11 +21,13 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<{ success: boolean; status: number; message?: string }>;
   logout: () => void;
-  setRole: (role: string) => void; // ✅ thêm dòng này
+  setRole: (role: string) => void;
   setUser: (user: User | null) => void;
+  /** Làm mới số coins từ server (khi admin cập nhật), cập nhật user + localStorage, trả về coins mới. */
+  refreshUserCoins: () => Promise<number | undefined>;
   isLoading: boolean;
-  setSessionId: (sessionId: string | null) => void; // ✅ thêm dòng này
-  role: string; // role luôn phải là string
+  setSessionId: (sessionId: string | null) => void;
+  role: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -159,15 +161,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshUserCoins = async (): Promise<number | undefined> => {
+    if (!sessionId || !user) return undefined;
+    try {
+      const data = await getUserCoins(sessionId);
+      const newCoins = typeof data?.coins === 'number' ? data.coins : undefined;
+      if (newCoins === undefined) return undefined;
+      setUser((prev) => (prev ? { ...prev, coins: newCoins } : null));
+      const stored = localStorage.getItem('qai_user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        parsed.coins = newCoins;
+        localStorage.setItem('qai_user', JSON.stringify(parsed));
+      }
+      return newCoins;
+    } catch {
+      return undefined;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
       setUser,
       sessionId,
-      setSessionId, // ✅ thêm dòng này
+      setSessionId,
       login,
       logout,
       register,
+      refreshUserCoins,
       isLoading,
       role,
       setRole,
