@@ -20,6 +20,8 @@ export interface Product {
     reviews: number;
     warranty: string;
     sales: number;
+    /** Giảm giá theo % (0-100), áp dụng cho toàn bộ duration; null/0 = không giảm */
+    discount_percent?: number | null;
     stock: number;
     status: 'active' | 'inactive';
     slug: string

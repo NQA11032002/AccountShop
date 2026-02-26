@@ -23,8 +23,9 @@ export interface ProductBase {
     stock: number;
     status: string;
     slug: string;
+    /** Giảm giá theo % (0-100), áp dụng cho toàn bộ duration; null/0 = không giảm */
+    discount_percent?: number | null;
 
-    // bổ sung nếu có durations (dữ liệu quan hệ)
     durations?: ProductDuration[];
 }
 

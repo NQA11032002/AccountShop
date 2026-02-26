@@ -17,6 +17,7 @@ export interface CustomerAccount {
 
     status: 'active' | 'expired' | 'suspended' | string; // tuỳ bạn dùng gì trong DB
     link: string | null;
+    platform: string | null;  // zalo | telegram | facebook | threads
 
     order_id: number | null;    // trong DB nên để int
     duration: number | null;    // số ngày / tháng…

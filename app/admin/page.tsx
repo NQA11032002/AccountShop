@@ -50,6 +50,8 @@ import {
   Ticket,
   Award,
   Gift,
+  Percent,
+  Save,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -129,6 +131,7 @@ import { User } from '@/types/user.interface';
 import {
   fetchAdminUsers,
   getProductsAdmin,
+  updateProduct,
   deleteProduct,
   checkRole,
   fetchAdminOrdersData,
@@ -333,10 +336,16 @@ export default function AdminDashboard() {
   // Customer Accounts State
   const [accountSearchTerm, setAccountSearchTerm] = useState('');
   const [accountFilterType, setAccountFilterType] = useState<string>('all');
-  const [accountSortBy, setAccountSortBy] = useState<'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday'>('purchaseDate');
+  const [accountSortBy, setAccountSortBy] = useState<'id' | 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday'>('id');
   const [accountSortOrder, setAccountSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [accountGPTSearchTerm, setAccountGPTSearchTerm] = useState('');
+
+  // Giảm giá sản phẩm (tab product-discounts): danh sách trống, admin tự thêm sản phẩm vào danh sách
+  const [productDiscountListIds, setProductDiscountListIds] = useState<number[]>([]);
+  const [productDiscountInputs, setProductDiscountInputs] = useState<Record<number, string>>({});
+  const [productDiscountSavingId, setProductDiscountSavingId] = useState<number | null>(null);
+  const [addProductDiscountSelectValue, setAddProductDiscountSelectValue] = useState<string>('');
 
   // Orders State
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
@@ -1064,6 +1073,8 @@ QAI Store - Tài khoản premium uy tín #1
     if (sessionId) {
       const data = await getProductsAdmin(sessionId);
       setProducts(data);
+      // Danh sách giảm giá lấy từ DB: hiển thị các sản phẩm đang có discount_percent > 0
+      setProductDiscountListIds((data as Product[]).filter((p) => Number(p.discount_percent) > 0).map((p) => p.id));
     }
   }
 
@@ -2101,17 +2112,14 @@ QAI Store - Tài khoản premium uy tín #1
       item: account,
       onConfirm: async () => {
         try {
-          // Gọi API xóa tài khoản
           if (sessionId) {
             await deleteAccount(sessionId, account.id.toString());
-
-            // Cập nhật lại danh sách tài khoản sau khi xóa
-            const updatedAccounts = customerAccounts.filter(a => a.id !== account.id);
-            setCustomerAccounts(updatedAccounts);
+            setDeleteDialog((d) => ({ ...d, open: false }));
+            await loadCustomerAccounts(sessionId);
             toast({
               title: "Xóa thành công",
               description: `Tài khoản ${account.account_email} đã được xóa.`,
-              variant: "destructive",  // Chỉnh sửa tùy theo toast lib bạn đang dùng
+              variant: "destructive",
             });
           }
         } catch (error) {
@@ -2476,7 +2484,17 @@ QAI Store - Tài khoản premium uy tín #1
           const credentials = generateAccountCredentials(order);
           const emailContent = formatEmailContent(order, credentials);
 
-          // ✅ Lưu (hoặc bổ sung) tài khoản vào DB để khách xem trong "Tài khoản đã giao"
+          // Số tháng duration (từ durationInput hoặc parse từ "X tháng" trong credentials.duration)
+          const durationMonths = durationInput
+            ? parseInt(durationInput.replace(/[^0-9]/g, ''), 10) || 1
+            : (typeof credentials.duration === 'string'
+                ? parseInt(credentials.duration.replace(/[^0-9]/g, ''), 10) || 1
+                : 1);
+          const purchaseDate = new Date();
+          const expiryDate = new Date(purchaseDate);
+          expiryDate.setMonth(expiryDate.getMonth() + durationMonths);
+
+          // ✅ Tự động lưu tài khoản vào DB và hiển thị trên "Tài khoản khách hàng" admin
           if (sessionId) {
             try {
               await createAccount(sessionId, {
@@ -2488,14 +2506,12 @@ QAI Store - Tài khoản premium uy tín #1
                 product_type: credentials.typeAccount,
                 product_icon: null,
                 product_color: null,
-                purchase_date: new Date().toISOString().slice(0, 10),
-                expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10), // +30 ngày
+                purchase_date: purchaseDate.toISOString().slice(0, 10),
+                expiry_date: expiryDate.toISOString().slice(0, 10),
                 status: 'active',
                 link: credentials.accountLink,
                 order_id: numericId,
-                duration: durationInput
-                  ? parseInt(durationInput.replace(/[^0-9]/g, ''), 10) || 1
-                  : 1,
+                duration: durationMonths,
                 purchase_price: order.total,
                 chatgpt_id: null,
                 security_code: credentials.securityCode || null,
@@ -2554,6 +2570,8 @@ QAI Store - Tài khoản premium uy tín #1
       if (sentCount > 0) {
         setSendAccountModal({ open: false, order: null });
         setSelectedOrders([]);
+        // Làm mới danh sách "Tài khoản khách hàng" để hiển thị tài khoản vừa lưu
+        if (sessionId) loadCustomerAccounts(sessionId);
       }
 
     } catch (error) {
@@ -2806,12 +2824,12 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
 
-  const handleSort = (column: 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType') => {
+  const handleSort = (column: 'id' | 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType') => {
     if (accountSortBy === column) {
       setAccountSortOrder(accountSortOrder === 'asc' ? 'desc' : 'asc');
     } else {
       setAccountSortBy(column);
-      setAccountSortOrder('asc');
+      setAccountSortOrder(column === 'id' ? 'desc' : 'asc');
     }
   };
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -3054,6 +3072,17 @@ QAI Store - Tài khoản premium uy tín #1
                 <Tag className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
                 <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
                   Mã giảm giá
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="product-discounts"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-rose-500 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <Percent className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Giảm giá SP
                 </span>
               </TabsTrigger>
 
@@ -3663,6 +3692,151 @@ QAI Store - Tài khoản premium uy tín #1
                         </TableBody>
                       </Table>
                     </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Tab Giảm giá sản phẩm: mặc định trống, admin tự thêm sản phẩm vào danh sách */}
+          <TabsContent value="product-discounts">
+            <div className="space-y-6">
+              <Card className="mt-2">
+                <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                    <Percent className="w-5 h-5 text-rose-600" />
+                    <span>Giảm giá sản phẩm</span>
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={addProductDiscountSelectValue}
+                      onValueChange={(value) => {
+                        const id = Number(value);
+                        if (id && !productDiscountListIds.includes(id)) {
+                          setProductDiscountListIds((prev) => [...prev, id]);
+                        }
+                        setAddProductDiscountSelectValue('');
+                      }}
+                    >
+                      <SelectTrigger className="w-[220px]">
+                        <SelectValue placeholder="Thêm sản phẩm..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products
+                          .filter((p) => !productDiscountListIds.includes(p.id))
+                          .map((product) => (
+                            <SelectItem key={product.id} value={String(product.id)}>
+                              {product.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="sm" onClick={() => { loadProducts(); setProductDiscountInputs({}); }}>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Làm mới
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Mặc định danh sách trống. Bấm <strong>Thêm sản phẩm</strong> để chọn sản phẩm cần giảm giá — phần trăm áp dụng cho <strong>toàn bộ gói duration</strong>. Bấm Lưu để áp dụng, Xóa giảm để gỡ, Xóa khỏi danh sách để bỏ dòng.
+                  </p>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Sản phẩm</TableHead>
+                          <TableHead>Danh mục</TableHead>
+                          <TableHead>Giảm (%)</TableHead>
+                          <TableHead>Áp dụng cho</TableHead>
+                          <TableHead className="text-right">Thao tác</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {products.filter((p) => productDiscountListIds.includes(p.id)).map((product) => {
+                          const rawVal = productDiscountInputs[product.id] ?? (product.discount_percent != null ? String(product.discount_percent) : '');
+                          const numVal = rawVal === '' ? null : Math.min(100, Math.max(0, Number(rawVal) || 0));
+                          const categoryName = (product as Product & { category?: { name?: string } }).category?.name ?? '-';
+                          const hasDiscount = (product.discount_percent != null && product.discount_percent > 0) || (numVal != null && numVal > 0);
+                          const saveDiscount = async (newPercent: number | null) => {
+                            setProductDiscountSavingId(product.id);
+                            try {
+                              await updateProduct(sessionId!, product.id, { discount_percent: newPercent ?? 0 });
+                              await loadProducts();
+                              setProductDiscountInputs((prev) => ({ ...prev, [product.id]: newPercent != null && newPercent > 0 ? String(newPercent) : '' }));
+                              toast({
+                                title: 'Đã lưu',
+                                description: newPercent != null && newPercent > 0
+                                  ? `Đã áp dụng giảm ${newPercent}% cho "${product.name}" (toàn bộ gói).`
+                                  : 'Đã xóa giảm giá cho sản phẩm này.',
+                              });
+                            } catch (e: any) {
+                              toast({ title: 'Lỗi', description: e?.message ?? 'Không thể cập nhật.', variant: 'destructive' });
+                            } finally {
+                              setProductDiscountSavingId(null);
+                            }
+                          };
+                          return (
+                            <TableRow key={product.id}>
+                              <TableCell className="font-medium">{product.name}</TableCell>
+                              <TableCell>{categoryName}</TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  placeholder="0"
+                                  className="w-20"
+                                  value={rawVal}
+                                  onChange={(e) => setProductDiscountInputs((prev) => ({ ...prev, [product.id]: e.target.value }))}
+                                />
+                              </TableCell>
+                              <TableCell className="text-sm text-gray-600">
+                                Toàn bộ gói duration
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-1 flex-wrap">
+                                  <Button
+                                    size="icon"
+                                    variant="default"
+                                    className="h-8 w-8 shrink-0"
+                                    title="Lưu"
+                                    disabled={productDiscountSavingId === product.id}
+                                    onClick={() => saveDiscount(numVal ?? 0)}
+                                  >
+                                    {productDiscountSavingId === product.id ? (
+                                      <RefreshCw className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Save className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-8 w-8 shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                    title="Xóa khỏi danh sách"
+                                    disabled={productDiscountSavingId === product.id}
+                                    onClick={async () => {
+                                      setProductDiscountListIds((prev) => prev.filter((id) => id !== product.id));
+                                      setProductDiscountInputs((prev) => ({ ...prev, [product.id]: '' }));
+                                      await saveDiscount(null);
+                                    }}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {productDiscountListIds.length === 0 && (
+                    <p className="text-sm text-gray-500 py-4">Danh sách trống. Chọn <strong>Thêm sản phẩm</strong> ở trên để thêm sản phẩm cần giảm giá.</p>
+                  )}
+                  {products.length === 0 && productDiscountListIds.length === 0 && (
+                    <p className="text-sm text-gray-500">Chưa có sản phẩm trong kho. Vào tab Kho &amp; Tài khoản → Quản lý sản phẩm để thêm.</p>
                   )}
                 </CardContent>
               </Card>
@@ -4992,7 +5166,7 @@ QAI Store - Tài khoản premium uy tín #1
                                   setAccountSortBy("expiryToday");
                                   setAccountSortOrder("asc");
                                 } else {
-                                  setAccountSortBy(sortBy as any);
+                                  setAccountSortBy(sortBy as 'id' | 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday');
                                   setAccountSortOrder(sortOrder as "asc" | "desc");
                                 }
                               }}
@@ -5002,6 +5176,8 @@ QAI Store - Tài khoản premium uy tín #1
                                 <SelectValue placeholder="Sắp xếp theo" />
                               </SelectTrigger>
                               <SelectContent>
+                                <SelectItem value="id-desc">ID (Mới nhất)</SelectItem>
+                                <SelectItem value="id-asc">ID (Cũ nhất)</SelectItem>
                                 <SelectItem value="purchaseDate-desc">Ngày mua (Mới nhất)</SelectItem>
                                 <SelectItem value="purchaseDate-asc">Ngày mua (Cũ nhất)</SelectItem>
                                 <SelectItem value="expiryToday-asc">Ngày hết hạn (Hôm nay)</SelectItem>
@@ -5054,7 +5230,19 @@ QAI Store - Tài khoản premium uy tín #1
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-gradient-to-r from-gray-50 to-blue-50/50 border-b-2 border-gray-100">
-                              <TableHead className="w-[5%] py-3 px-4 font-semibold text-gray-700">ID</TableHead>
+                              <TableHead
+                                className="w-[5%] py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
+                                onClick={() => handleSort('id')}
+                              >
+                                <div className="flex items-center space-x-1">
+                                  <span>ID</span>
+                                  {accountSortBy === 'id' && (
+                                    accountSortOrder === 'asc' ?
+                                      <ChevronUp className="w-4 h-4" /> :
+                                      <ChevronDown className="w-4 h-4" />
+                                  )}
+                                </div>
+                              </TableHead>
                               <TableHead className="w-[20%] py-3 px-4 font-semibold text-gray-700">Tài khoản</TableHead>
                               <TableHead
                                 className="w-[12%] py-3 px-3 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
@@ -5069,6 +5257,7 @@ QAI Store - Tài khoản premium uy tín #1
                                   )}
                                 </div>
                               </TableHead>
+                              <TableHead className="w-[8%] py-3 px-3 font-semibold text-gray-700">Nền tảng</TableHead>
                               {/* <TableHead className="w-[10%] py-3 px-3 font-semibold text-gray-700">Hạng</TableHead> */}
                               <TableHead
                                 className="w-[10%] py-3 px-3 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
@@ -5117,7 +5306,7 @@ QAI Store - Tài khoản premium uy tín #1
                           <TableBody>
                             {accounts.length === 0 ? (
                               <TableRow>
-                                <TableCell colSpan={10} className="py-12 text-center text-gray-500">
+                                <TableCell colSpan={11} className="py-12 text-center text-gray-500">
                                   Chưa có tài khoản đã mua nào. Danh sách chỉ hiển thị tài khoản đã giao cho khách (gắn với đơn hàng).
                                 </TableCell>
                               </TableRow>
@@ -5172,6 +5361,9 @@ QAI Store - Tài khoản premium uy tín #1
                                   >
                                     Xem link
                                   </a>
+                                </TableCell>
+                                <TableCell className="py-4 px-3">
+                                  <span className="text-xs font-medium capitalize">{account.platform || '—'}</span>
                                 </TableCell>
                                 {/* <TableCell className="py-4 px-3">
                                   {account.customerRank && (

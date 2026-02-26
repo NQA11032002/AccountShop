@@ -54,6 +54,7 @@ export function EditCustomerAccountDialog({
     expiry_date: null,
     status: 'active',
     link: '',
+    platform: account?.platform ?? null,
     order_id: account?.order_id ?? 0,
     duration: account?.duration ?? 0,
     purchase_price: 0,
@@ -93,6 +94,14 @@ export function EditCustomerAccountDialog({
     fetchData();
   }, []);  // Chỉ gọi 1 lần khi component mou
 
+  // Khi mở dialog và đã chọn "Chat GPT", tải toàn bộ danh sách ChatGPT để hiển thị trong dropdown
+  useEffect(() => {
+    const needChatGPT = formData.product_type === "Chat GPT" || account?.product_type === "Chat GPT";
+    if (open && needChatGPT && sessionId) {
+      loadChatGPTList();
+    }
+  }, [open, formData.product_type, account?.product_type]);
+
   useEffect(() => {
     if (account) {
       setFormData(account);
@@ -114,6 +123,7 @@ export function EditCustomerAccountDialog({
         expiry_date: now.toISOString().slice(0, 10),
         status: 'active',
         link: '',
+        platform: null,
         order_id: 0,
         duration: 0,
         purchase_price: 0,
@@ -128,12 +138,20 @@ export function EditCustomerAccountDialog({
     if (!sessionId) return;
     try {
       setLoadingChatgpt(true);
-      const res = await getListChatgpts(sessionId); // không filter category / status
-
-
-      // Laravel paginate → real data nằm trong res.data.data
-      setChatgptOptions(res.data || []);
-
+      // Tải toàn bộ danh sách ChatGPT (giống quản lý admin): gọi nhiều trang nếu cần
+      const all: any[] = [];
+      let page = 1;
+      const perPage = 100; // backend cho phép tối đa 100
+      let hasMore = true;
+      while (hasMore) {
+        const res = await getListChatgpts(sessionId, { page, per_page: perPage });
+        const data = res.data || [];
+        all.push(...data);
+        const meta = res.meta;
+        hasMore = meta && page < meta.last_page;
+        page += 1;
+      }
+      setChatgptOptions(all);
     } catch (err) {
       console.error("Không thể tải danh sách ChatGPT:", err);
     } finally {
@@ -261,6 +279,26 @@ export function EditCustomerAccountDialog({
                   }
                   placeholder="https://service.com"
                 />
+              </div>
+
+              <div>
+                <Label>Nền tảng</Label>
+                <Select
+                  value={formData.platform || ''}
+                  onValueChange={(value) =>
+                    setFormData(prev => ({ ...prev, platform: value || null }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn nền tảng" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="zalo">Zalo</SelectItem>
+                    <SelectItem value="telegram">Telegram</SelectItem>
+                    <SelectItem value="facebook">Facebook</SelectItem>
+                    <SelectItem value="threads">Threads</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -520,7 +558,7 @@ export function EditCustomerAccountDialog({
             </div>
 
             <div>
-              <Label htmlFor="purchasePrice">Giá mua *</Label>
+              <Label htmlFor="purchasePrice">Giá mua</Label>
               <Input
                 id="purchasePrice"
                 type="number"
@@ -533,8 +571,7 @@ export function EditCustomerAccountDialog({
                       : null
                   }))
                 }
-                placeholder="89000"
-                required
+                placeholder="89000 (tùy chọn)"
                 min="0"
               />
             </div>

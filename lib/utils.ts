@@ -88,13 +88,16 @@ export function calculateCartSavings(items: any[]): number {
 }
 
 export function createCartItem(product: ProductBase, duration: ProductDuration, userId: string): CartItem {
+  const discountPct = Math.min(100, Math.max(0, Number(product.discount_percent) || 0));
+  const price = discountPct > 0 ? Math.round(duration.price * (1 - discountPct / 100)) : duration.price;
+  const original_price = discountPct > 0 ? duration.price : (duration.original_price || duration.price);
   return {
     id: 0,
     user_id: userId,
     product_id: product.id,
     product_name: product.name,
-    price: duration.price,
-    original_price: duration.original_price || duration.price,
+    price,
+    original_price,
     quantity: 1,
     selected_duration: duration.id,
     duration: duration.name,

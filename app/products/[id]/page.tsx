@@ -63,6 +63,15 @@ export default function ProductDetailPage() {
     ? product.durations.find((d: any) => d.id === selectedDuration)
     : null;
 
+  const discountPct = Math.min(100, Math.max(0, Number(product?.discount_percent) || 0));
+  const hasDiscount = discountPct > 0;
+  const displayPrice = selectedPrice
+    ? (discountPct > 0 ? Math.round(selectedPrice.price * (1 - discountPct / 100)) : selectedPrice.price)
+    : 0;
+  const displayOriginalPrice = selectedPrice
+    ? (discountPct > 0 ? selectedPrice.price : (selectedPrice.original_price ?? selectedPrice.originalPrice ?? selectedPrice.price))
+    : 0;
+
   const getCategoryLabel = (cat: any): string => {
     if (!cat) return '';
     if (typeof cat === 'object') return cat.name ?? '';
@@ -352,7 +361,12 @@ export default function ProductDetailPage() {
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <Badge variant="secondary" className="mb-3">{categoryLabel}</Badge>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <Badge variant="secondary">{categoryLabel}</Badge>
+                {hasDiscount && (
+                  <Badge className="bg-rose-500 text-white font-bold">Giảm {discountPct}%</Badge>
+                )}
+              </div>
               <h1 className="text-3xl font-bold text-brand-charcoal mb-2">{product.name}</h1>
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center space-x-1">
@@ -407,7 +421,7 @@ export default function ProductDetailPage() {
                   >
                     <div className="font-medium">{duration.name}</div>
                     <div className="text-lg font-bold text-brand-emerald">
-                      {formatPrice(duration.price)}
+                      {formatPrice(discountPct > 0 ? Math.round(duration.price * (1 - discountPct / 100)) : duration.price)}
                     </div>
                   </button>
                 ))}
@@ -419,17 +433,17 @@ export default function ProductDetailPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <span className="text-3xl font-bold text-brand-emerald">
-                    {formatPrice(selectedPrice?.price || 0)}
+                    {formatPrice(displayPrice)}
                   </span>
-                  {selectedPrice?.originalPrice && (
+                  {displayOriginalPrice > displayPrice && (
                     <span className="text-gray-500 line-through ml-3">
-                      {formatPrice(selectedPrice.originalPrice)}
+                      {formatPrice(displayOriginalPrice)}
                     </span>
                   )}
                 </div>
-                {selectedPrice?.originalPrice && (
+                {displayOriginalPrice > displayPrice && (
                   <Badge className="bg-red-500 text-white">
-                    Tiết kiệm {calculateSavings(selectedPrice.originalPrice, selectedPrice.price)}%
+                    Tiết kiệm {calculateSavings(displayOriginalPrice, displayPrice)}%
                   </Badge>
                 )}
               </div>
@@ -440,7 +454,7 @@ export default function ProductDetailPage() {
                   className="w-full bg-gradient-to-r from-brand-emerald to-brand-blue hover:from-brand-emerald/90 hover:to-brand-blue/90 text-white h-12 text-lg font-semibold"
                 >
                   <CreditCard className="w-5 h-5 mr-2" />
-                  Mua ngay - {formatPrice(selectedPrice?.price || 0)}
+                  Mua ngay - {formatPrice(displayPrice)}
                 </Button>
 
                 <div className="flex space-x-3">

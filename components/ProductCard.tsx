@@ -9,9 +9,9 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useToast } from '@/hooks/use-toast';
-// import { getFeaturedDuration, formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
+// import { getFeaturedDuration, formatPrice, createCartItem } from '@/lib/utils';
 import { ProductBase } from '@/lib/products';
-import { getFeaturedDuration, formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
+import { getFeaturedDuration, formatPrice, createCartItem } from '@/lib/utils';
 import { FavoriteItem } from '@/types/favorite.interface';
 import DOMPurify from 'dompurify';
 
@@ -39,11 +39,11 @@ export default function ProductCard({
   const { toast } = useToast();
 
   const featuredDuration = getFeaturedDuration(product.durations || []);
-  const savings = calculateSavings(
-    featuredDuration.original_price || featuredDuration.price,
-    featuredDuration.price
-  );
+  const discountPct = Math.min(100, Math.max(0, Number((product as ProductBase).discount_percent) || 0));
+  const displayPrice = discountPct > 0 ? Math.round(featuredDuration.price * (1 - discountPct / 100)) : featuredDuration.price;
+  const displayOriginalPrice = discountPct > 0 ? featuredDuration.price : (featuredDuration.original_price || featuredDuration.price);
   const standardDurationId = featuredDuration.id.toString();
+  const hasDiscount = discountPct > 0;
 
   const handleAddToCart = async () => {
     if (isProcessing) return;
@@ -237,11 +237,11 @@ export default function ProductCard({
 
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
               <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-                {formatPrice(product.price)}
+                {formatPrice(displayPrice)}
               </span>
-              {product.original_price && (
+              {(displayOriginalPrice > displayPrice) && (
                 <span className="text-sm text-gray-400 line-through">
-                  {formatPrice(product.original_price)}
+                  {formatPrice(displayOriginalPrice)}
                 </span>
               )}
             </div>
@@ -334,19 +334,18 @@ export default function ProductCard({
               <><span className="mr-1">✓</span>Còn hàng</>
             ) : (
               <><span className="mr-1">⚠️</span>Hết hàng</>
-            )
+            )}
 
-            }
           </Badge>
         </div>
 
 
       </div>
-      {/* Savings Badge */}
-      {featuredDuration.original_price && savings > 0 && (
+      {/* Nhãn giảm giá: bên phải thay thế nhãn cam -X%, dùng "Giảm X%" */}
+      {hasDiscount && (
         <div className="absolute top-32 right-5 z-10">
-          <Badge className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md shadow-sm">
-            -{savings}%
+          <Badge className="bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+            Giảm {discountPct}%
           </Badge>
         </div>
       )}
@@ -409,14 +408,14 @@ export default function ProductCard({
             </span>
           </div>
 
-          {/* Price */}
+          {/* Price (áp dụng product.discount_percent cho toàn bộ duration) */}
           <div className="flex items-baseline">
             <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-              {formatPrice(featuredDuration.price)}
+              {formatPrice(displayPrice)}
             </span>
-            {featuredDuration.original_price && (
+            {(displayOriginalPrice > displayPrice) && (
               <span className="ml-2 text-xs lg:text-sm text-gray-400 line-through">
-                {formatPrice(featuredDuration.original_price)}
+                {formatPrice(displayOriginalPrice)}
               </span>
             )}
           </div>
