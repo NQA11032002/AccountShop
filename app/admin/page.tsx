@@ -336,6 +336,7 @@ export default function AdminDashboard() {
   // Customer Accounts State
   const [accountSearchTerm, setAccountSearchTerm] = useState('');
   const [accountFilterType, setAccountFilterType] = useState<string>('all');
+  const [accountStatusFilter, setAccountStatusFilter] = useState<string>('all');
   const [accountSortBy, setAccountSortBy] = useState<'id' | 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday'>('id');
   const [accountSortOrder, setAccountSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -1185,13 +1186,13 @@ QAI Store - Tài khoản premium uy tín #1
   // reset page khi đổi search/filter/sort
   useEffect(() => {
     setCurrentPageAccounts(1);
-  }, [debouncedAccountSearch, accountFilterType, accountSortBy, accountSortOrder]);
+  }, [debouncedAccountSearch, accountFilterType, accountStatusFilter, accountSortBy, accountSortOrder]);
 
   useEffect(() => {
     if (!sessionId) return;
 
     loadCustomerAccounts(sessionId)
-  }, [sessionId, currentPageAccounts, perPageAccounts, debouncedAccountSearch, accountFilterType, accountSortBy, accountSortOrder]);
+  }, [sessionId, currentPageAccounts, perPageAccounts, debouncedAccountSearch, accountFilterType, accountStatusFilter, accountSortBy, accountSortOrder]);
 
   const loadCustomerAccounts = async (sessionId: string) => {
     try {
@@ -1202,6 +1203,7 @@ QAI Store - Tài khoản premium uy tín #1
         product_type: accountFilterType,
         sort_by: accountSortBy,
         sort_order: accountSortOrder,
+        status: accountStatusFilter,
       });
 
       setAccounts(res.data ?? []);
@@ -1274,7 +1276,7 @@ QAI Store - Tài khoản premium uy tín #1
       case 1:
         return "Hoạt động";
       case 0:
-        return "Tạm dừng";
+        return "Hết hạn";
       case 2:
         return "Gia hạn";
       default:
@@ -5140,7 +5142,7 @@ QAI Store - Tài khoản premium uy tín #1
                         {/* Controls */}
                         <div className="w-full lg:w-auto space-y-3 lg:space-y-0 md:flex md:gap-3">
                           {/* Row 1: selects */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:flex lg:flex-wrap lg:items-center">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:flex lg:flex-wrap lg:items-center">
                             <Select value={accountFilterType} onValueChange={setAccountFilterType}>
                               <SelectTrigger className="w-full sm:w-auto sm:min-w-[11rem] border-2 border-gray-200 hover:border-brand-purple transition-colors duration-300 rounded-lg">
                                 <Filter className="w-4 h-4 mr-2" />
@@ -5185,6 +5187,22 @@ QAI Store - Tài khoản premium uy tín #1
                                 <SelectItem value="expiryDate-asc">Ngày hết hạn (Xa nhất)</SelectItem>
                                 <SelectItem value="customerName-asc">Tên A-Z</SelectItem>
                                 <SelectItem value="customerName-desc">Tên Z-A</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Select
+                              value={accountStatusFilter}
+                              onValueChange={setAccountStatusFilter}
+                            >
+                              <SelectTrigger className="w-full sm:w-auto sm:min-w-[11rem] border-2 border-gray-200 hover:border-brand-blue transition-colors duration-300 rounded-lg">
+                                <Shield className="w-4 h-4 mr-2" />
+                                <SelectValue placeholder="Trạng thái" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                                <SelectItem value="active">Hoạt động</SelectItem>
+                                <SelectItem value="expired">Hết hạn</SelectItem>
+                                <SelectItem value="suspended">Tạm ngưng</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -5351,8 +5369,14 @@ QAI Store - Tài khoản premium uy tín #1
                                   </div>
                                 </TableCell>
                                 <TableCell className="py-4 px-3">
-                                  <div className="font-semibold text-gray-800 text-sm truncate">{account.customer_name}</div>
-                                  <div className="text-xs text-gray-500 truncate">{account?.customer_email || account?.customer_phone || ""}</div>
+                                  <div className="font-semibold text-gray-800 text-sm truncate">
+                                    {account.customer_name}
+                                  </div>
+                                  {account.customer_phone && (
+                                    <div className="text-xs text-gray-500 truncate">
+                                      {account.customer_phone}
+                                    </div>
+                                  )}
                                   <a
                                     href={account.link || "#"}
                                     target="_blank"
@@ -5424,17 +5448,29 @@ QAI Store - Tài khoản premium uy tín #1
                                 </TableCell>
                                 <TableCell className="text-right py-4 px-4">
                                   <div className="flex items-center justify-end space-x-1">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 h-7 px-2 transition-all duration-200 hover:scale-105"
-                                      onClick={() => handleSendAccountRenewalReminder(account)}
-                                      title="Gửi thông báo gia hạn"
-                                      disabled={!account.customer_email && !account.account_email}
-                                    >
-                                      <Send className="w-3 h-3 mr-1" />
-                                      Nhắc gia hạn
-                                    </Button>
+                                    {(() => {
+                                      if (!account.expiry_date) return null;
+                                      const expiry = new Date(account.expiry_date);
+                                      const today = new Date();
+                                      today.setHours(0, 0, 0, 0);
+                                      expiry.setHours(0, 0, 0, 0);
+                                      const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                      // Chỉ hiện khi còn 2 ngày trở xuống HOẶC quá hạn không quá 2 ngày
+                                      if (diffDays > 2 || diffDays < -2) return null;
+                                      return (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 h-7 px-2 transition-all duration-200 hover:scale-105"
+                                          onClick={() => handleSendAccountRenewalReminder(account)}
+                                          title="Gửi thông báo gia hạn"
+                                          disabled={!account.customer_email && !account.account_email}
+                                        >
+                                          <Send className="w-3 h-3 mr-1" />
+                                          Nhắc gia hạn
+                                        </Button>
+                                      );
+                                    })()}
                                     <Button
                                       variant="outline"
                                       size="sm"

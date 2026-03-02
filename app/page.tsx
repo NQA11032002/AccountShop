@@ -1,7 +1,7 @@
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import FeaturedCategories from '@/components/FeaturedCategories';
-import PromotionalAccounts from '@/components/PromotionalAccounts';
+import DiscountedProductsSlider from '@/components/DiscountedProductsSlider';
 import TopProducts from '@/components/TopProducts';
 import WhyChooseUs from '@/components/WhyChooseUs';
 import Testimonials from '@/components/Testimonials';
@@ -17,7 +17,7 @@ export default function Home() {
       <main className="bg-white">
         <HeroSection />
         <FeaturedCategories />
-        {/* <PromotionalAccounts /> */}
+        <DiscountedProductsSlider />
         <TopProducts />
         <WhyChooseUs />
         <Testimonials />

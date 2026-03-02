@@ -1720,6 +1720,7 @@ export const getListAccounts = async (
         product_type?: string;      // all | ...
         sort_by?: string;           // purchaseDate | expiryDate | expiryToday | customerName | productType
         sort_order?: "asc" | "desc";
+        status?: string;            // active | expired | suspended
     }
 ) => {
     const base = `${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts`;
@@ -1731,6 +1732,7 @@ export const getListAccounts = async (
     if (params?.product_type && params.product_type !== "all") qs.set("product_type", params.product_type);
     if (params?.sort_by) qs.set("sort_by", params.sort_by);
     if (params?.sort_order) qs.set("sort_order", params.sort_order);
+    if (params?.status && params.status !== "all") qs.set("status", params.status);
 
     const res = await fetch(`${base}${qs.toString() ? `?${qs.toString()}` : ""}`, {
         method: "GET",

@@ -85,9 +85,15 @@ export default function ProductDetailPage() {
     const loadProduct = async () => {
       try {
         const data = await fetchProductById(productId);
-        setProduct(data);
-        if (data.durations?.length) {
-          setSelectedDuration(data.durations[0].id);
+        const allDurations = Array.isArray(data.durations) ? data.durations : [];
+        const visibleDurations = allDurations.filter(
+          (d: any) => (d.featured as number) === 1 || d.featured === true
+        );
+        const durationsToUse = visibleDurations.length ? visibleDurations : allDurations;
+
+        setProduct({ ...data, durations: durationsToUse });
+        if (durationsToUse.length) {
+          setSelectedDuration(durationsToUse[0].id);
         }
       } catch (error) {
         console.error('Failed to load product', error);
