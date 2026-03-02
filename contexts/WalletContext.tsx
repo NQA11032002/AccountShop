@@ -82,7 +82,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       type: 'banking',
       icon: '🏦',
       fee: 0,
-      minAmount: 50000,
+      minAmount: 10000,
       maxAmount: 50000000,
       processingTime: '5-15 phút',
       isActive: true

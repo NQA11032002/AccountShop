@@ -43,27 +43,21 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
 
   useEffect(() => {
     if (isOpen && user) {
-      // Transfer content: QAI + amount + account ID
-      const transferContent = `${user.id}:${orderId}`;
-
-      // Generate QR code data based on payment method
+      // Generate QR code data based on payment method (orderId từ closure, cập nhật sau)
       let qrContent = '';
       switch (method.id) {
         case 'momo':
-          qrContent = transferContent;
+          qrContent = `${user.id}:${orderId}`;
           break;
         case 'banking':
           qrContent = `19073157703011`;
           break;
         default:
-          qrContent = transferContent;
+          qrContent = `${user.id}:${orderId}`;
       }
       setQrData(qrContent);
-
-      // Reset states
-      // setStep('qr');
-      setTimeLeft(900);
     }
+    // Không reset timeLeft ở đây - dùng effect [isOpen] để chỉ reset khi mở modal
 
     let interval: NodeJS.Timeout | null = null;
 
@@ -91,7 +85,7 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isOpen, amount, method, user, externalOrderId]);
+  }, [isOpen, amount, method?.id, user?.id, orderId, step]);
 
   const refreshUserCoins = async () => {
     try {
@@ -122,15 +116,22 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
     return Math.random().toString(36).substring(2, 2 + length);
   }
 
-  // Timer countdown
+  // Timer countdown - chỉ chạy khi modal đang mở
   useEffect(() => {
+    if (!isOpen) return;
+
     if (step === 'qr' && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      const timer = setTimeout(
+        () => setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0)),
+        1000
+      );
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
+    }
+
+    if (step === 'qr' && timeLeft === 0) {
       setStep('pending');
     }
-  }, [step, timeLeft]);
+  }, [isOpen, step, timeLeft]);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -204,6 +205,8 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
     if (isOpen) {
       const newOrderId = `qai_${generateRandomString(13)}`;
       setOrderId(newOrderId);
+      setStep('qr');
+      setTimeLeft(900);
     }
   }, [isOpen]);
 
@@ -278,7 +281,28 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Order Summary - Clean white design */}
+          {/* Hướng dẫn - Đặt đầu tiên để người dùng dễ thấy */}
+          {step === 'qr' && (
+            <Card className="bg-blue-50/50 border-blue-200">
+              <CardContent className="p-4">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="text-lg">📋</span> Hướng dẫn
+                </h4>
+                <div className="space-y-2 text-sm">
+                  {paymentInfo.steps.slice(0, 6).map((s, index) => (
+                    <div key={index} className="flex items-start space-x-2">
+                      <div className="w-5 h-5 shrink-0 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                        {index + 1}
+                      </div>
+                      <span className="text-gray-700 text-sm leading-tight">{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Order Summary */}
           <Card className="bg-white border border-gray-200">
             <CardContent className="p-4">
               <div className={`grid gap-4 text-sm ${method.fee > 0 ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 lg:grid-cols-3'}`}>
@@ -306,10 +330,9 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
             </CardContent>
           </Card>
 
-          {/* Payment Steps - Horizontal Layout */}
+          {/* QR Code & Bank Transfer */}
           {step === 'qr' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* QR Code Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card className="bg-white border border-gray-200">
                 <CardContent className="p-4 text-center">
                   <h4 className="font-semibold text-gray-800 mb-3">Mã QR thanh toán</h4>
@@ -328,11 +351,9 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
                 </CardContent>
               </Card>
 
-              {/* Payment Info Section */}
               <Card className="bg-white border border-gray-200">
                 <CardContent className="p-4">
                   <h4 className="font-semibold text-gray-800 mb-3">{paymentInfo.title}</h4>
-
                   {paymentInfo.account && (
                     <div className="space-y-3 text-sm">
                       <div className="grid grid-cols-1 gap-2">
@@ -361,63 +382,47 @@ export default function DepositModal({ isOpen, onClose, amount, method, formatCo
                   )}
                 </CardContent>
               </Card>
-
-              {/* Instructions & Actions */}
-              <Card className="bg-white border border-gray-200">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold text-gray-800 mb-3">Hướng dẫn</h4>
-
-                  {/* Compact Steps */}
-                  <div className="space-y-2 text-sm mb-4">
-                    {paymentInfo.steps.slice(0, 6).map((step, index) => (
-                      <div key={index} className="flex items-start space-x-2">
-                        <div className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
-                          {index + 1}
-                        </div>
-                        <span className="text-gray-700 text-xs leading-tight">{step}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Timer */}
-                  <div className="flex items-center justify-center space-x-2 p-3 bg-orange-50 rounded-lg mb-4">
-                    <Clock className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm text-orange-800">Còn lại:</span>
-                    <span className="font-mono font-bold text-orange-600">
-                      {formatTime(timeLeft)}
-                    </span>
-                  </div>
-
-                  {/* Call-to-action hint */}
-                  <p className="text-center text-sm font-medium text-gray-700 mb-3">
-                    ⬇️ Sau khi chuyển khoản xong, hãy nhấn nút bên dưới:
-                  </p>
-
-                  {/* Payment Confirmation Button */}
-                  <Button
-                    onClick={handlePaymentConfirmation}
-                    onMouseDown={(e) => e.preventDefault()}
-                    className="w-full min-w-0 bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 hover:from-green-600 hover:via-green-700 hover:to-emerald-700 text-white font-bold py-4 sm:py-5 px-4 sm:px-6 rounded-xl shadow-lg hover:shadow-xl ring-2 ring-green-400/50 ring-offset-2 ring-offset-white transition-all duration-200 cursor-pointer select-none active:scale-[0.98] border-2 border-green-400/30 overflow-hidden"
-                    disabled={isProcessing}
-                    type="button"
-                  >
-                    <div className="flex items-center justify-center gap-2 sm:gap-3 min-w-0 flex-1">
-                      {isProcessing ? (
-                        <>
-                          <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin shrink-0" />
-                          <span className="text-sm sm:text-base font-bold truncate">Đang xử lý...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-                          <span className="text-sm sm:text-base font-bold whitespace-nowrap shrink-0">Đã thanh toán</span>
-                        </>
-                      )}
-                    </div>
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
+          )}
+
+          {/* Timer & Button - Mobile: nút trên cùng, Desktop: giữ thứ tự */}
+          {step === 'qr' && (
+            <Card className="bg-white border border-gray-200">
+              <CardContent className="p-4 flex flex-col-reverse lg:flex-col gap-4">
+                <div className="flex items-center justify-center space-x-2 p-3 bg-orange-50 rounded-lg">
+                  <Clock className="w-4 h-4 text-orange-600" />
+                  <span className="text-sm text-orange-800">Còn lại:</span>
+                  <span className="font-mono font-bold text-orange-600">
+                    {formatTime(timeLeft)}
+                  </span>
+                </div>
+                <p className="text-center text-sm font-medium text-gray-700 lg:mb-0">
+                  <span className="lg:hidden">Sau khi chuyển khoản xong, hãy nhấn nút phía trên:</span>
+                  <span className="hidden lg:inline">Sau khi chuyển khoản xong, hãy nhấn nút bên dưới:</span>
+                </p>
+                <Button
+                  onClick={handlePaymentConfirmation}
+                  onMouseDown={(e) => e.preventDefault()}
+                  className="w-full min-w-0 bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 hover:from-green-600 hover:via-green-700 hover:to-emerald-700 text-white font-bold py-4 sm:py-5 px-4 sm:px-6 rounded-xl shadow-lg hover:shadow-xl ring-2 ring-green-400/50 ring-offset-2 ring-offset-white transition-all duration-200 cursor-pointer select-none active:scale-[0.98] border-2 border-green-400/30 overflow-hidden"
+                  disabled={isProcessing}
+                  type="button"
+                >
+                  <div className="flex items-center justify-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    {isProcessing ? (
+                      <>
+                        <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin shrink-0" />
+                        <span className="text-sm sm:text-base font-bold truncate">Đang xử lý...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                        <span className="text-sm sm:text-base font-bold whitespace-nowrap shrink-0">Đã thanh toán</span>
+                      </>
+                    )}
+                  </div>
+                </Button>
+              </CardContent>
+            </Card>
           )}
 
           {/* Confirmation Step - Clean white design */}
