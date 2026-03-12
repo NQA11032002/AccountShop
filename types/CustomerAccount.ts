@@ -20,6 +20,7 @@ export interface CustomerAccount {
     platform: string | null;  // zalo | telegram | facebook | threads
 
     order_id: number | null;    // trong DB nên để int
+    for_collaborator?: boolean; // true = kho CTV (cộng tác viên)
     duration: number | null;    // số ngày / tháng…
     purchase_price: number | null;
     chatgpt_id: number | null;

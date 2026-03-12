@@ -22,7 +22,11 @@ interface ProductCardProps {
   showFavoriteButton?: boolean;
   size?: 'small' | 'medium' | 'large';
   className?: string;
+  /** Base path for product detail link (e.g. "/collaborator/products" for CTV). Default "/products". */
+  detailPath?: string;
 }
+
+const defaultDetailPath = '/products';
 
 export default function ProductCard({
   product,
@@ -30,8 +34,10 @@ export default function ProductCard({
   showFeatures = true,
   showFavoriteButton = true,
   size = 'medium',
-  className = ''
+  className = '',
+  detailPath = defaultDetailPath
 }: ProductCardProps) {
+  const productHref = `${detailPath}/${product.id}`;
   const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth();
   const { addItem, isInCart, getItemQuantity } = useCart();
@@ -271,7 +277,7 @@ export default function ProductCard({
                 )}
               </Button>
 
-              <Link href={`/products/${product.id}`} className="w-full">
+              <Link href={productHref} className="w-full">
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl">
                   <Eye className="w-4 h-4 mr-2" />
                   Chi tiết
@@ -308,7 +314,7 @@ export default function ProductCard({
       {showFavoriteButton && (
         <button
           onClick={handleToggleFavorite}
-          className={`absolute z-50 cursor-grab border top-14 right-5 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 shadow-md  ${isFavorite(product.id)
+          className={`absolute z-50 cursor-pointer top-14 right-5 w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 shadow-md ${isFavorite(product.id)
             ? 'bg-red-500 text-white hover:bg-red-600'
             : 'bg-white/90 text-gray-600 hover:text-red-500 hover:bg-white'
             }`}
@@ -359,9 +365,13 @@ export default function ProductCard({
           </h3>
 
           {/* Category */}
-          <Badge variant="outline" className="w-fit mb-3 text-xs">
-            {product.category.name}
-          </Badge>
+          {product.category && (
+            <Badge variant="outline" className="w-fit mb-3 text-xs">
+              {typeof product.category === 'object' && product.category !== null && 'name' in product.category
+                ? (product.category as { name?: string }).name
+                : String(product.category)}
+            </Badge>
+          )}
 
           {/* Description */}
           {/* <p className="text-xs lg:text-sm text-gray-600 mb-3 leading-relaxed line-clamp-2">
@@ -420,51 +430,55 @@ export default function ProductCard({
             )}
           </div>
 
-          {/* Duration and Warranty */}
-          <div className="flex items-center justify-between text-xs lg:text-sm">
-            <div className="flex items-center text-gray-500">
-              <Clock className="w-3 h-3 mr-1" />
-              {featuredDuration.name}
-            </div>
-            <Badge className="bg-green-50 text-green-600 px-2 py-1 text-xs border border-green-200">
-              <Shield className="w-3 h-3 mr-1" />
-              {product.warranty}
-            </Badge>
+          {/* Gói & Bảo hành - một dòng, tránh trùng (Gói 1 tháng · BH 30 ngày) */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs lg:text-sm text-gray-600">
+            <span className="inline-flex items-center">
+              <Clock className="w-3 h-3 mr-1 shrink-0" />
+              Gói {featuredDuration.name}
+            </span>
+            {product.warranty && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span className="inline-flex items-center">
+                  <Shield className="w-3 h-3 mr-1 shrink-0" />
+                  BH {product.warranty}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className={`flex ${config.gap} mt-4`}>
+        {/* Action Buttons - nút Chi tiết đủ rộng, không cắt chữ */}
+        <div className="flex gap-2 mt-4">
           <Button
             onClick={handleAddToCart}
             disabled={!product.in_stock || isProcessing}
-            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-2 lg:py-3 text-xs lg:text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 min-w-0 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-2 lg:py-3 text-xs lg:text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
               <>
-                <div className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                <span className="hidden lg:inline">Đang thêm...</span>
-                <span className="lg:hidden">...</span>
+                <div className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 animate-spin rounded-full border-2 border-white border-t-transparent shrink-0" />
+                <span className="hidden sm:inline truncate">Đang thêm...</span>
+                <span className="sm:hidden">...</span>
               </>
             ) : isInCart(product.id, standardDurationId) ? (
               <>
-                <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-                <span className="hidden lg:inline">Trong giỏ ({getItemQuantity(product.id, standardDurationId)})</span>
-                <span className="lg:hidden">({getItemQuantity(product.id, standardDurationId)})</span>
+                <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 shrink-0" />
+                <span className="hidden sm:inline truncate">Trong giỏ ({getItemQuantity(product.id, standardDurationId)})</span>
+                <span className="sm:hidden">({getItemQuantity(product.id, standardDurationId)})</span>
               </>
             ) : (
               <>
-                <ShoppingCart className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-                <span className="hidden lg:inline">Thêm vào giỏ</span>
-                <span className="lg:hidden">Thêm</span>
+                <ShoppingCart className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 shrink-0" />
+                <span className="hidden sm:inline truncate">Thêm vào giỏ</span>
+                <span className="sm:hidden">Thêm</span>
               </>
             )}
           </Button>
-          <Link href={`/products/${product.id}`} className="flex-1">
-            <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-2 lg:py-3 text-xs lg:text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl">
-              <Eye className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-              <span className="hidden lg:inline">Chi tiết</span>
-              <span className="lg:hidden">Xem</span>
+          <Link href={productHref} className="flex-shrink-0 min-w-[5.5rem]">
+            <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-2 lg:py-3 text-xs lg:text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl whitespace-nowrap">
+              <Eye className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 shrink-0" />
+              Chi tiết
             </Button>
           </Link>
         </div>

@@ -80,6 +80,44 @@ export async function fetchProductById(id: number): Promise<ProductBase> {
     return res.json();
 }
 
+// --- Sản phẩm cho cộng tác viên (giá CTV) ---
+export async function fetchCollaboratorProducts(sessionId: string): Promise<ProductBase[]> {
+    const res = await fetch(`${API_URL}/collaborator/products`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch collaborator products');
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data?.data ?? []);
+}
+
+export async function fetchCollaboratorProductsPaginated(
+    params: { page: number; perPage?: number; categoryId?: number | 'all'; search?: string },
+    sessionId: string
+): Promise<FetchProductsPaginatedResponse> {
+    const { page, perPage = 12, categoryId, search } = params;
+    const qs = new URLSearchParams();
+    qs.set('page', String(page));
+    qs.set('per_page', String(perPage));
+    if (categoryId !== undefined && categoryId !== 'all') qs.set('category_id', String(categoryId));
+    if (search?.trim()) qs.set('search', search.trim());
+    const res = await fetch(`${API_URL}/collaborator/products?${qs.toString()}`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch collaborator products');
+    return res.json();
+}
+
+export async function getCollaboratorProductById(id: number, sessionId: string): Promise<ProductBase> {
+    const res = await fetch(`${API_URL}/collaborator/products/${id}`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch collaborator product');
+    return res.json();
+}
+
 // lib/api.ts
 type UploadImageResult = { filename: string; url: string };
 
@@ -1721,6 +1759,8 @@ export const getListAccounts = async (
         sort_by?: string;           // purchaseDate | expiryDate | expiryToday | customerName | productType
         sort_order?: "asc" | "desc";
         status?: string;            // active | expired | suspended
+        for_collaborator?: string;  // all | 0 | 1 — kho: tất cả | khách hàng | CTV
+        in_stock?: number;          // 1 = chỉ tài khoản còn trong kho (chưa gán đơn)
     }
 ) => {
     const base = `${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts`;
@@ -1733,6 +1773,8 @@ export const getListAccounts = async (
     if (params?.sort_by) qs.set("sort_by", params.sort_by);
     if (params?.sort_order) qs.set("sort_order", params.sort_order);
     if (params?.status && params.status !== "all") qs.set("status", params.status);
+    if (params?.for_collaborator && params.for_collaborator !== "all") qs.set("for_collaborator", params.for_collaborator);
+    if (params?.in_stock === 1) qs.set("in_stock", "1");
 
     const res = await fetch(`${base}${qs.toString() ? `?${qs.toString()}` : ""}`, {
         method: "GET",
@@ -1803,6 +1845,26 @@ export const updateAccount = async (sessionId: string, accountId: string, accoun
     }
 
     return res.json(); // Returns the updated account
+};
+
+export const importCustomerAccounts = async (sessionId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts/import`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${sessionId}`,
+        },
+        body: formData,
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || 'Failed to import customer accounts');
+    }
+
+    return res.json();
 };
 
 export const deleteAccount = async (sessionId: string, accountId: string) => {

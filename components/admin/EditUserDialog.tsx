@@ -230,7 +230,7 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
             <Label className="text-right">Role</Label>
             <Select
               value={formData.role}
-              onValueChange={(value: 'user' | 'admin') =>
+              onValueChange={(value: string) =>
                 setFormData({ ...formData, role: value })
               }
             >
@@ -238,8 +238,9 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="user">Khách hàng</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="collaborator">Cộng tác viên</SelectItem>
               </SelectContent>
             </Select>
           </div>

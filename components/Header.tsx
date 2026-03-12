@@ -25,6 +25,7 @@ const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'Trang chủ': Home,
   'Giới thiệu': Info,
   'Danh mục sản phẩm': Package,
+  'Sản phẩm': Package,
   'Chính sách mua hàng': FileText,
   'Tin tức công nghệ': Newspaper,
   'Liên hệ': Mail,
@@ -111,6 +112,12 @@ export default function Header() {
     { name: 'Prompt GPT', href: '/prompt' },
     { name: 'Lấy Code', href: '/onetimecode' },
   ];
+
+  const collaboratorNavigation = [
+    { name: 'Sản phẩm', href: '/collaborator/products' },
+  ];
+
+  const navLinks = user?.role === 'collaborator' ? collaboratorNavigation : navigation;
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -439,6 +446,23 @@ export default function Header() {
                   align="end"
                   className="w-64 bg-white/95 backdrop-blur-md border-white/20 text-gray-800 shadow-xl rounded-xl"
                 >
+                  {user.role === "admin" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="flex items-center px-4 py-3 hover:bg-indigo-50 rounded-lg">
+                        <Shield className="mr-3 h-4 w-4 text-indigo-600" />
+                        <span>Quản trị</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {user.role === "collaborator" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/collaborator/products" className="flex items-center px-4 py-3 hover:bg-emerald-50 rounded-lg">
+                        <Package className="mr-3 h-4 w-4 text-emerald-600" />
+                        <span>Sản phẩm</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {(user.role === "admin" || user.role === "collaborator") && <DropdownMenuSeparator className="bg-gray-100" />}
                   <DropdownMenuItem asChild>
                     <Link href="/wallet" className="flex items-center px-4 py-3 hover:bg-green-50 rounded-lg">
                       <Wallet className="mr-3 h-4 w-4 text-green-600" />
@@ -448,36 +472,42 @@ export default function Header() {
                       </div>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg">
-                      <Shield className="mr-3 h-4 w-4 text-purple-600" />
-                      <span>Tài khoản của tôi</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/my-ranking" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
-                      <Crown className="mr-3 h-4 w-4 text-purple-600" />
-                      <span>Hạng của tôi</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/my-vouchers" className="flex items-center px-4 py-3 hover:bg-amber-50 rounded-lg">
-                      <Ticket className="mr-3 h-4 w-4 text-amber-600" />
-                      <span>Voucher của tôi</span>
-                    </Link>
-                  </DropdownMenuItem>
+                  {user.role !== "collaborator" && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg">
+                          <Shield className="mr-3 h-4 w-4 text-purple-600" />
+                          <span>Tài khoản của tôi</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/my-ranking" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
+                          <Crown className="mr-3 h-4 w-4 text-purple-600" />
+                          <span>Hạng của tôi</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/my-vouchers" className="flex items-center px-4 py-3 hover:bg-amber-50 rounded-lg">
+                          <Ticket className="mr-3 h-4 w-4 text-amber-600" />
+                          <span>Voucher của tôi</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href="/orders" className="flex items-center px-4 py-3 hover:bg-blue-50 rounded-lg">
                       <ShoppingCart className="mr-3 h-4 w-4 text-blue-600" />
                       <span>Đơn hàng của tôi</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
-                      <Heart className="mr-3 h-4 w-4 text-purple-600" />
-                      <span>Yêu thích</span>
-                    </Link>
-                  </DropdownMenuItem>
+                  {user.role !== "collaborator" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
+                        <Heart className="mr-3 h-4 w-4 text-purple-600" />
+                        <span>Yêu thích</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator className="bg-gray-100" />
                   <DropdownMenuItem
                     onClick={handleLogout}
@@ -563,7 +593,7 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center justify-center h-12 gap-2 xl:gap-6">
-          {navigation.map((item) => (
+          {navLinks.map((item) => (
             <div key={item.name} className="relative group">
               {item.name === "Danh mục sản phẩm" ? (
                 <>
@@ -710,8 +740,8 @@ export default function Header() {
                   Điều hướng
                 </p>
                 <div className="space-y-0.5">
-                  {navigation.map((item) => {
-                    const Icon = navIcons[item.name];
+                  {navLinks.map((item) => {
+                    const Icon = navIcons[item.name] || Package;
                     return (
                       <Link
                         key={item.name}

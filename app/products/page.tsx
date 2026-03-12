@@ -13,6 +13,7 @@ import { ProductBase } from '@/lib/products';
 import { fetchProducts, fetchCategories, fetchProductsPaginated, type ProductsMeta } from '@/lib/api';
 import { Category } from '@/types/category.interface';
 import DOMPurify from 'dompurify';
+import RandomPurchaseNotification from '@/components/RandomPurchaseNotification';
 
 const PER_PAGE = 12;
 
@@ -610,6 +611,9 @@ function ProductsContent() {
       </section>
 
       <Footer />
+
+      {/* Notify giả lập khách hàng thêm vào giỏ hàng ở trang sản phẩm */}
+      <RandomPurchaseNotification products={products} />
     </div>
   );
 }

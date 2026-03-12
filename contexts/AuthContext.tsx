@@ -102,8 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('qai_user', JSON.stringify(userData));
       localStorage.setItem('qai_session', res.session_id);
 
-      if (res.user.role == 'admin')
+      if (res.user.role === 'admin')
         router.push('/admin');
+      else if (res.user.role === 'collaborator')
+        router.push('/collaborator');
       else
         router.push('/');
 

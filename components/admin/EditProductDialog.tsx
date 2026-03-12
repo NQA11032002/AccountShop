@@ -60,6 +60,8 @@ const defaultForm: FormState = {
   sales: 0,
   stock: 0,
   status: "active",
+  audience: "customer",
+  delivery_type: null as string | null,
   description: "",
   durations: [],
   slug: "",
@@ -112,7 +114,7 @@ export function EditProductDialog({
       const durs = rawDurs.map(normalizeDuration(product?.id));
 
       const base = product
-        ? ({ ...(product as Product), durations: durs } as FormState)
+        ? ({ ...(product as Product), durations: durs, audience: (product as any).audience ?? "customer", delivery_type: (product as any).delivery_type ?? null } as FormState)
         : { ...defaultForm, id: 0 };
 
       setFormData(base);
@@ -273,6 +275,8 @@ export function EditProductDialog({
           sales: result.sales,
           stock: result.stock,
           status: result.status,
+          audience: result.audience ?? "customer",
+          delivery_type: result.delivery_type ?? null,
           description: result.description,
           slug: result.slug,
         });
@@ -296,6 +300,8 @@ export function EditProductDialog({
           sales: result.sales,
           stock: result.stock,
           status: result.status,
+          audience: result.audience ?? "customer",
+          delivery_type: result.delivery_type ?? null,
           description: result.description,
           slug: result.slug,
         });
@@ -547,6 +553,52 @@ export function EditProductDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Đối tượng hiển thị (audience) */}
+          <div>
+            <Label>Đối tượng hiển thị</Label>
+            <Select
+              value={(formData as any).audience ?? "customer"}
+              onValueChange={(value: "customer" | "collaborator" | "all") =>
+                setFormData((prev) => ({ ...prev, audience: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn đối tượng" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="customer">Khách hàng</SelectItem>
+                <SelectItem value="collaborator">Cộng tác viên</SelectItem>
+                <SelectItem value="all">Cả hai</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              Khách hàng: chỉ trang /products. CTV: chỉ trang /collaborator/products. Cả hai: hiển thị cả hai.
+            </p>
+          </div>
+
+          {/* Loại giao hàng: cấp tài khoản thì khi CTV mua sẽ tự lấy từ kho CTV */}
+          <div>
+            <Label>Loại giao hàng</Label>
+            <Select
+              value={(formData as any).delivery_type ?? "none"}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, delivery_type: value === "none" ? null : value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn loại" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Không (giao thủ công / code)</SelectItem>
+                <SelectItem value="account">Cấp tài khoản (CTV mua → tự lấy từ kho CTV)</SelectItem>
+                <SelectItem value="code">Code</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              Chọn &quot;Cấp tài khoản&quot; nếu sản phẩm này khi cộng tác viên mua sẽ tự động lấy tài khoản từ kho CTV.
+            </p>
           </div>
 
           {/* Sales & Rating */}

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Eye, EyeOff } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
@@ -25,11 +25,14 @@ import { getListChatgpts } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 
 import { createAccount, updateAccount, fetchCategories } from '@/lib/api';
+import { Textarea } from '@/components/ui/textarea';
 interface EditCustomerAccountDialogProps {
   account: CustomerAccount | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (account: CustomerAccount) => void;
+  /** Chế độ "warehouse": chỉ hiển thị email, mật khẩu, mã bảo mật, ngày hết hạn, trạng thái, ghi chú + loại SP + kho */
+  mode?: 'full' | 'warehouse';
 }
 
 
@@ -37,8 +40,10 @@ export function EditCustomerAccountDialog({
   account,
   open,
   onOpenChange,
-  onSave
+  onSave,
+  mode = 'full',
 }: EditCustomerAccountDialogProps) {
+  const isWarehouse = mode === 'warehouse';
   // formData theo đúng interface CustomerAccount (snake_case)
   const [formData, setFormData] = useState<CustomerAccount>({
     id: 0,
@@ -56,10 +61,12 @@ export function EditCustomerAccountDialog({
     link: '',
     platform: account?.platform ?? null,
     order_id: account?.order_id ?? 0,
+    for_collaborator: account?.for_collaborator ?? false,
     duration: account?.duration ?? 0,
     purchase_price: 0,
-    chatgpt_id: null
-
+    chatgpt_id: null,
+    security_code: (account as any)?.security_code ?? null,
+    instructions: (account as any)?.instructions ?? null,
   });
 
 
@@ -68,6 +75,7 @@ export function EditCustomerAccountDialog({
   const [expiryDate, setExpiryDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAccountPassword, setShowAccountPassword] = useState(false);
   const { sessionId } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);  // lưu danh mục
   const [loadingCategories, setLoadingCategories] = useState<boolean>(true);  // trạng thái tải danh mục
@@ -104,7 +112,11 @@ export function EditCustomerAccountDialog({
 
   useEffect(() => {
     if (account) {
-      setFormData(account);
+      setFormData({
+        ...account,
+        security_code: (account as any)?.security_code ?? null,
+        instructions: (account as any)?.instructions ?? null,
+      });
       setPurchaseDate(account.purchase_date ? new Date(account.purchase_date) : new Date());
       setExpiryDate(account.expiry_date ? new Date(account.expiry_date) : new Date());
     } else {
@@ -127,7 +139,9 @@ export function EditCustomerAccountDialog({
         order_id: 0,
         duration: 0,
         purchase_price: 0,
-        chatgpt_id: null
+        chatgpt_id: null,
+        security_code: null,
+        instructions: null,
       });
       setPurchaseDate(now);
       setExpiryDate(now);
@@ -170,8 +184,14 @@ export function EditCustomerAccountDialog({
     const updatedAccount: CustomerAccount = {
       ...formData,
       purchase_date: toLocalDateString(pDate),
-      expiry_date: toLocalDateString(eDate)
+      expiry_date: toLocalDateString(eDate),
     };
+    if (isWarehouse) {
+      (updatedAccount as any).security_code = (formData as any).security_code ?? null;
+      (updatedAccount as any).instructions = (formData as any).instructions ?? null;
+      if (!updatedAccount.customer_name) (updatedAccount as any).customer_name = '—';
+      if (!updatedAccount.duration) (updatedAccount as any).duration = 1;
+    }
 
     try {
       if (sessionId) {
@@ -221,11 +241,149 @@ export function EditCustomerAccountDialog({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-900">
-            {account ? 'Chỉnh sửa tài khoản khách hàng' : 'Thêm tài khoản khách hàng mới'}
+            {isWarehouse
+              ? (account ? 'Sửa tài khoản trong kho' : 'Thêm tài khoản vào kho')
+              : (account ? 'Chỉnh sửa tài khoản khách hàng' : 'Thêm tài khoản')}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {isWarehouse ? (
+            /* Kho tài khoản: chỉ email | mật khẩu | mã bảo mật | ngày hết hạn | trạng thái | ghi chú + loại SP + kho */
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="accountEmail">Email *</Label>
+                <Input
+                  id="accountEmail"
+                  type="email"
+                  value={formData.account_email || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, account_email: e.target.value }))}
+                  placeholder="account@service.com"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="accountPassword">Mật khẩu *</Label>
+                <div className="flex space-x-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="accountPassword"
+                      type={showAccountPassword ? 'text' : 'password'}
+                      value={formData.account_password || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, account_password: e.target.value }))}
+                      placeholder="••••••••"
+                      required
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowAccountPassword((v) => !v)}
+                      title={showAccountPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    >
+                      {showAccountPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <Button type="button" variant="outline" onClick={generateRandomPassword} className="whitespace-nowrap">
+                    Tạo ngẫu nhiên
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="securityCode">Mã bảo mật</Label>
+                <Input
+                  id="securityCode"
+                  value={(formData as any).security_code ?? ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, security_code: e.target.value } as any))}
+                  placeholder="Mã 2FA / backup"
+                />
+              </div>
+              <div>
+                <Label>Ngày hết hạn *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {expiryDate ? format(expiryDate, 'dd/MM/yyyy', { locale: vi }) : 'Chọn ngày'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={expiryDate}
+                      onSelect={(date) => {
+                        setExpiryDate(date);
+                        setFormData(prev => ({ ...prev, expiry_date: date ? toLocalDateString(date) : null }));
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Trạng thái *</Label>
+                <Select
+                  value={(formData.status as 'active' | 'expired' | 'suspended') || 'active'}
+                  onValueChange={(value: 'active' | 'expired' | 'suspended') =>
+                    setFormData(prev => ({ ...prev, status: value }))
+                  }
+                >
+                  <SelectTrigger><SelectValue placeholder="Chọn trạng thái" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Hoạt động</SelectItem>
+                    <SelectItem value="expired">Hết hạn</SelectItem>
+                    <SelectItem value="suspended">Tạm ngưng</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="instructions">Ghi chú</Label>
+                <Textarea
+                  id="instructions"
+                  value={(formData as any).instructions ?? ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, instructions: e.target.value } as any))}
+                  placeholder="Ghi chú nội bộ"
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+              <div>
+                <Label>Loại sản phẩm *</Label>
+                <Select
+                  value={formData.product_type || ''}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, product_type: value }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Chọn loại sản phẩm" /></SelectTrigger>
+                  <SelectContent>
+                    {loadingCategories ? (
+                      <SelectItem value="loading" disabled>Đang tải...</SelectItem>
+                    ) : (
+                      categories.map(parent =>
+                        parent.categories?.map((child: any) => (
+                          <SelectItem key={child.id} value={child.name}>{child.name}</SelectItem>
+                        ))
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="for_collaborator_wh"
+                  checked={!!formData.for_collaborator}
+                  onChange={(e) => setFormData(prev => ({ ...prev, for_collaborator: e.target.checked }))}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="for_collaborator_wh" className="cursor-pointer font-normal">
+                  Kho CTV
+                </Label>
+              </div>
+            </div>
+          ) : (
+          <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Customer Information */}
             <div className="space-y-4">
@@ -241,18 +399,6 @@ export function EditCustomerAccountDialog({
                   }
                   placeholder="Nguyễn Văn A"
                   required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="customerEmail">Email khách hàng *</Label>
-                <Input
-                  id="customerEmail"
-                  value={formData.customer_email || ''}
-                  onChange={(e) =>
-                    setFormData(prev => ({ ...prev, customer_email: e.target.value }))
-                  }
-                  placeholder="customer@example.com"
                 />
               </div>
 
@@ -323,16 +469,29 @@ export function EditCustomerAccountDialog({
               <div>
                 <Label htmlFor="accountPassword">Mật khẩu tài khoản *</Label>
                 <div className="flex space-x-2">
-                  <Input
-                    id="accountPassword"
-                    value={formData.account_password || ''}
-                    onChange={(e) =>
-                      setFormData(prev => ({ ...prev, account_password: e.target.value }))
-                    }
-                    placeholder="Password123!"
-                    required
-                    className="flex-1"
-                  />
+                  <div className="relative flex-1">
+                    <Input
+                      id="accountPassword"
+                      type={showAccountPassword ? 'text' : 'password'}
+                      value={formData.account_password || ''}
+                      onChange={(e) =>
+                        setFormData(prev => ({ ...prev, account_password: e.target.value }))
+                      }
+                      placeholder="Password123!"
+                      required
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowAccountPassword((v) => !v)}
+                      title={showAccountPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    >
+                      {showAccountPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
@@ -511,8 +670,16 @@ export function EditCustomerAccountDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1">1 tháng</SelectItem>
+                  <SelectItem value="2">2 tháng</SelectItem>
                   <SelectItem value="3">3 tháng</SelectItem>
+                  <SelectItem value="4">4 tháng</SelectItem>
+                  <SelectItem value="5">5 tháng</SelectItem>
                   <SelectItem value="6">6 tháng</SelectItem>
+                  <SelectItem value="7">7 tháng</SelectItem>
+                  <SelectItem value="8">8 tháng</SelectItem>
+                  <SelectItem value="9">9 tháng</SelectItem>
+                  <SelectItem value="10">10 tháng</SelectItem>
+                  <SelectItem value="11">11 tháng</SelectItem>
                   <SelectItem value="12">12 tháng</SelectItem>
                 </SelectContent>
               </Select>
@@ -577,6 +744,8 @@ export function EditCustomerAccountDialog({
             </div>
           </div>
 
+          </>
+          )}
           <div className="flex justify-end space-x-4 pt-4 border-t">
             <Button
               type="button"
@@ -588,10 +757,9 @@ export function EditCustomerAccountDialog({
             <Button
               type="submit"
               className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white"
-              disabled={loading} // Disable button when loading
+              disabled={loading}
             >
               {loading ? (
-                // Show a loading spinner when the form is being submitted
                 <span className="flex items-center justify-center">
                   <svg
                     className="animate-spin h-5 w-5 mr-3 text-white"
@@ -606,10 +774,9 @@ export function EditCustomerAccountDialog({
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" />
                     <path d="M4 12a8 8 0 1 0 16 0" stroke="currentColor" />
                   </svg>
-                  {account ? 'Cập nhật' : 'Tạo mới'} {/* Show the label */}
+                  {account ? 'Cập nhật' : 'Tạo mới'}
                 </span>
               ) : (
-                // Display the normal button label
                 <span>{account ? 'Cập nhật' : 'Tạo mới'}</span>
               )}
             </Button>

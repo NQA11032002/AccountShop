@@ -10,7 +10,9 @@ import {
   Settings,
   LogOut,
   Eye,
+  EyeOff,
   Edit,
+  Pencil,
   Trash2,
   Plus,
   Search,
@@ -52,6 +54,7 @@ import {
   Gift,
   Percent,
   Save,
+  Warehouse,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -162,7 +165,7 @@ import {
 } from '@/lib/api';
 import { Product } from '@/types/product.interface';
 import { deleteOrder } from '@/lib/api';
-import { sendOrderEmail, getOnetimecodes, getListAccounts, deleteAccount, sendCustomerAccountRenewalEmail } from '@/lib/api';
+import { sendOrderEmail, getOnetimecodes, getListAccounts, deleteAccount, sendCustomerAccountRenewalEmail, importCustomerAccounts } from '@/lib/api';
 import { Onetimecode, userOnetimecode } from '@/types/Onetimecode';
 import * as XLSX from "xlsx";
 import { CustomerAccount } from '@/types/CustomerAccount';
@@ -337,10 +340,26 @@ export default function AdminDashboard() {
   const [accountSearchTerm, setAccountSearchTerm] = useState('');
   const [accountFilterType, setAccountFilterType] = useState<string>('all');
   const [accountStatusFilter, setAccountStatusFilter] = useState<string>('all');
+  const [accountForCollaboratorFilter, setAccountForCollaboratorFilter] = useState<string>('all'); // all | 0 | 1 — kho: tất cả | khách hàng | CTV
   const [accountSortBy, setAccountSortBy] = useState<'id' | 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday'>('id');
   const [accountSortOrder, setAccountSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [accountGPTSearchTerm, setAccountGPTSearchTerm] = useState('');
+
+  // Kho tài khoản (tab riêng): state + filter
+  const [warehouseAccounts, setWarehouseAccounts] = useState<CustomerAccount[]>([]);
+  const [warehouseMeta, setWarehouseMeta] = useState<{ total: number; total_active?: number; total_expired?: number; last_page?: number; current_page?: number } | null>(null);
+  const [currentPageWarehouse, setCurrentPageWarehouse] = useState(1);
+  const [perPageWarehouse] = useState(10);
+  const [warehouseSearch, setWarehouseSearch] = useState('');
+  const [debouncedWarehouseSearch, setDebouncedWarehouseSearch] = useState('');
+  const [warehouseForCollaborator, setWarehouseForCollaborator] = useState<string>('all');
+  const [warehouseProductType, setWarehouseProductType] = useState<string>('all');
+  const [warehouseStatus, setWarehouseStatus] = useState<string>('all');
+  const [warehouseSortBy, setWarehouseSortBy] = useState<'id' | 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday'>('id');
+  const [warehouseSortOrder, setWarehouseSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [accountDialogSource, setAccountDialogSource] = useState<'accounts' | 'warehouse' | null>(null); // mở dialog từ tab nào
+  const [warehousePasswordVisibleIds, setWarehousePasswordVisibleIds] = useState<Set<number>>(new Set());
 
   // Giảm giá sản phẩm (tab product-discounts): danh sách trống, admin tự thêm sản phẩm vào danh sách
   const [productDiscountListIds, setProductDiscountListIds] = useState<number[]>([]);
@@ -1186,13 +1205,13 @@ QAI Store - Tài khoản premium uy tín #1
   // reset page khi đổi search/filter/sort
   useEffect(() => {
     setCurrentPageAccounts(1);
-  }, [debouncedAccountSearch, accountFilterType, accountStatusFilter, accountSortBy, accountSortOrder]);
+  }, [debouncedAccountSearch, accountFilterType, accountStatusFilter, accountForCollaboratorFilter, accountSortBy, accountSortOrder]);
 
   useEffect(() => {
     if (!sessionId) return;
 
     loadCustomerAccounts(sessionId)
-  }, [sessionId, currentPageAccounts, perPageAccounts, debouncedAccountSearch, accountFilterType, accountStatusFilter, accountSortBy, accountSortOrder]);
+  }, [sessionId, currentPageAccounts, perPageAccounts, debouncedAccountSearch, accountFilterType, accountStatusFilter, accountForCollaboratorFilter, accountSortBy, accountSortOrder]);
 
   const loadCustomerAccounts = async (sessionId: string) => {
     try {
@@ -1201,9 +1220,10 @@ QAI Store - Tài khoản premium uy tín #1
         per_page: perPageAccounts,
         q: debouncedAccountSearch,
         product_type: accountFilterType,
+        status: accountStatusFilter,
+        for_collaborator: accountForCollaboratorFilter,
         sort_by: accountSortBy,
         sort_order: accountSortOrder,
-        status: accountStatusFilter,
       });
 
       setAccounts(res.data ?? []);
@@ -1218,6 +1238,46 @@ QAI Store - Tài khoản premium uy tín #1
   const totalItems = metaAccounts?.total ?? 0;
 
   const totalPagesAccounts = metaAccounts?.last_page ?? 1;
+
+  // Kho tài khoản: debounce search
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedWarehouseSearch(warehouseSearch), 300);
+    return () => clearTimeout(t);
+  }, [warehouseSearch]);
+
+  useEffect(() => {
+    setCurrentPageWarehouse(1);
+  }, [debouncedWarehouseSearch, warehouseForCollaborator, warehouseProductType, warehouseStatus, warehouseSortBy, warehouseSortOrder]);
+
+  const loadWarehouseAccounts = async (sessionId: string) => {
+    try {
+      const res = await getListAccounts(sessionId, {
+        page: currentPageWarehouse,
+        per_page: perPageWarehouse,
+        q: debouncedWarehouseSearch,
+        product_type: warehouseProductType,
+        status: warehouseStatus,
+        for_collaborator: warehouseForCollaborator,
+        sort_by: warehouseSortBy,
+        sort_order: warehouseSortOrder,
+        in_stock: 1,
+      });
+      setWarehouseAccounts(res.data ?? []);
+      setWarehouseMeta(res.meta ?? null);
+    } catch (error) {
+      console.error('❌ Error loading warehouse accounts:', error);
+      setWarehouseAccounts([]);
+      setWarehouseMeta(null);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'account-warehouse' && sessionId) {
+      loadWarehouseAccounts(sessionId);
+    }
+  }, [activeTab, sessionId, currentPageWarehouse, perPageWarehouse, debouncedWarehouseSearch, warehouseForCollaborator, warehouseProductType, warehouseStatus, warehouseSortBy, warehouseSortOrder]);
+
+  const totalPagesWarehouse = (warehouseMeta as { last_page?: number } | null)?.last_page ?? 1;
 
   // 🔹 derived values (KHÔNG trùng state)
   const currentPageMetaAccounts =
@@ -1323,100 +1383,42 @@ QAI Store - Tài khoản premium uy tín #1
     expiredCustomerAccounts: customerAccounts.filter(acc => acc.status === 'expired').length
   };
 
-  // 📥 Xử lý nhập Excel
+  // 📥 Xử lý nhập Excel/CSV cho "Tài khoản đã mua"
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !sessionId) return;
 
-  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // const file = e.target.files?.[0];
-    // if (!file) return;
+    try {
+      setIsImporting(true);
 
-    // setIsImporting(true);
-    // const reader = new FileReader();
+      // Backend hiện chỉ hỗ trợ CSV
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        toast({
+          title: "Chỉ hỗ trợ file CSV",
+          description: "Vui lòng lưu file Excel thành CSV rồi nhập lại.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    // reader.onload = (evt) => {
-    //   const data = evt.target?.result;
-    //   const workbook = XLSX.read(data, { type: "binary" });
-    //   const sheetName = workbook.SheetNames[0];
-    //   const sheet = workbook.Sheets[sheetName];
+      const res = await importCustomerAccounts(sessionId, file);
 
-    //   // ✅ Đọc từng dòng thô (để tránh lỗi dấu tiếng Việt hoặc khoảng trắng)
-    //   const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-    //   if (rows.length < 2) {
-    //     alert("❌ Không có dữ liệu trong file Excel");
-    //     setIsImporting(false);
-    //     return;
-    //   }
+      toast({
+        title: "Nhập dữ liệu thành công",
+        description: `Đã tạo ${res.created ?? 0} tài khoản, bỏ qua ${res.skipped ?? 0} dòng.`,
+      });
 
-    //   // Lấy tiêu đề và loại bỏ khoảng trắng dư thừa
-    //   const headers = rows[0].map((h: string) => h.trim().replace(/\s+/g, " "));
-    //   const dataRows = rows.slice(1);
-
-    //   // Tạo JSON đúng key
-    //   const jsonData = dataRows.map((row) => {
-    //     const obj: Record<string, any> = {};
-    //     headers.forEach((key, i) => {
-    //       obj[key] = row[i] ?? "";
-    //     });
-    //     return obj;
-    //   });
-
-    //   console.log("📄 Dữ liệu thô đọc được:", jsonData);
-
-    //   // 🧠 Hàm parse ngày hỗ trợ cả dạng text (25/9) lẫn số serial
-    //   const parseDate = (value: any): Date => {
-    //     if (!value) return new Date();
-    //     if (typeof value === "number") {
-    //       const d = XLSX.SSF.parse_date_code(value);
-    //       return new Date(d.y, d.m - 1, d.d);
-    //     }
-    //     if (typeof value === "string") {
-    //       const [day, month, year] = value.split(/[\/\-\.]/).map(Number);
-    //       return new Date(year || 2024, (month || 1) - 1, day || 1);
-    //     }
-    //     return new Date();
-    //   };
-
-    //   // ✅ Map đúng cấu trúc CustomerAccount
-    //   const parsedAccounts: CustomerAccount[] = jsonData.map((row) => {
-    //     const rawStatus = (row["Trạng Thái"] || "").toString().trim().toLowerCase();
-    //     const rawProductType = (row["Loại"] || "Khác").toString().trim();
-
-    //     const status: "active" | "expired" | "suspended" =
-    //       rawStatus === "hết hạn"
-    //         ? "expired"
-    //         : rawStatus === "tạm khóa"
-    //           ? "suspended"
-    //           : "active";
-
-    //     return {
-    //       id: crypto.randomUUID(),
-    //       accountEmail: row["Tài khoản"] || "",
-    //       accountPassword: row["Password"] || "",
-    //       customerName: "",
-    //       customerEmail: "",
-    //       customerPhone: "",
-    //       productType: rawProductType,
-    //       productIcon: "💼",
-    //       productColor: "#4F46E5",
-    //       purchaseDate: parseDate(row["Ngày mua"]),
-    //       expiryDate: parseDate(row["Hết hạn"]),
-    //       status,
-    //       link: "",
-    //       orderId: "",
-    //       duration: "1 tháng",
-    //       purchasePrice: 0,
-    //       totalSpent: 0,
-    //       totalOrders: 0,
-    //       customerRank: undefined,
-    //     };
-    //   });
-
-    //   console.log("✅ Dữ liệu sau khi map:", parsedAccounts);
-
-    //   setCustomerAccounts(parsedAccounts);
-    //   setIsImporting(false);
-    // };
-
-    // reader.readAsBinaryString(file);
+      await loadCustomerAccounts(sessionId);
+    } catch (err: any) {
+      toast({
+        title: "Lỗi khi nhập file",
+        description: err?.message || "Không thể nhập dữ liệu từ file.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+      e.target.value = "";
+    }
   };
 
 
@@ -2088,6 +2090,12 @@ QAI Store - Tài khoản premium uy tín #1
 
   // Customer Account Management Functions
   const handleEditAccount = (account: CustomerAccount | null) => {
+    setAccountDialogSource('accounts');
+    setEditAccountDialog({ open: true, account });
+  };
+
+  const handleEditWarehouseAccount = (account: CustomerAccount | null) => {
+    setAccountDialogSource('warehouse');
     setEditAccountDialog({ open: true, account });
   };
 
@@ -2096,8 +2104,11 @@ QAI Store - Tài khoản premium uy tín #1
     try {
       setLoading(true);
       if (sessionId) {
-        // Reload the customer accounts after save
         await loadCustomerAccounts(sessionId);
+        if (accountDialogSource === 'warehouse') {
+          await loadWarehouseAccounts(sessionId);
+        }
+        setAccountDialogSource(null);
       }
     } catch (error) {
       setError('There was an error saving the account');
@@ -2107,7 +2118,6 @@ QAI Store - Tài khoản premium uy tín #1
   };
 
   const handleDeleteAccount = (account: CustomerAccount) => {
-    // Đoạn code dưới đây giả sử bạn đã có một dialog để xác nhận xóa tài khoản
     setDeleteDialog({
       open: true,
       type: 'account',
@@ -2125,11 +2135,39 @@ QAI Store - Tài khoản premium uy tín #1
             });
           }
         } catch (error) {
-          // Hiển thị lỗi nếu có sự cố khi xóa
           toast({
             title: "Lỗi khi xóa tài khoản",
             description: 'Có lỗi xảy ra khi xóa tài khoản.',
-            variant: "destructive",  // Chỉnh sửa tùy theo toast lib bạn đang dùng
+            variant: "destructive",
+          });
+        }
+      },
+    });
+  };
+
+  const handleDeleteWarehouseAccount = (account: CustomerAccount) => {
+    setDeleteDialog({
+      open: true,
+      type: 'account',
+      item: account,
+      onConfirm: async () => {
+        try {
+          if (sessionId) {
+            await deleteAccount(sessionId, account.id.toString());
+            setDeleteDialog((d) => ({ ...d, open: false }));
+            await loadCustomerAccounts(sessionId);
+            await loadWarehouseAccounts(sessionId);
+            toast({
+              title: "Xóa thành công",
+              description: `Tài khoản ${account.account_email} đã được xóa khỏi kho.`,
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          toast({
+            title: "Lỗi khi xóa tài khoản",
+            description: 'Có lỗi xảy ra khi xóa tài khoản.',
+            variant: "destructive",
           });
         }
       },
@@ -2834,6 +2872,15 @@ QAI Store - Tài khoản premium uy tín #1
       setAccountSortOrder(column === 'id' ? 'desc' : 'asc');
     }
   };
+
+  const handleWarehouseSort = (column: 'id' | 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType') => {
+    if (warehouseSortBy === column) {
+      setWarehouseSortOrder(warehouseSortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setWarehouseSortBy(column);
+      setWarehouseSortOrder(column === 'id' ? 'desc' : 'asc');
+    }
+  };
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   // nếu products có product.category = { id, name }
   const categories = useMemo(() => {
@@ -3052,6 +3099,17 @@ QAI Store - Tài khoản premium uy tín #1
                 <Package className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
                 <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
                   Kho &amp; Tài khoản
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="account-warehouse"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-500 data-[state=active]:to-slate-700 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <Warehouse className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Kho tài khoản
                 </span>
               </TabsTrigger>
 
@@ -4965,7 +5023,6 @@ QAI Store - Tài khoản premium uy tín #1
                             <TableHead>Nhãn</TableHead>
                             <TableHead>Danh mục</TableHead>
                             <TableHead>Giá</TableHead>
-                            <TableHead>Kho</TableHead>
                             <TableHead>Đã bán</TableHead>
                             <TableHead>Đánh giá</TableHead>
                             <TableHead>Trạng thái</TableHead>
@@ -5142,7 +5199,7 @@ QAI Store - Tài khoản premium uy tín #1
                         {/* Controls */}
                         <div className="w-full lg:w-auto space-y-3 lg:space-y-0 md:flex md:gap-3">
                           {/* Row 1: selects */}
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:flex lg:flex-wrap lg:items-center">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:flex lg:flex-wrap lg:items-center">
                             <Select value={accountFilterType} onValueChange={setAccountFilterType}>
                               <SelectTrigger className="w-full sm:w-auto sm:min-w-[11rem] border-2 border-gray-200 hover:border-brand-purple transition-colors duration-300 rounded-lg">
                                 <Filter className="w-4 h-4 mr-2" />
@@ -5203,6 +5260,18 @@ QAI Store - Tài khoản premium uy tín #1
                                 <SelectItem value="active">Hoạt động</SelectItem>
                                 <SelectItem value="expired">Hết hạn</SelectItem>
                                 <SelectItem value="suspended">Tạm ngưng</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Select value={accountForCollaboratorFilter} onValueChange={setAccountForCollaboratorFilter}>
+                              <SelectTrigger className="w-full sm:w-auto sm:min-w-[11rem] border-2 border-gray-200 hover:border-emerald-500 transition-colors duration-300 rounded-lg">
+                                <Package className="w-4 h-4 mr-2" />
+                                <SelectValue placeholder="Kho" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">Tất cả kho</SelectItem>
+                                <SelectItem value="0">Kho khách hàng</SelectItem>
+                                <SelectItem value="1">Kho CTV</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -5275,7 +5344,7 @@ QAI Store - Tài khoản premium uy tín #1
                                   )}
                                 </div>
                               </TableHead>
-                              <TableHead className="w-[8%] py-3 px-3 font-semibold text-gray-700">Nền tảng</TableHead>
+                            <TableHead className="w-[12%] py-3 px-3 font-semibold text-gray-700">Nền tảng</TableHead>
                               {/* <TableHead className="w-[10%] py-3 px-3 font-semibold text-gray-700">Hạng</TableHead> */}
                               <TableHead
                                 className="w-[10%] py-3 px-3 font-semibold text-gray-700 cursor-pointer hover:bg-blue-50 transition-colors"
@@ -5324,7 +5393,7 @@ QAI Store - Tài khoản premium uy tín #1
                           <TableBody>
                             {accounts.length === 0 ? (
                               <TableRow>
-                                <TableCell colSpan={11} className="py-12 text-center text-gray-500">
+                                <TableCell colSpan={12} className="py-12 text-center text-gray-500">
                                   Chưa có tài khoản đã mua nào. Danh sách chỉ hiển thị tài khoản đã giao cho khách (gắn với đơn hàng).
                                 </TableCell>
                               </TableRow>
@@ -5572,6 +5641,223 @@ QAI Store - Tài khoản premium uy tín #1
                   </Card>
                 </TabsContent>
               </Tabs>
+            </div>
+          </TabsContent>
+
+          {/* Kho tài khoản: admin thêm tài khoản có sẵn cho SP loại "cấp tài khoản"; khi khách mua thì hệ thống tự gửi từ kho */}
+          <TabsContent value="account-warehouse" className="mt-6">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-slate-500 to-slate-700 text-white">
+                        <Warehouse className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-600 to-slate-800 bg-clip-text text-transparent">
+                          Kho tài khoản
+                        </CardTitle>
+                        <p className="text-gray-600 mt-1 text-sm sm:text-base">
+                          Thêm tài khoản có sẵn vào kho cho sản phẩm loại <strong>Cấp tài khoản</strong>. Khi người dùng mua loại này, nếu kho còn thì hệ thống tự gửi tài khoản trực tiếp cho khách hàng.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 sm:gap-6 text-sm text-center">
+                      <div>
+                        <div className="text-slate-600 font-bold text-lg sm:text-xl">{warehouseMeta?.total ?? 0}</div>
+                        <div className="text-gray-500">Tổng trong kho</div>
+                      </div>
+                      <div>
+                        <div className="text-green-600 font-bold text-lg sm:text-xl">{warehouseMeta?.total_active ?? 0}</div>
+                        <div className="text-gray-500">Hoạt động</div>
+                      </div>
+                      <div>
+                        <div className="text-red-600 font-bold text-lg sm:text-xl">{warehouseMeta?.total_expired ?? 0}</div>
+                        <div className="text-gray-500">Hết hạn</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-5">
+                    <div className="relative w-full lg:flex-1 lg:max-w-lg">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-4 w-4 text-slate-600" />
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="Tìm theo email, tên khách..."
+                        value={warehouseSearch}
+                        onChange={(e) => setWarehouseSearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-slate-500"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                      <Select value={warehouseForCollaborator} onValueChange={setWarehouseForCollaborator}>
+                        <SelectTrigger className="w-full border-2 border-gray-200 rounded-lg">
+                          <SelectValue placeholder="Kho" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tất cả kho</SelectItem>
+                          <SelectItem value="0">Kho khách hàng</SelectItem>
+                          <SelectItem value="1">Kho CTV</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={warehouseProductType} onValueChange={setWarehouseProductType}>
+                        <SelectTrigger className="w-full border-2 border-gray-200 rounded-lg">
+                          <SelectValue placeholder="Loại SP" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tất cả sản phẩm</SelectItem>
+                          {getUniqueProductTypes()
+                            .filter((t): t is string => t != null && t !== undefined)
+                            .map((type) => (
+                              <SelectItem key={type} value={type}>{type}</SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={warehouseStatus} onValueChange={setWarehouseStatus}>
+                        <SelectTrigger className="w-full border-2 border-gray-200 rounded-lg">
+                          <SelectValue placeholder="Trạng thái" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tất cả</SelectItem>
+                          <SelectItem value="active">Hoạt động</SelectItem>
+                          <SelectItem value="expired">Hết hạn</SelectItem>
+                          <SelectItem value="suspended">Tạm ngưng</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select
+                        value={`${warehouseSortBy}-${warehouseSortOrder}`}
+                        onValueChange={(v) => {
+                          const [by, order] = v.split("-") as [string, string];
+                          setWarehouseSortBy(by as typeof warehouseSortBy);
+                          setWarehouseSortOrder(order as "asc" | "desc");
+                        }}
+                      >
+                        <SelectTrigger className="w-full border-2 border-gray-200 rounded-lg">
+                          <SelectValue placeholder="Sắp xếp" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="id-desc">ID (Mới nhất)</SelectItem>
+                          <SelectItem value="id-asc">ID (Cũ nhất)</SelectItem>
+                          <SelectItem value="expiryDate-asc">Hết hạn (gần nhất)</SelectItem>
+                          <SelectItem value="expiryDate-desc">Hết hạn (xa nhất)</SelectItem>
+                          <SelectItem value="productType-asc">Sản phẩm A-Z</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={() => handleEditWarehouseAccount(null)}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Thêm tài khoản
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto rounded-xl border border-gray-100">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-slate-50 border-b-2 border-slate-100">
+                          <TableHead className="py-3 px-4 font-semibold text-gray-700">Email</TableHead>
+                          <TableHead className="py-3 px-4 font-semibold text-gray-700">Mật khẩu</TableHead>
+                          <TableHead className="py-3 px-4 font-semibold text-gray-700">Mã bảo mật</TableHead>
+                          <TableHead className="py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-slate-100" onClick={() => handleWarehouseSort('expiryDate')}>
+                            Ngày hết hạn {warehouseSortBy === 'expiryDate' && (warehouseSortOrder === 'asc' ? <ChevronUp className="w-4 h-4 inline" /> : <ChevronDown className="w-4 h-4 inline" />)}
+                          </TableHead>
+                          <TableHead className="py-3 px-4 font-semibold text-gray-700">Trạng thái</TableHead>
+                          <TableHead className="py-3 px-4 font-semibold text-gray-700">Ghi chú</TableHead>
+                          <TableHead className="py-3 px-4 font-semibold text-gray-700 text-right">Thao tác</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {warehouseAccounts.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={7} className="py-12 text-center text-gray-500">
+                              Chưa có tài khoản trong kho. Thêm tài khoản có sẵn (chọn đúng loại sản phẩm) để khi khách mua &quot;Cấp tài khoản&quot; hệ thống tự gửi cho khách.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          warehouseAccounts.map((account, index) => (
+                            <TableRow key={account.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                              <TableCell className="py-3 px-4">
+                                <span className="font-medium text-gray-900">{account.account_email ?? '-'}</span>
+                              </TableCell>
+                              <TableCell className="py-3 px-4 font-mono text-sm">
+                                <div className="flex items-center gap-2">
+                                  <span className="min-w-0 truncate">
+                                    {account.account_password
+                                      ? (warehousePasswordVisibleIds.has(account.id) ? account.account_password : '••••••••')
+                                      : '-'}
+                                  </span>
+                                  {account.account_password && (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 shrink-0 text-gray-500 hover:text-gray-700"
+                                      onClick={() => setWarehousePasswordVisibleIds((prev) => {
+                                        const next = new Set(prev);
+                                        if (next.has(account.id)) next.delete(account.id);
+                                        else next.add(account.id);
+                                        return next;
+                                      })}
+                                      title={warehousePasswordVisibleIds.has(account.id) ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                                    >
+                                      {warehousePasswordVisibleIds.has(account.id) ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-3 px-4 font-mono text-sm">
+                                {account.security_code ?? '-'}
+                              </TableCell>
+                              <TableCell className="py-3 px-4 text-gray-600">
+                                {account.expiry_date ? new Date(account.expiry_date).toLocaleDateString('vi-VN') : '-'}
+                              </TableCell>
+                              <TableCell className="py-3 px-4">
+                                {account.status === 'active' && <Badge className="bg-green-100 text-green-800">Hoạt động</Badge>}
+                                {account.status === 'expired' && <Badge className="bg-red-100 text-red-800">Hết hạn</Badge>}
+                                {account.status === 'suspended' && <Badge className="bg-gray-100 text-gray-800">Tạm ngưng</Badge>}
+                                {!account.status && <span className="text-gray-400">-</span>}
+                              </TableCell>
+                              <TableCell className="py-3 px-4 text-gray-600 max-w-[200px] truncate" title={(account as any).instructions ?? ''}>
+                                {(account as any).instructions ?? '-'}
+                              </TableCell>
+                              <TableCell className="py-3 px-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button size="sm" variant="outline" onClick={() => handleEditWarehouseAccount(account)}>
+                                    <Pencil className="w-4 h-4 mr-1" /> Sửa
+                                  </Button>
+                                  <Button size="sm" variant="destructive" onClick={() => handleDeleteWarehouseAccount(account)}>
+                                    <Trash2 className="w-4 h-4 mr-1" /> Xóa
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {totalPagesWarehouse > 1 && (
+                    <div className="flex items-center justify-between mt-4">
+                      <p className="text-sm text-gray-600">
+                        Trang {currentPageWarehouse} / {totalPagesWarehouse} (tổng {warehouseMeta?.total ?? 0})
+                      </p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" disabled={currentPageWarehouse <= 1} onClick={() => setCurrentPageWarehouse((p) => Math.max(1, p - 1))}>
+                          Trước
+                        </Button>
+                        <Button variant="outline" size="sm" disabled={currentPageWarehouse >= totalPagesWarehouse} onClick={() => setCurrentPageWarehouse((p) => p + 1)}>
+                          Sau
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -6375,8 +6661,12 @@ QAI Store - Tài khoản premium uy tín #1
         <EditCustomerAccountDialog
           account={editAccountDialog.account}
           open={editAccountDialog.open}
-          onOpenChange={(open) => setEditAccountDialog({ ...editAccountDialog, open })}
+          onOpenChange={(open) => {
+            if (!open) setAccountDialogSource(null);
+            setEditAccountDialog({ ...editAccountDialog, open });
+          }}
           onSave={handleSaveAccount}
+          mode={accountDialogSource === 'warehouse' ? 'warehouse' : 'full'}
         />
 
         <DeleteConfirmDialog

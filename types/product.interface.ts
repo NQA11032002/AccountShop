@@ -24,5 +24,9 @@ export interface Product {
     discount_percent?: number | null;
     stock: number;
     status: 'active' | 'inactive';
-    slug: string
+    /** Đối tượng hiển thị: customer | collaborator | all */
+    audience?: 'customer' | 'collaborator' | 'all';
+    /** account = cấp tài khoản (CTV mua tự lấy từ kho CTV), code = code, null = khác */
+    delivery_type?: 'account' | 'code' | null;
+    slug: string;
 }
