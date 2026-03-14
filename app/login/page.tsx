@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
@@ -11,13 +11,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login, role } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -188,5 +188,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-brand-blue/5 via-brand-purple/5 to-brand-emerald/5 flex items-center justify-center p-4">
+          <div className="w-full max-w-md text-center text-gray-500">Đang tải...</div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
