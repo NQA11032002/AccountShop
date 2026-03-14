@@ -21,7 +21,7 @@ export interface CustomerAccount {
 
     order_id: number | null;    // trong DB nên để int
     for_collaborator?: boolean; // true = kho CTV (cộng tác viên)
-    duration: number | null;    // số ngày / tháng…
+    duration: number | string | null;    // số ngày / tháng… (hoặc tên gói, ví dụ "1 tháng")
     purchase_price: number | null;
     chatgpt_id: number | null;
 

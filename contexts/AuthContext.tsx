@@ -18,7 +18,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   sessionId: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, returnUrl?: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<{ success: boolean; status: number; message?: string }>;
   logout: () => void;
   setRole: (role: string) => void;
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string, returnUrl?: string): Promise<boolean> => {
     setIsLoading(true);
     try {
 
@@ -105,9 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.user.role === 'admin')
         router.push('/admin');
       else if (res.user.role === 'collaborator')
-        router.push('/collaborator');
+        router.push(returnUrl || '/collaborator');
       else
-        router.push('/');
+        router.push(returnUrl || '/');
 
       return true;
     } catch (error) {

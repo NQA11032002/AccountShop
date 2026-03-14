@@ -154,14 +154,14 @@ export default function ProductDetailPage() {
     }
   };
   const handleBuyNow = async () => {
-
     if (!sessionId || !user) {
       toast({
-        title: 'Phiên hết hạn',
-        description: 'Vui lòng đăng nhập lại.',
+        title: 'Cần đăng nhập',
+        description: 'Vui lòng đăng nhập để mua hàng.',
         variant: 'destructive',
       });
-      return
+      router.push('/login');
+      return;
     }
 
     if (!product || !selectedPrice) return;

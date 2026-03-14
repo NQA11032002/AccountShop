@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,8 @@ export default function LoginPage() {
   const { login, role } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl') || undefined;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +36,7 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-    const success = await login(email, password);
+    const success = await login(email, password, returnUrl);
 
     if (success) {
       toast({

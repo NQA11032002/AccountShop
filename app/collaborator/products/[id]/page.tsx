@@ -130,10 +130,11 @@ export default function CollaboratorProductDetailPage() {
   const handleBuyNow = async () => {
     if (!sessionId || !user) {
       toast({
-        title: "Phiên hết hạn",
-        description: "Vui lòng đăng nhập lại.",
+        title: "Cần đăng nhập",
+        description: "Vui lòng đăng nhập để mua hàng.",
         variant: "destructive",
       });
+      router.push("/login");
       return;
     }
     if (!product || !selectedPrice) return;
@@ -161,6 +162,7 @@ export default function CollaboratorProductDetailPage() {
         description: "Vui lòng đăng nhập để thêm yêu thích.",
         variant: "destructive",
       });
+      router.push("/login");
       return;
     }
     if (!product) return;

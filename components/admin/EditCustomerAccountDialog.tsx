@@ -24,7 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getListChatgpts } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 
-import { createAccount, updateAccount, fetchCategories } from '@/lib/api';
+import { createAccount, updateAccount, fetchCategories, getProductsAdmin } from '@/lib/api';
 import { Textarea } from '@/components/ui/textarea';
 interface EditCustomerAccountDialogProps {
   account: CustomerAccount | null;
@@ -81,6 +81,7 @@ export function EditCustomerAccountDialog({
   const [loadingCategories, setLoadingCategories] = useState<boolean>(true);  // trạng thái tải danh mục
   const [chatgptOptions, setChatgptOptions] = useState<any[]>([]);
   const [loadingChatgpt, setLoadingChatgpt] = useState<boolean>(false);
+  const [products, setProducts] = useState<any[]>([]);
   const STATUS_STYLE: Record<number, { label: string; color: string }> = {
     0: { label: "Hết hạn", color: "bg-red-100 text-red-700 border-red-300" },
     1: { label: "Hoạt động", color: "bg-green-100 text-green-700 border-green-300" },
@@ -88,32 +89,55 @@ export function EditCustomerAccountDialog({
   };
 
   useEffect(() => {
+    if (!sessionId) return;
     const fetchData = async () => {
       try {
-        const data = await fetchCategories();
-        setCategories(data.data);  // Lưu danh mục vào state
+        const [catRes, productRes] = await Promise.all([
+          fetchCategories(),
+          getProductsAdmin(sessionId),
+        ]);
+        setCategories(catRes.data);  // Lưu danh mục vào state
+        const list = Array.isArray(productRes)
+          ? productRes
+          : (productRes?.data || []);
+        setProducts(list);
       } catch (error) {
-        setError('Không thể tải danh mục');
+        setError('Không thể tải danh mục / sản phẩm');
       } finally {
         setLoadingCategories(false);  // Hoàn thành việc tải danh mục
       }
     };
 
     fetchData();
-  }, []);  // Chỉ gọi 1 lần khi component mou
+  }, [sessionId]);  // gọi lại khi có sessionId (admin đăng nhập)
 
-  // Khi mở dialog và đã chọn "Chat GPT", tải toàn bộ danh sách ChatGPT để hiển thị trong dropdown
+  /** Sản phẩm thuộc loại ChatGPT (tên chứa "Chat GPT" hoặc "ChatGPT", vd: "Chat GPT", "ChatGPT Plus (8 người)") */
+  const isChatGPTProduct = (name: string | null | undefined) =>
+    /chat\s*gpt/i.test(String(name || ''));
+
+  // Khi mở dialog và đã chọn sản phẩm ChatGPT, tải danh sách tài khoản ChatGPT
   useEffect(() => {
-    const needChatGPT = formData.product_type === "Chat GPT" || account?.product_type === "Chat GPT";
+    const needChatGPT = isChatGPTProduct(formData.product_type) || isChatGPTProduct(account?.product_type);
     if (open && needChatGPT && sessionId) {
       loadChatGPTList();
     }
   }, [open, formData.product_type, account?.product_type]);
 
+  /** Chuẩn hóa duration từ API (số hoặc "1 tháng") thành dạng "N tháng" để khớp dropdown. */
+  const normalizeDuration = (d: number | string | null | undefined): string | number | null => {
+    if (d == null || d === '') return null;
+    const s = String(d).trim();
+    if (/^\d+$/.test(s)) return `${s} tháng`;
+    if (/^\d+\s*tháng$/i.test(s)) return s;
+    return s;
+  };
+
   useEffect(() => {
     if (account) {
+      const durationNorm = normalizeDuration(account.duration);
       setFormData({
         ...account,
+        duration: durationNorm ?? account.duration,
         security_code: (account as any)?.security_code ?? null,
         instructions: (account as any)?.instructions ?? null,
       });
@@ -135,7 +159,7 @@ export function EditCustomerAccountDialog({
         expiry_date: now.toISOString().slice(0, 10),
         status: 'active',
         link: '',
-        platform: null,
+        platform: 'website',
         order_id: 0,
         duration: 0,
         purchase_price: 0,
@@ -350,22 +374,72 @@ export function EditCustomerAccountDialog({
                 />
               </div>
               <div>
-                <Label>Loại sản phẩm *</Label>
+                <Label>Sản phẩm *</Label>
                 <Select
                   value={formData.product_type || ''}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, product_type: value }))}
+                  onValueChange={(value) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      product_type: value,
+                      // reset duration khi đổi sản phẩm
+                      duration: null,
+                    }));
+                  }}
                 >
-                  <SelectTrigger><SelectValue placeholder="Chọn loại sản phẩm" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Chọn sản phẩm" /></SelectTrigger>
                   <SelectContent>
-                    {loadingCategories ? (
-                      <SelectItem value="loading" disabled>Đang tải...</SelectItem>
+                    {products.length === 0 ? (
+                      <SelectItem value="loading" disabled>Chưa có sản phẩm</SelectItem>
                     ) : (
-                      categories.map(parent =>
-                        parent.categories?.map((child: any) => (
-                          <SelectItem key={child.id} value={child.name}>{child.name}</SelectItem>
-                        ))
-                      )
+                      products.map((p: any) => (
+                        <SelectItem key={p.id} value={p.name}>
+                          {p.name}
+                        </SelectItem>
+                      ))
                     )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Thời hạn (duration) của sản phẩm</Label>
+                <Select
+                  value={formData.duration ? String(formData.duration) : ''}
+                  onValueChange={(value) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      duration: value || null,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={formData.product_type ? "Chọn thời hạn từ sản phẩm" : "Chọn sản phẩm trước"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(() => {
+                      const product = products.find(
+                        (p) => p.name === formData.product_type
+                      );
+                      const durations = product?.durations || [];
+                      if (!product) {
+                        return (
+                          <SelectItem value="__no_product" disabled>
+                            Chưa chọn đúng sản phẩm
+                          </SelectItem>
+                        );
+                      }
+                      if (!durations.length) {
+                        return (
+                          <SelectItem value="__no_duration" disabled>
+                            Sản phẩm chưa cấu hình thời hạn
+                          </SelectItem>
+                        );
+                      }
+                      return durations.map((d: any) => (
+                        <SelectItem key={d.id} value={String(d.name)}>
+                          {d.name}
+                        </SelectItem>
+                      ));
+                    })()}
                   </SelectContent>
                 </Select>
               </div>
@@ -439,6 +513,7 @@ export function EditCustomerAccountDialog({
                     <SelectValue placeholder="Chọn nền tảng" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="website">Website</SelectItem>
                     <SelectItem value="zalo">Zalo</SelectItem>
                     <SelectItem value="telegram">Telegram</SelectItem>
                     <SelectItem value="facebook">Facebook</SelectItem>
@@ -503,46 +578,43 @@ export function EditCustomerAccountDialog({
                 </div>
               </div>
 
-              {/* Chọn danh mục */}
+              {/* Sản phẩm tương ứng đơn / danh mục */}
               <div>
-                <Label>Danh mục *</Label>
+                <Label>Danh mục / Sản phẩm *</Label>
                 <Select
                   value={formData.product_type || ''}
                   onValueChange={async (value) => {
                     setFormData(prev => ({
                       ...prev,
                       product_type: value,
-                      // nếu không phải Chat GPT thì clear luôn chatgpt_id
-                      chatgpt_id: value === "Chat GPT" ? prev.chatgpt_id : null,
+                      chatgpt_id: isChatGPTProduct(value) ? prev.chatgpt_id : null,
                     }));
-
-                    if (value === "Chat GPT") {
+                    if (isChatGPTProduct(value)) {
                       await loadChatGPTList();
                     }
                   }}
                 >
-
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn danh mục" />
+                    <SelectValue placeholder="Chọn sản phẩm (tương ứng đơn)" />
                   </SelectTrigger>
                   <SelectContent>
                     {loadingCategories ? (
                       <SelectItem value="loading" disabled>Đang tải...</SelectItem>
                     ) : error ? (
                       <SelectItem value="error" disabled>{error}</SelectItem>
+                    ) : products.length === 0 ? (
+                      <SelectItem value="empty" disabled>Chưa có sản phẩm</SelectItem>
                     ) : (
-                      categories.map(parent =>
-                        parent.categories?.map((child: any) => (
-                          <SelectItem key={child.id} value={child.name}>
-                            {child.name}
-                          </SelectItem>
-                        ))
-                      )
+                      products.map((p: any) => (
+                        <SelectItem key={p.id} value={p.name}>
+                          {p.name}
+                        </SelectItem>
+                      ))
                     )}
                   </SelectContent>
                 </Select>
               </div>
-              {formData.product_type === "Chat GPT" && (
+              {isChatGPTProduct(formData.product_type) && (
                 <div className="mt-4">
                   <Label>Chọn tài khoản ChatGPT *</Label>
 
@@ -661,7 +733,7 @@ export function EditCustomerAccountDialog({
                 onValueChange={(value) =>
                   setFormData(prev => ({
                     ...prev,
-                    duration: value ? Number(value) : null
+                    duration: value || null
                   }))
                 }
               >
@@ -669,18 +741,9 @@ export function EditCustomerAccountDialog({
                   <SelectValue placeholder="Chọn thời hạn" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 tháng</SelectItem>
-                  <SelectItem value="2">2 tháng</SelectItem>
-                  <SelectItem value="3">3 tháng</SelectItem>
-                  <SelectItem value="4">4 tháng</SelectItem>
-                  <SelectItem value="5">5 tháng</SelectItem>
-                  <SelectItem value="6">6 tháng</SelectItem>
-                  <SelectItem value="7">7 tháng</SelectItem>
-                  <SelectItem value="8">8 tháng</SelectItem>
-                  <SelectItem value="9">9 tháng</SelectItem>
-                  <SelectItem value="10">10 tháng</SelectItem>
-                  <SelectItem value="11">11 tháng</SelectItem>
-                  <SelectItem value="12">12 tháng</SelectItem>
+                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map((n) => (
+                    <SelectItem key={n} value={`${n} tháng`}>{n} tháng</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

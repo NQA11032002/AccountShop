@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Star, ShoppingCart, Eye, Heart, CheckCircle, Zap, Clock, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +38,7 @@ export default function ProductCard({
   className = '',
   detailPath = defaultDetailPath
 }: ProductCardProps) {
+  const router = useRouter();
   const productHref = `${detailPath}/${product.id}`;
   const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth();
@@ -62,6 +64,7 @@ export default function ProductCard({
         variant: "destructive",
       });
       setIsProcessing(false);
+      router.push('/login');
       return;
     }
 
@@ -110,6 +113,7 @@ export default function ProductCard({
         description: "Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích.",
         variant: "destructive",
       });
+      router.push('/login');
       return;
     }
 

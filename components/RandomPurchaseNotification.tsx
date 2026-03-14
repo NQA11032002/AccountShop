@@ -6,6 +6,15 @@ import { ProductBase, useProducts } from "@/lib/products";
 import { formatPrice } from "@/lib/utils";
 import { X } from "lucide-react";
 
+const PRODUCT_IMAGE_BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://www.taikhoangpremium.shop";
+
+function getProductImageSrc(image?: string | null): string {
+  if (!image) return "";
+  if (image.startsWith("http://") || image.startsWith("https://")) return image;
+  const filename = image.includes("/") ? image.split("/").pop() : image;
+  return filename ? `${PRODUCT_IMAGE_BASE}/images/products/${filename}` : "";
+}
+
 type RandomPurchaseNotificationProps = {
   // Danh sách sản phẩm đã có sẵn; nếu không truyền sẽ tự fetch
   products?: ProductBase[];
@@ -80,12 +89,13 @@ export default function RandomPurchaseNotification({
     <div className="fixed left-4 bottom-6 z-40 max-w-xs sm:max-w-sm drop-shadow-xl">
       <div className="flex gap-3 rounded-2xl bg-white/95 backdrop-blur-md border border-gray-200 shadow-lg p-3 sm:p-4">
         <div className="relative h-14 w-14 sm:h-16 sm:w-16 overflow-hidden rounded-xl bg-gray-100 flex-shrink-0">
-          {product.image ? (
+          {getProductImageSrc(product.image) ? (
             <Image
-              src={product.image}
+              src={getProductImageSrc(product.image)}
               alt={product.name}
               fill
               className="object-cover"
+              unoptimized={PRODUCT_IMAGE_BASE.startsWith("http")}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-xs text-gray-500">

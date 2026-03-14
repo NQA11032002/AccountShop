@@ -105,7 +105,7 @@ export default function CoinPaymentInterface({
         original_total: amount,
         discount: 0,
         payment_method: 'coin',
-        payment_status: 'Đã thanh toán',
+        payment_status: 'paid',
         products: orderItems.map((item) => ({
           product_id: item.product_id ?? item.id,
           product_name: item.product_name ?? item.name ?? 'Sản phẩm',

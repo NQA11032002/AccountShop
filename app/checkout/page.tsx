@@ -45,7 +45,7 @@ function CheckoutPageSkeleton() {
 // Main checkout component that uses useSearchParams
 function CheckoutPageContent() {
   const { items, itemsCount, totalAmount, totalSavings, clearAllCart, addItem } = useCart();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const {
     paymentMethods,
     selectedPaymentMethod,
@@ -145,21 +145,22 @@ function CheckoutPageContent() {
 
   const { itemsCount: effectiveItemsCount, totalAmount: effectiveTotalAmount } = getEffectiveTotals();
 
-  // Rest of the component logic...
+  // Chưa đăng nhập → chuyển sang trang đăng nhập (giữ returnUrl để quay lại checkout sau khi đăng nhập)
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login?returnUrl=' + encodeURIComponent('/checkout'));
+    }
+  }, [user, authLoading, router]);
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md p-6 text-center">
           <AlertCircle className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h2 className="text-2xl font-bold mb-4">Cần đăng nhập</h2>
-          <p className="text-gray-600 mb-6">Vui lòng đăng nhập để tiếp tục thanh toán.</p>
-          <div className="space-y-3">
-            <Button onClick={() => router.push('/login')} className="w-full">
-              Đăng nhập
-            </Button>
-            <Button variant="outline" onClick={() => router.push('/register')} className="w-full">
-              Đăng ký tài khoản
-            </Button>
+          <p className="text-gray-600 mb-6">Đang chuyển bạn đến trang đăng nhập...</p>
+          <div className="flex justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-brand-blue" />
           </div>
         </Card>
       </div>

@@ -340,9 +340,9 @@ export default function AdminDashboard() {
   const [accountSearchTerm, setAccountSearchTerm] = useState('');
   const [accountFilterType, setAccountFilterType] = useState<string>('all');
   const [accountStatusFilter, setAccountStatusFilter] = useState<string>('all');
-  const [accountForCollaboratorFilter, setAccountForCollaboratorFilter] = useState<string>('all'); // all | 0 | 1 — kho: tất cả | khách hàng | CTV
   const [accountSortBy, setAccountSortBy] = useState<'id' | 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday'>('id');
   const [accountSortOrder, setAccountSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [accountProductsList, setAccountProductsList] = useState<{ id: number; name: string }[]>([]);
 
   const [accountGPTSearchTerm, setAccountGPTSearchTerm] = useState('');
 
@@ -1202,16 +1202,27 @@ QAI Store - Tài khoản premium uy tín #1
     return () => clearTimeout(t);
   }, [accountSearchTerm]);
 
+  // Tải danh sách sản phẩm từ backend cho lọc "Tài khoản đã mua"
+  useEffect(() => {
+    if (!sessionId) return;
+    getProductsAdmin(sessionId)
+      .then((data: any) => {
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
+        setAccountProductsList(list.map((p: any) => ({ id: p.id, name: p.name ?? '' })));
+      })
+      .catch(() => setAccountProductsList([]));
+  }, [sessionId]);
+
   // reset page khi đổi search/filter/sort
   useEffect(() => {
     setCurrentPageAccounts(1);
-  }, [debouncedAccountSearch, accountFilterType, accountStatusFilter, accountForCollaboratorFilter, accountSortBy, accountSortOrder]);
+  }, [debouncedAccountSearch, accountFilterType, accountStatusFilter, accountSortBy, accountSortOrder]);
 
   useEffect(() => {
     if (!sessionId) return;
 
     loadCustomerAccounts(sessionId)
-  }, [sessionId, currentPageAccounts, perPageAccounts, debouncedAccountSearch, accountFilterType, accountStatusFilter, accountForCollaboratorFilter, accountSortBy, accountSortOrder]);
+  }, [sessionId, currentPageAccounts, perPageAccounts, debouncedAccountSearch, accountFilterType, accountStatusFilter, accountSortBy, accountSortOrder]);
 
   const loadCustomerAccounts = async (sessionId: string) => {
     try {
@@ -1221,7 +1232,6 @@ QAI Store - Tài khoản premium uy tín #1
         q: debouncedAccountSearch,
         product_type: accountFilterType,
         status: accountStatusFilter,
-        for_collaborator: accountForCollaboratorFilter,
         sort_by: accountSortBy,
         sort_order: accountSortOrder,
       });
@@ -2050,6 +2060,23 @@ QAI Store - Tài khoản premium uy tín #1
       month: '2-digit',
       year: 'numeric'
     }).format(date);
+  };
+
+  /** Tính tiền còn lại để hoàn cho khách: theo Giá mua và tỷ lệ thời gian còn lại (ngày mua → ngày hết hạn). */
+  const getRemainingRefundAmount = (account: CustomerAccount): number | null => {
+    const price = account.purchase_price ?? 0;
+    if (!account.purchase_date || !account.expiry_date || price <= 0) return null;
+    const purchase = new Date(account.purchase_date);
+    const expiry = new Date(account.expiry_date);
+    const today = new Date();
+    purchase.setHours(0, 0, 0, 0);
+    expiry.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const totalMs = expiry.getTime() - purchase.getTime();
+    const remainingMs = expiry.getTime() - today.getTime();
+    if (totalMs <= 0 || remainingMs <= 0) return 0;
+    const ratio = remainingMs / totalMs;
+    return Math.round(ratio * price);
   };
 
   const safeFormatDate = (value: string | Date | null | undefined) => {
@@ -5207,13 +5234,11 @@ QAI Store - Tài khoản premium uy tín #1
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="all">Tất cả sản phẩm</SelectItem>
-                                {getUniqueProductTypes()
-                                  .filter((type): type is string => type !== null && type !== undefined)
-                                  .map((type) => (
-                                    <SelectItem key={type} value={type}>
-                                      {type}
-                                    </SelectItem>
-                                  ))}
+                                {accountProductsList.map((p) => (
+                                  <SelectItem key={p.id} value={p.name}>
+                                    {p.name}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
 
@@ -5260,18 +5285,6 @@ QAI Store - Tài khoản premium uy tín #1
                                 <SelectItem value="active">Hoạt động</SelectItem>
                                 <SelectItem value="expired">Hết hạn</SelectItem>
                                 <SelectItem value="suspended">Tạm ngưng</SelectItem>
-                              </SelectContent>
-                            </Select>
-
-                            <Select value={accountForCollaboratorFilter} onValueChange={setAccountForCollaboratorFilter}>
-                              <SelectTrigger className="w-full sm:w-auto sm:min-w-[11rem] border-2 border-gray-200 hover:border-emerald-500 transition-colors duration-300 rounded-lg">
-                                <Package className="w-4 h-4 mr-2" />
-                                <SelectValue placeholder="Kho" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all">Tất cả kho</SelectItem>
-                                <SelectItem value="0">Kho khách hàng</SelectItem>
-                                <SelectItem value="1">Kho CTV</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -5387,13 +5400,14 @@ QAI Store - Tài khoản premium uy tín #1
                                 </div>
                               </TableHead>
                               <TableHead className="w-[8%] py-3 px-3 font-semibold text-gray-700">Giá mua</TableHead>
+                              <TableHead className="w-[8%] py-3 px-3 font-semibold text-gray-700">Tiền còn</TableHead>
                               <TableHead className="w-[12%] text-right py-3 px-4 font-semibold text-gray-700">Thao tác</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {accounts.length === 0 ? (
                               <TableRow>
-                                <TableCell colSpan={12} className="py-12 text-center text-gray-500">
+                                <TableCell colSpan={13} className="py-12 text-center text-gray-500">
                                   Chưa có tài khoản đã mua nào. Danh sách chỉ hiển thị tài khoản đã giao cho khách (gắn với đơn hàng).
                                 </TableCell>
                               </TableRow>
@@ -5513,6 +5527,23 @@ QAI Store - Tài khoản premium uy tín #1
                                     <span className="font-semibold text-green-700 text-xs">
                                       {account.purchase_price?.toLocaleString()}đ
                                     </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="py-4 px-3">
+                                  <div className="flex items-center space-x-1" title="Tiền còn lại để hoàn (tỷ lệ theo ngày còn lại)">
+                                    {(() => {
+                                      const remaining = getRemainingRefundAmount(account);
+                                      return remaining !== null ? (
+                                        <>
+                                          <DollarSign className="w-3 h-3 text-amber-600 flex-shrink-0" />
+                                          <span className="font-semibold text-amber-700 text-xs">
+                                            {remaining.toLocaleString('vi-VN')}đ
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span className="text-xs text-gray-400">—</span>
+                                      );
+                                    })()}
                                   </div>
                                 </TableCell>
                                 <TableCell className="text-right py-4 px-4">
