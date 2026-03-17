@@ -669,11 +669,14 @@ export const fetchAdminUsers = async (
     page: number = 1,
     perPage: number = 20,
     sortBy: string = 'join_date',
-    sortOrder: string = 'desc'
+    sortOrder: string = 'desc',
+    q?: string
 ) => {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     if (sortBy) params.set('sort_by', sortBy);
     if (sortOrder) params.set('sort_order', sortOrder);
+    const trimmedQ = q?.trim();
+    if (trimmedQ) params.set('q', trimmedQ);
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users?${params.toString()}`, {
         method: 'GET',
         headers: {
@@ -1761,6 +1764,10 @@ export const getListAccounts = async (
         status?: string;            // active | expired | suspended
         for_collaborator?: string;  // all | 0 | 1 — kho: tất cả | khách hàng | CTV
         in_stock?: number;          // 1 = chỉ tài khoản còn trong kho (chưa gán đơn)
+        purchase_from?: string;     // YYYY-MM-DD
+        purchase_to?: string;
+        expiry_from?: string;
+        expiry_to?: string;
     }
 ) => {
     const base = `${process.env.NEXT_PUBLIC_API_URL}/admin/customer-accounts`;
@@ -1775,6 +1782,10 @@ export const getListAccounts = async (
     if (params?.status && params.status !== "all") qs.set("status", params.status);
     if (params?.for_collaborator && params.for_collaborator !== "all") qs.set("for_collaborator", params.for_collaborator);
     if (params?.in_stock === 1) qs.set("in_stock", "1");
+    if (params?.purchase_from) qs.set("purchase_from", params.purchase_from);
+    if (params?.purchase_to) qs.set("purchase_to", params.purchase_to);
+    if (params?.expiry_from) qs.set("expiry_from", params.expiry_from);
+    if (params?.expiry_to) qs.set("expiry_to", params.expiry_to);
 
     const res = await fetch(`${base}${qs.toString() ? `?${qs.toString()}` : ""}`, {
         method: "GET",

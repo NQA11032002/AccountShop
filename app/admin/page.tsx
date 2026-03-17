@@ -343,6 +343,7 @@ export default function AdminDashboard() {
   const [accountSortBy, setAccountSortBy] = useState<'id' | 'purchaseDate' | 'expiryDate' | 'customerName' | 'productType' | 'expiryToday'>('id');
   const [accountSortOrder, setAccountSortOrder] = useState<'asc' | 'desc'>('desc');
   const [accountProductsList, setAccountProductsList] = useState<{ id: number; name: string }[]>([]);
+  const [accountExpiryDate, setAccountExpiryDate] = useState<string>('');
 
   const [accountGPTSearchTerm, setAccountGPTSearchTerm] = useState('');
 
@@ -919,12 +920,19 @@ QAI Store - Tài khoản premium uy tín #1
   const [userSortOrder, setUserSortOrder] = useState<'asc' | 'desc'>('desc'); // Sắp xếp theo ngày tham gia
   useEffect(() => {
     loadUser();
-  }, [sessionId, currentPageUser, userSortOrder]);
+  }, [sessionId, currentPageUser, userSortOrder, searchTerm]);
 
   const loadUser = async () => {
     if (!sessionId) return;
 
-    const res = await fetchAdminUsers(sessionId, currentPageUser, perPageUser, 'join_date', userSortOrder);
+    const res = await fetchAdminUsers(
+      sessionId,
+      currentPageUser,
+      perPageUser,
+      'join_date',
+      userSortOrder,
+      searchTerm,
+    );
 
     const usersWithStats = (res.data ?? []).map((user: any) => ({
       ...user,
@@ -1213,16 +1221,33 @@ QAI Store - Tài khoản premium uy tín #1
       .catch(() => setAccountProductsList([]));
   }, [sessionId]);
 
-  // reset page khi đổi search/filter/sort
+  // reset page khi đổi search/filter/sort/date
   useEffect(() => {
     setCurrentPageAccounts(1);
-  }, [debouncedAccountSearch, accountFilterType, accountStatusFilter, accountSortBy, accountSortOrder]);
+  }, [
+    debouncedAccountSearch,
+    accountFilterType,
+    accountStatusFilter,
+    accountSortBy,
+    accountSortOrder,
+    accountExpiryDate,
+  ]);
 
   useEffect(() => {
     if (!sessionId) return;
 
     loadCustomerAccounts(sessionId)
-  }, [sessionId, currentPageAccounts, perPageAccounts, debouncedAccountSearch, accountFilterType, accountStatusFilter, accountSortBy, accountSortOrder]);
+  }, [
+    sessionId,
+    currentPageAccounts,
+    perPageAccounts,
+    debouncedAccountSearch,
+    accountFilterType,
+    accountStatusFilter,
+    accountSortBy,
+    accountSortOrder,
+    accountExpiryDate,
+  ]);
 
   const loadCustomerAccounts = async (sessionId: string) => {
     try {
@@ -1234,6 +1259,9 @@ QAI Store - Tài khoản premium uy tín #1
         status: accountStatusFilter,
         sort_by: accountSortBy,
         sort_order: accountSortOrder,
+        // Lọc theo đúng 1 ngày hết hạn: from = to = accountExpiryDate
+        expiry_from: accountExpiryDate || undefined,
+        expiry_to: accountExpiryDate || undefined,
       });
 
       setAccounts(res.data ?? []);
@@ -2578,8 +2606,10 @@ QAI Store - Tài khoản premium uy tín #1
                 status: 'active',
                 link: credentials.accountLink,
                 order_id: numericId,
-                duration: durationMonths,
+                // duration lưu đúng dạng label gói, ví dụ "1 tháng"
+                duration: `${durationMonths} tháng`,
                 purchase_price: order.total,
+                platform: 'website',
                 chatgpt_id: null,
                 security_code: credentials.securityCode || null,
                 instructions: credentials.instructions || null,
@@ -4441,10 +4471,7 @@ QAI Store - Tài khoản premium uy tín #1
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.filter(user =>
-                      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-                    ).map((user) => (
+                    {users.map((user) => (
 
                       <TableRow key={user.id}>
                         <TableCell>{user.id}</TableCell>
@@ -5225,7 +5252,7 @@ QAI Store - Tài khoản premium uy tín #1
 
                         {/* Controls */}
                         <div className="w-full lg:w-auto space-y-3 lg:space-y-0 md:flex md:gap-3">
-                          {/* Row 1: selects */}
+                          {/* Row 1: selects + date filter */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:flex lg:flex-wrap lg:items-center">
                             <Select value={accountFilterType} onValueChange={setAccountFilterType}>
                               <SelectTrigger className="w-full sm:w-auto sm:min-w-[11rem] border-2 border-gray-200 hover:border-brand-purple transition-colors duration-300 rounded-lg">
@@ -5287,6 +5314,17 @@ QAI Store - Tài khoản premium uy tín #1
                                 <SelectItem value="suspended">Tạm ngưng</SelectItem>
                               </SelectContent>
                             </Select>
+                            {/* Bộ lọc theo 1 ngày hết hạn (style đồng bộ với các nút bên cạnh) */}
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                              <div className="flex-1">
+                                <Input
+                                  type="date"
+                                  value={accountExpiryDate}
+                                  onChange={(e) => setAccountExpiryDate(e.target.value)}
+                                  className="h-10 text-sm border-2 border-gray-200 rounded-lg shadow-sm"
+                                />
+                              </div>
+                            </div>
                           </div>
 
                           {/* Row 2: buttons */}
