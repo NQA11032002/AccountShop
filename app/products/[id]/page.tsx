@@ -20,7 +20,6 @@ import { formatPrice, calculateSavings, createCartItem } from '@/lib/utils';
 import { fetchProductById } from '@/lib/api';
 import { Review } from '@/types/reviews.interface';
 import { fetchReviews, postReview } from '@/lib/api';
-import { addToCart } from '@/lib/api';
 import DOMPurify from 'dompurify';
 
 // interface Review {
@@ -154,45 +153,18 @@ export default function ProductDetailPage() {
     }
   };
   const handleBuyNow = async () => {
-    if (!sessionId || !user) {
-      toast({
-        title: 'Cần đăng nhập',
-        description: 'Vui lòng đăng nhập để mua hàng.',
-        variant: 'destructive',
-      });
-      router.push('/login');
-      return;
-    }
-
     if (!product || !selectedPrice) return;
 
-    try {
-      const cartItem = createCartItem(product, selectedPrice, user.id);
+    const zaloUrl = 'https://zalo.me/0389660305';
+    if (typeof window !== 'undefined') {
+      window.open(zaloUrl, '_blank', 'noopener,noreferrer');
+    }
 
-      // 🟢 Gọi API thêm vào giỏ
-      // const addedItem = await addToCart(cartItem, sessionId);
-
-      // 🟢 Cập nhật state context giỏ hàng
-      // sessionStorage.setItem('qai-store-buy-now-item', JSON.stringify(cartItem));
-      addItem(cartItem);
-
-
-      toast({
-        title: "Chuyển đến thanh toán",
-        description: `Đang xử lý ${product.name} - ${selectedPrice.name}`,
-      });
-
-      router.push('/checkout?mode=buynow');
-
-    } catch (error) {
-      toast({
-        title: "Lỗi khi thêm vào giỏ hàng",
-        description: "Vui lòng thử lại sau.",
-        variant: "destructive",
-      });
-      console.error(error);
-    };
-  }
+    toast({
+      title: 'Đang mở Zalo',
+      description: `Liên hệ mua ${product.name} - ${selectedPrice.name}`,
+    });
+  };
 
 
   const handleToggleFavorite = () => {
@@ -321,8 +293,8 @@ export default function ProductDetailPage() {
       <Header />
 
       {/* Breadcrumb */}
-      <div className="bg-gray-50 border-b border-gray-200 pt-20">
-        <div className="container-max section-padding py-3">
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="container-max section-padding py-2">
           <nav className="flex items-center space-x-2 text-sm text-gray-600">
             <button
               onClick={() => router.push('/')}
@@ -350,7 +322,7 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <div className="container-max section-padding py-8">
+      <div className="container-max section-padding py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Product Images */}
           <div className="space-y-4">
@@ -447,31 +419,12 @@ export default function ProductDetailPage() {
                     </span>
                   )}
                 </div>
-                {displayOriginalPrice > displayPrice && (
-                  <Badge className="bg-red-500 text-white">
-                    Tiết kiệm {calculateSavings(displayOriginalPrice, displayPrice)}%
-                  </Badge>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <Button
-                  onClick={handleBuyNow}
-                  className="w-full bg-gradient-to-r from-brand-emerald to-brand-blue hover:from-brand-emerald/90 hover:to-brand-blue/90 text-white h-12 text-lg font-semibold"
-                >
-                  <CreditCard className="w-5 h-5 mr-2" />
-                  Mua ngay - {formatPrice(displayPrice)}
-                </Button>
-
-                <div className="flex space-x-3">
-                  <Button
-                    onClick={handleAddToCart}
-                    variant="outline"
-                    className="flex-1 h-12 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
-                  >
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    Thêm vào giỏ hàng
-                  </Button>
+                <div className="flex items-center gap-3">
+                  {displayOriginalPrice > displayPrice && (
+                    <Badge className="bg-red-500 text-white">
+                      Tiết kiệm {calculateSavings(displayOriginalPrice, displayPrice)}%
+                    </Badge>
+                  )}
                   <Button
                     variant="outline"
                     onClick={handleToggleFavorite}
@@ -481,6 +434,27 @@ export default function ProductDetailPage() {
                       }`}
                   >
                     <Heart className={`w-5 h-5 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Button
+                  onClick={handleBuyNow}
+                  className="w-full bg-gradient-to-r from-brand-emerald to-brand-blue hover:from-brand-emerald/90 hover:to-brand-blue/90 text-white h-12 text-lg font-semibold"
+                >
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Liên hệ
+                </Button>
+
+                <div className="hidden flex justify-end">
+                  <Button
+                    onClick={handleAddToCart}
+                    variant="outline"
+                    className="hidden flex-1 h-12 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
+                  >
+                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    Thêm vào giỏ hàng
                   </Button>
                 </div>
               </div>

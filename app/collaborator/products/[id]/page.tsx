@@ -128,31 +128,17 @@ export default function CollaboratorProductDetailPage() {
   };
 
   const handleBuyNow = async () => {
-    if (!sessionId || !user) {
-      toast({
-        title: "Cần đăng nhập",
-        description: "Vui lòng đăng nhập để mua hàng.",
-        variant: "destructive",
-      });
-      router.push("/login");
-      return;
-    }
     if (!product || !selectedPrice) return;
-    try {
-      const cartItem = createCartItem(product, selectedPrice, user.id);
-      addItem(cartItem);
-      toast({
-        title: "Chuyển đến thanh toán",
-        description: `${product.name} - ${selectedPrice.name}`,
-      });
-      router.push("/checkout?mode=buynow");
-    } catch {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng thử lại.",
-        variant: "destructive",
-      });
+
+    const zaloUrl = "https://zalo.me/0389660305";
+    if (typeof window !== "undefined") {
+      window.open(zaloUrl, "_blank", "noopener,noreferrer");
     }
+
+    toast({
+      title: "Đang mở Zalo",
+      description: `Liên hệ mua ${product.name} - ${selectedPrice.name}`,
+    });
   };
 
   const handleToggleFavorite = () => {
@@ -213,8 +199,8 @@ export default function CollaboratorProductDetailPage() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50/50 via-white to-teal-50/50">
       <Header />
 
-      <div className="bg-gray-50 border-b border-gray-200 pt-20">
-        <div className="container-max section-padding py-3">
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="container-max section-padding py-2">
           <nav className="flex items-center gap-2 text-sm text-gray-600">
             <Link href="/" className="hover:text-emerald-600">Trang chủ</Link>
             <span>›</span>
@@ -227,7 +213,7 @@ export default function CollaboratorProductDetailPage() {
         </div>
       </div>
 
-      <div className="container-max section-padding py-8">
+      <div className="container-max section-padding py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <Card className="overflow-hidden p-10">
             <div
@@ -299,29 +285,12 @@ export default function CollaboratorProductDetailPage() {
                     </span>
                   )}
                 </div>
-                {displayOriginalPrice > displayPrice && (
-                  <Badge className="bg-red-500 text-white">
-                    Tiết kiệm {calculateSavings(displayOriginalPrice, displayPrice)}%
-                  </Badge>
-                )}
-              </div>
-              <div className="space-y-3">
-                <Button
-                  onClick={handleBuyNow}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-12 text-lg font-semibold"
-                >
-                  <CreditCard className="w-5 h-5 mr-2" />
-                  Mua ngay - {formatPrice(displayPrice)}
-                </Button>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleAddToCart}
-                    variant="outline"
-                    className="flex-1 h-12 border-emerald-600 text-emerald-600 hover:bg-emerald-50"
-                  >
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    Thêm vào giỏ
-                  </Button>
+                <div className="flex items-center gap-3">
+                  {displayOriginalPrice > displayPrice && (
+                    <Badge className="bg-red-500 text-white">
+                      Tiết kiệm {calculateSavings(displayOriginalPrice, displayPrice)}%
+                    </Badge>
+                  )}
                   <Button
                     variant="outline"
                     onClick={handleToggleFavorite}
@@ -330,6 +299,25 @@ export default function CollaboratorProductDetailPage() {
                     }`}
                   >
                     <Heart className={`w-5 h-5 ${isFavorite(product.id) ? "fill-current" : ""}`} />
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Button
+                  onClick={handleBuyNow}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-12 text-lg font-semibold"
+                >
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Liên hệ
+                </Button>
+                <div className="hidden flex gap-3">
+                  <Button
+                    onClick={handleAddToCart}
+                    variant="outline"
+                    className="flex-1 h-12 border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+                  >
+                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    Thêm vào giỏ
                   </Button>
                 </div>
               </div>

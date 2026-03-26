@@ -177,7 +177,7 @@ export default function FavoritesPage() {
                     <Button
                       size="sm"
                       onClick={() => handleAddToCart(item)}
-                      className="bg-gradient-to-r from-brand-charcoal to-brand-blue hover:from-brand-blue hover:to-brand-emerald text-white"
+                      className="hidden bg-gradient-to-r from-brand-charcoal to-brand-blue hover:from-brand-blue hover:to-brand-emerald text-white"
                     >
                       <ShoppingCart className="w-4 h-4 mr-1" />
                       Thêm vào giỏ

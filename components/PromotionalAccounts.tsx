@@ -194,7 +194,7 @@ export default function PromotionalAccounts() {
                   </div>
 
                   {/* Actions */}
-                  <div className="pt-1">
+                  <div className="pt-1 hidden">
                     <Button
                       onClick={() => handleAddToCart(item)}
                       size="sm"

@@ -233,6 +233,7 @@ interface Order {
 
 import { deleteAdminUser } from '@/lib/api'; // Import hàm xóa người dùng từ api.ts
 import { copyFile } from 'fs';
+import AdminGiftCampaignTab from "@/components/admin/AdminGiftCampaignTab";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -3125,7 +3126,7 @@ QAI Store - Tài khoản premium uy tín #1
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Modern Floating Navigation */}
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 p-2">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 bg-transparent gap-2 h-auto p-0">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 bg-transparent gap-2 h-auto p-0">
               <TabsTrigger
                 value="overview"
                 disabled={role != "admin"}
@@ -3255,6 +3256,17 @@ QAI Store - Tài khoản premium uy tín #1
                 <Monitor className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
                 <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
                   Code 2FA
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="gift-campaign"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <Gift className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Quà tặng
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -6650,6 +6662,9 @@ QAI Store - Tài khoản premium uy tín #1
             </Card>
           </TabsContent>
 
+          <TabsContent value="gift-campaign" className="mt-6">
+            <AdminGiftCampaignTab />
+          </TabsContent>
 
         </Tabs>
 

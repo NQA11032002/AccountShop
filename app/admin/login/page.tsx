@@ -162,16 +162,6 @@ export default function AdminLoginPage() {
               </Button>
             </form>
 
-            {/* Demo Credentials */}
-            <div className="mt-6 space-y-3">
-              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <p className="text-xs text-purple-800 font-medium mb-2">Demo Admin Accounts:</p>
-                <div className="space-y-1 text-xs text-purple-700">
-                  <div><strong>Super Admin:</strong> admin@qaistore.com / admin123</div>
-                  <div><strong>Manager:</strong> manager@qaistore.com / manager123</div>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
 

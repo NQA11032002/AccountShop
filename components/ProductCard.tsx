@@ -257,30 +257,7 @@ export default function ProductCard({
             </div>
 
             {/* Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <Button
-                onClick={handleAddToCart}
-                disabled={!product.in_stock || isProcessing}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl"
-              >
-                {isProcessing ? (
-                  <>
-                    <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Đang thêm...
-                  </>
-                ) : isInCart(product.id, standardDurationId) ? (
-                  <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Trong giỏ ({getItemQuantity(product.id, standardDurationId)})
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    Thêm vào giỏ
-                  </>
-                )}
-              </Button>
-
+            <div className="grid grid-cols-1 gap-2">
               <Link href={productHref} className="w-full">
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl">
                   <Eye className="w-4 h-4 mr-2" />
@@ -457,7 +434,7 @@ export default function ProductCard({
           <Button
             onClick={handleAddToCart}
             disabled={!product.in_stock || isProcessing}
-            className="flex-1 min-w-0 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-2 lg:py-3 text-xs lg:text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="hidden flex-1 min-w-0 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-2 lg:py-3 text-xs lg:text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
               <>
@@ -479,7 +456,7 @@ export default function ProductCard({
               </>
             )}
           </Button>
-          <Link href={productHref} className="flex-shrink-0 min-w-[5.5rem]">
+          <Link href={productHref} className="w-full">
             <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-2 lg:py-3 text-xs lg:text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl whitespace-nowrap">
               <Eye className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 shrink-0" />
               Chi tiết

@@ -4,6 +4,7 @@ import { CartItem } from '@/types/cart.interface';
 import type { RankingData } from '@/types/RankingData.interface';
 import type { userOnetimecode, Onetimecode } from '@/types/Onetimecode';
 import type { ChatgptPayload } from '@/types/chatgpt.interface';
+import type { GiftStatusResponse, AdminGiftActiveResponse } from '@/types/gift.interface';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -513,6 +514,79 @@ export const removeFavorite = async (productId: number, sessionId: string) => {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${sessionId}` },
     });
+};
+
+/**
+ * GET /gifts/status - Trạng thái chiến dịch quà tặng + danh sách tham gia + winner khi hết giờ
+ */
+export const fetchGiftStatus = async (sessionId: string): Promise<GiftStatusResponse> => {
+    const res = await fetch(`${API_URL}/gifts/status`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch gift status');
+    return data as GiftStatusResponse;
+};
+
+/**
+ * POST /gifts/join - tham gia danh sách nhận quà
+ */
+export const joinGift = async (sessionId: string): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch(`${API_URL}/gifts/join`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify({}),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || 'Failed to join gift');
+    return { success: data.success, message: data?.message };
+};
+
+/**
+ * GET /admin/gifts/active - Admin xem trạng thái hiện tại
+ */
+export const fetchAdminGiftActive = async (sessionId: string): Promise<AdminGiftActiveResponse> => {
+    const res = await fetch(`${API_URL}/admin/gifts/active`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch admin gift');
+    return data as AdminGiftActiveResponse;
+};
+
+/**
+ * PUT /admin/gifts/current - Admin cập nhật name + thời gian kết thúc
+ * Prefer end_at if provided, else compute from duration_minutes/duration_seconds
+ */
+export const updateAdminGiftCurrent = async (
+    sessionId: string,
+    payload: {
+        gift_name: string;
+        end_at?: string;
+        duration_minutes?: number;
+        duration_seconds?: number;
+    }
+): Promise<any> => {
+    const res = await fetch(`${API_URL}/admin/gifts/current`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || 'Failed to update gift campaign');
+    return data;
 };
 
 
