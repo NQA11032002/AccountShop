@@ -1,14 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Gift, Users, Timer } from "lucide-react";
+import { Gift, Users, Timer, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { fetchAdminGiftActive, updateAdminGiftCurrent } from "@/lib/api";
+import { fetchAdminGiftActive, sendAdminGiftWinnerGift, updateAdminGiftCurrent } from "@/lib/api";
 import type { AdminGiftActiveData } from "@/types/gift.interface";
 
 function toDateTimeLocal(iso: string) {
@@ -38,6 +47,13 @@ export default function AdminGiftCampaignTab() {
 
   const [loading, setLoading] = useState(true);
   const [giftState, setGiftState] = useState<AdminGiftActiveData | null>(null);
+  const [sendGiftOpen, setSendGiftOpen] = useState(false);
+  const [sendingGift, setSendingGift] = useState(false);
+
+  const [giftAccountEmail, setGiftAccountEmail] = useState("");
+  const [giftAccountPassword, setGiftAccountPassword] = useState("");
+  const [gift2fa, setGift2fa] = useState("");
+  const [giftNote, setGiftNote] = useState("");
 
   const [giftName, setGiftName] = useState("");
   const [endAtInput, setEndAtInput] = useState("");
@@ -120,6 +136,55 @@ export default function AdminGiftCampaignTab() {
         description: e?.message || "Vui lòng thử lại.",
         variant: "destructive",
       });
+    }
+  };
+
+  const winnerEmail = giftState?.winner?.email || "";
+
+  const openSendGift = () => {
+    setGiftAccountEmail("");
+    setGiftAccountPassword("");
+    setGift2fa("");
+    setGiftNote("");
+    setSendGiftOpen(true);
+  };
+
+  const onSendGift = async () => {
+    if (!sessionId) return;
+    if (!giftState?.winner?.name) {
+      toast({ title: "Chưa có người trúng thưởng", variant: "destructive" });
+      return;
+    }
+    if (!giftAccountEmail.trim() || !giftAccountPassword.trim()) {
+      toast({
+        title: "Thiếu thông tin",
+        description: "Vui lòng nhập Email và Pass của tài khoản quà tặng.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSendingGift(true);
+    try {
+      await sendAdminGiftWinnerGift(sessionId, {
+        account_email: giftAccountEmail.trim(),
+        account_password: giftAccountPassword.trim(),
+        code_2fa: gift2fa.trim() ? gift2fa.trim() : undefined,
+        note: giftNote.trim() ? giftNote.trim() : undefined,
+      });
+      toast({
+        title: "Đã gửi quà",
+        description: `Đã gửi email cho ${winnerEmail || "khách trúng thưởng"}.`,
+      });
+      setSendGiftOpen(false);
+    } catch (e: any) {
+      toast({
+        title: "Gửi email thất bại",
+        description: e?.message || "Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingGift(false);
     }
   };
 
@@ -207,6 +272,27 @@ export default function AdminGiftCampaignTab() {
                   ) : giftState?.has_ended ? (
                     <div className="text-gray-600">Chưa có khách tham gia</div>
                   ) : null}
+
+                  {giftState?.winner?.name && (
+                    <div className="pt-3">
+                      <Button
+                        onClick={openSendGift}
+                        className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white"
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Gửi quà
+                      </Button>
+                      {winnerEmail ? (
+                        <div className="text-xs text-gray-500 mt-2">
+                          Email khách trúng thưởng: <span className="font-medium">{winnerEmail}</span>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-amber-700 mt-2">
+                          Chưa có email trong dữ liệu winner (kiểm tra user.email).
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -234,6 +320,7 @@ export default function AdminGiftCampaignTab() {
                         <tr className="text-left text-gray-500 border-b border-gray-200">
                           <th className="py-3 pr-4">STT</th>
                           <th className="py-3 pr-4">Tên</th>
+                          <th className="py-3 pr-4">Email</th>
                           <th className="py-3">Ngày đăng ký</th>
                         </tr>
                       </thead>
@@ -242,6 +329,7 @@ export default function AdminGiftCampaignTab() {
                           <tr key={p.user_id} className="border-b border-gray-100">
                             <td className="py-3 pr-4 text-gray-700">{p.stt}</td>
                             <td className="py-3 pr-4 text-gray-800 font-medium">{p.name || "—"}</td>
+                            <td className="py-3 pr-4 text-gray-700">{p.email || "—"}</td>
                             <td className="py-3 text-gray-600">
                               {p.registered_at ? new Date(p.registered_at).toLocaleDateString("vi-VN") : "—"}
                             </td>
@@ -256,6 +344,61 @@ export default function AdminGiftCampaignTab() {
           </div>
         </div>
       </div>
+
+      <Dialog open={sendGiftOpen} onOpenChange={setSendGiftOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-brand-emerald" />
+              Gửi quà cho khách trúng thưởng
+            </DialogTitle>
+            <DialogDescription>
+              Email khách sẽ lấy từ danh sách user đã tham gia (winner). Bạn chỉ cần nhập thông tin tài khoản quà tặng.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <div className="text-sm font-semibold text-gray-800">Email khách trúng thưởng</div>
+              <Input value={winnerEmail || "—"} disabled />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <div className="text-sm font-semibold text-gray-800">Email</div>
+                <Input value={giftAccountEmail} onChange={(e) => setGiftAccountEmail(e.target.value)} placeholder="Email tài khoản quà tặng" />
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm font-semibold text-gray-800">Pass</div>
+                <Input value={giftAccountPassword} onChange={(e) => setGiftAccountPassword(e.target.value)} placeholder="Mật khẩu tài khoản quà tặng" />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-sm font-semibold text-gray-800">Mã 2FA (tuỳ chọn)</div>
+              <Input value={gift2fa} onChange={(e) => setGift2fa(e.target.value)} placeholder="Ví dụ: 123 456" />
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-sm font-semibold text-gray-800">Ghi chú (tuỳ chọn)</div>
+              <Textarea value={giftNote} onChange={(e) => setGiftNote(e.target.value)} placeholder="Hướng dẫn đăng nhập, lưu ý đổi mật khẩu, thời hạn..." />
+            </div>
+          </div>
+
+          <DialogFooter className="mt-2">
+            <Button variant="outline" onClick={() => setSendGiftOpen(false)} disabled={sendingGift}>
+              Hủy
+            </Button>
+            <Button
+              onClick={onSendGift}
+              disabled={sendingGift || !giftState?.winner?.name}
+              className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white"
+            >
+              {sendingGift ? "Đang gửi..." : "Gửi quà"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

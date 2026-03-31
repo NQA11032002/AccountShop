@@ -22,11 +22,27 @@ export const metadata: Metadata = {
   description: 'Mua tài khoản Netflix, Spotify, ChatGPT Plus, YouTube Premium với giá tốt nhất. Bảo hành uy tín, giao hàng tự động 24/7.',
   keywords: 'tài khoản premium, netflix, spotify, chatgpt plus, youtube premium, canva pro, adobe creative',
   authors: [{ name: 'QAI STORE' }],
+  icons: {
+    icon: [
+      { url: '/favicon.png' },
+    ],
+    apple: [
+      { url: '/images/logo.png' },
+    ],
+  },
   openGraph: {
     title: 'QAI STORE - Shop Tài Khoản Premium Uy Tín',
     description: 'Mua tài khoản Netflix, Spotify, ChatGPT Plus, YouTube Premium với giá tốt nhất. Bảo hành uy tín, giao hàng tự động 24/7.',
     type: 'website',
     locale: 'vi_VN',
+    images: [
+      {
+        url: '/images/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'QAI STORE',
+      },
+    ],
   },
   robots: {
     index: true,

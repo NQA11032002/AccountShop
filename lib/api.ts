@@ -589,6 +589,34 @@ export const updateAdminGiftCurrent = async (
     return data;
 };
 
+/**
+ * POST /admin/gifts/send-winner-gift - gửi quà cho khách trúng thưởng
+ */
+export const sendAdminGiftWinnerGift = async (
+    sessionId: string,
+    payload: {
+        account_email: string;
+        account_password: string;
+        code_2fa?: string;
+        note?: string;
+        subject?: string;
+    }
+): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch(`${API_URL}/admin/gifts/send-winner-gift`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+            Accept: 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || 'Không thể gửi email quà tặng');
+    return data as { success: boolean; message?: string };
+};
+
 
 export const fetchUserRankingData = async (sessionId: string): Promise<RankingData> => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/ranking`, {

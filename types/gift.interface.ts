@@ -1,6 +1,7 @@
 export interface GiftWinner {
     user_id: string;
     name: string | null;
+    email?: string | null;
     selected_at: string | null;
 }
 
@@ -8,6 +9,7 @@ export interface GiftParticipant {
     stt: number;
     user_id: string;
     name: string | null;
+    email?: string | null;
     registered_at: string | null;
 }
 

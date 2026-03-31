@@ -121,7 +121,7 @@ export default function GiftPage() {
               </p>
               <div className="mt-6 flex gap-3">
                 <Link href="/login" className="flex-1">
-                  <Button className="w-full bg-gradient-to-r from-brand-purple to-brand-blue hover:from-brand-purple/90 hover:to-brand-blue/90">
+                  <Button className="w-full bg-gradient-to-r from-rose-500 via-orange-500 to-yellow-400 text-white font-semibold shadow-lg hover:shadow-xl hover:from-rose-600 hover:via-orange-600 hover:to-yellow-500">
                     Đăng nhập
                   </Button>
                 </Link>
