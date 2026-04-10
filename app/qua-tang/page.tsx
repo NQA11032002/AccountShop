@@ -139,7 +139,13 @@ export default function GiftPage() {
   }
 
   const participants: GiftParticipant[] = status?.participants ?? [];
-  const hasWinner = Boolean(status?.winner?.name);
+  const winners =
+    status?.winners && status.winners.length > 0
+      ? status.winners
+      : status?.winner
+        ? [status.winner]
+        : [];
+  const hasWinner = winners.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-blue/5 via-brand-purple/5 to-brand-emerald/5">
@@ -184,12 +190,27 @@ export default function GiftPage() {
                     )}
 
                     {status?.has_ended && (
-                      <div className="mt-2">
+                      <div className="mt-2 space-y-2">
                         {hasWinner ? (
-                          <div className="text-gray-800 font-semibold">
-                            Khách trúng thưởng:{" "}
-                            <span className="text-brand-blue">{status?.winner?.name}</span>
-                          </div>
+                          <>
+                            <div className="text-gray-800 font-semibold">
+                              {winners.length === 1 ? (
+                                <>
+                                  Khách trúng thưởng:{" "}
+                                  <span className="text-brand-blue">{winners[0].name}</span>
+                                </>
+                              ) : (
+                                <>
+                                  Khách trúng thưởng ({winners.length} người):
+                                  <ul className="mt-2 list-disc list-inside text-brand-blue font-medium space-y-1">
+                                    {winners.map((w) => (
+                                      <li key={w.user_id}>{w.name || "—"}</li>
+                                    ))}
+                                  </ul>
+                                </>
+                              )}
+                            </div>
+                          </>
                         ) : (
                           <div className="text-gray-600">Chưa có khách tham gia</div>
                         )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Gift, Users, Timer, Send } from "lucide-react";
+import { Gift, Users, Timer, Send, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +58,7 @@ export default function AdminGiftCampaignTab() {
   const [giftName, setGiftName] = useState("");
   const [endAtInput, setEndAtInput] = useState("");
   const [durationMinutes, setDurationMinutes] = useState<number>(30);
+  const [winnerCount, setWinnerCount] = useState<number>(1);
 
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
@@ -74,6 +75,11 @@ export default function AdminGiftCampaignTab() {
       setGiftName(res.data.gift_name || "");
       setEndAtInput(res.data.ends_at ? toDateTimeLocal(res.data.ends_at) : "");
       setDurationMinutes(30);
+      setWinnerCount(
+        typeof res.data.winner_count === "number" && res.data.winner_count >= 1
+          ? res.data.winner_count
+          : 1
+      );
     } catch (e: any) {
       toast({
         title: "Không tải được quà tặng",
@@ -113,8 +119,14 @@ export default function AdminGiftCampaignTab() {
       return;
     }
 
-    const payload: any = {
+    const payload: {
+      gift_name: string;
+      end_at?: string;
+      duration_minutes?: number;
+      winner_count: number;
+    } = {
       gift_name: giftName.trim(),
+      winner_count: Math.min(500, Math.max(1, Math.floor(winnerCount) || 1)),
     };
 
     if (endAtInput) {
@@ -139,7 +151,17 @@ export default function AdminGiftCampaignTab() {
     }
   };
 
-  const winnerEmail = giftState?.winner?.email || "";
+  const winnersList =
+    giftState?.winners?.length
+      ? giftState.winners
+      : giftState?.winner
+        ? [giftState.winner]
+        : [];
+
+  const winnerEmailsText = winnersList
+    .map((w) => w.email)
+    .filter(Boolean)
+    .join(", ");
 
   const openSendGift = () => {
     setGiftAccountEmail("");
@@ -151,7 +173,7 @@ export default function AdminGiftCampaignTab() {
 
   const onSendGift = async () => {
     if (!sessionId) return;
-    if (!giftState?.winner?.name) {
+    if (!winnersList.length) {
       toast({ title: "Chưa có người trúng thưởng", variant: "destructive" });
       return;
     }
@@ -166,15 +188,20 @@ export default function AdminGiftCampaignTab() {
 
     setSendingGift(true);
     try {
-      await sendAdminGiftWinnerGift(sessionId, {
+      const sendRes = await sendAdminGiftWinnerGift(sessionId, {
         account_email: giftAccountEmail.trim(),
         account_password: giftAccountPassword.trim(),
         code_2fa: gift2fa.trim() ? gift2fa.trim() : undefined,
         note: giftNote.trim() ? giftNote.trim() : undefined,
       });
+      const sent = sendRes.data?.sent ?? winnersList.length;
+      const skipped = sendRes.data?.skipped_no_email ?? 0;
       toast({
         title: "Đã gửi quà",
-        description: `Đã gửi email cho ${winnerEmail || "khách trúng thưởng"}.`,
+        description:
+          skipped > 0
+            ? `Đã gửi ${sent} email. Bỏ qua ${skipped} tài khoản không có email.`
+            : `Đã gửi email cho ${sent} người trúng thưởng.`,
       });
       setSendGiftOpen(false);
     } catch (e: any) {
@@ -235,6 +262,20 @@ export default function AdminGiftCampaignTab() {
                   />
                 </div>
 
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-800">Số người trúng thưởng</div>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={winnerCount}
+                    onChange={(e) => setWinnerCount(Number(e.target.value))}
+                  />
+                  <div className="text-xs text-gray-500">
+                    Khi hết giờ, hệ thống chọn ngẫu nhiên tối đa số này (không trùng, không vượt quá số người tham gia).
+                  </div>
+                </div>
+
                 <Button
                   onClick={onSave}
                   className="w-full bg-gradient-to-r from-brand-emerald to-brand-blue hover:from-brand-emerald/90 hover:to-brand-blue/90 text-white"
@@ -265,30 +306,31 @@ export default function AdminGiftCampaignTab() {
                     </>
                   )}
 
-                  {giftState?.winner?.name ? (
+                  {winnersList.length > 0 ? (
                     <div className="pt-2 text-gray-800 font-semibold">
-                      Winner: <span className="text-brand-blue">{giftState.winner.name}</span>
+                      Đã chọn{" "}
+                      <span className="text-brand-blue">{winnersList.length}</span> người trúng
                     </div>
                   ) : giftState?.has_ended ? (
                     <div className="text-gray-600">Chưa có khách tham gia</div>
                   ) : null}
 
-                  {giftState?.winner?.name && (
+                  {winnersList.length > 0 && (
                     <div className="pt-3">
                       <Button
                         onClick={openSendGift}
                         className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white"
                       >
                         <Send className="w-4 h-4 mr-2" />
-                        Gửi quà
+                        Gửi email quà ({winnersList.length} người)
                       </Button>
-                      {winnerEmail ? (
-                        <div className="text-xs text-gray-500 mt-2">
-                          Email khách trúng thưởng: <span className="font-medium">{winnerEmail}</span>
+                      {winnerEmailsText ? (
+                        <div className="text-xs text-gray-500 mt-2 break-all">
+                          Email nhận quà: <span className="font-medium">{winnerEmailsText}</span>
                         </div>
                       ) : (
                         <div className="text-xs text-amber-700 mt-2">
-                          Chưa có email trong dữ liệu winner (kiểm tra user.email).
+                          Một số tài khoản chưa có email — kiểm tra user.email trước khi gửi.
                         </div>
                       )}
                     </div>
@@ -325,22 +367,62 @@ export default function AdminGiftCampaignTab() {
                         </tr>
                       </thead>
                       <tbody>
-                        {(giftState.participants || []).map((p) => (
-                          <tr key={p.user_id} className="border-b border-gray-100">
-                            <td className="py-3 pr-4 text-gray-700">{p.stt}</td>
-                            <td className="py-3 pr-4 text-gray-800 font-medium">{p.name || "—"}</td>
-                            <td className="py-3 pr-4 text-gray-700">{p.email || "—"}</td>
-                            <td className="py-3 text-gray-600">
-                              {p.registered_at ? new Date(p.registered_at).toLocaleDateString("vi-VN") : "—"}
-                            </td>
-                          </tr>
-                        ))}
+                        {(giftState.participants || []).map((p) => {
+                          const isWinner = winnersList.some((w) => w.user_id === p.user_id);
+                          return (
+                            <tr
+                              key={p.user_id}
+                              className={`border-b border-gray-100 ${isWinner ? "bg-amber-50/80" : ""}`}
+                            >
+                              <td className="py-3 pr-4 text-gray-700">{p.stt}</td>
+                              <td className="py-3 pr-4 text-gray-800 font-medium">{p.name || "—"}</td>
+                              <td className="py-3 pr-4 text-gray-700">{p.email || "—"}</td>
+                              <td className="py-3 text-gray-600">
+                                {p.registered_at ? new Date(p.registered_at).toLocaleDateString("vi-VN") : "—"}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                 )}
               </CardContent>
             </Card>
+
+            {winnersList.length > 0 && (
+              <Card className="mt-6">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-amber-500" />
+                      Danh sách trúng thưởng
+                    </h2>
+                    <Badge className="bg-amber-500 text-white">{winnersList.length} người</Badge>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-gray-500 border-b border-gray-200">
+                          <th className="py-3 pr-4">STT</th>
+                          <th className="py-3 pr-4">Tên</th>
+                          <th className="py-3">Email</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {winnersList.map((w, idx) => (
+                          <tr key={w.user_id} className="border-b border-gray-100">
+                            <td className="py-3 pr-4 text-gray-700">{idx + 1}</td>
+                            <td className="py-3 pr-4 text-gray-800 font-medium">{w.name || "—"}</td>
+                            <td className="py-3 text-gray-700">{w.email || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
@@ -350,17 +432,24 @@ export default function AdminGiftCampaignTab() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Gift className="w-5 h-5 text-brand-emerald" />
-              Gửi quà cho khách trúng thưởng
+              Gửi quà cho người trúng thưởng
             </DialogTitle>
             <DialogDescription>
-              Email khách sẽ lấy từ danh sách user đã tham gia (winner). Bạn chỉ cần nhập thông tin tài khoản quà tặng.
+              Hệ thống gửi cùng nội dung quà (email / pass tài khoản bạn nhập bên dưới) tới từng email khách trong danh sách trúng thưởng.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-1">
-              <div className="text-sm font-semibold text-gray-800">Email khách trúng thưởng</div>
-              <Input value={winnerEmail || "—"} disabled />
+              <div className="text-sm font-semibold text-gray-800">
+                Email khách trúng thưởng ({winnersList.length} người)
+              </div>
+              <Textarea
+                value={winnerEmailsText || "—"}
+                disabled
+                className="min-h-[72px] resize-none text-sm"
+                readOnly
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -391,7 +480,7 @@ export default function AdminGiftCampaignTab() {
             </Button>
             <Button
               onClick={onSendGift}
-              disabled={sendingGift || !giftState?.winner?.name}
+              disabled={sendingGift || winnersList.length === 0}
               className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white"
             >
               {sendingGift ? "Đang gửi..." : "Gửi quà"}

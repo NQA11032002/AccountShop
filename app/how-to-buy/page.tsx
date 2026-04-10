@@ -6,6 +6,7 @@ import { CheckCircle, CreditCard, Download, MessageCircle, Shield, Clock, ArrowR
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import SectionReveal from '@/components/SectionReveal';
 
 export default function HowToBuyPage() {
   const steps = [
@@ -92,6 +93,7 @@ export default function HowToBuyPage() {
       <Header />
 
       {/* Hero Section */}
+      <SectionReveal>
       <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
         <div className="container-max section-padding">
           <div className="text-center text-white">
@@ -110,8 +112,10 @@ export default function HowToBuyPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       {/* Steps Process */}
+      <SectionReveal delayMs={80}>
       <section className="py-20">
         <div className="container-max section-padding">
           <div className="space-y-12">
@@ -160,8 +164,10 @@ export default function HowToBuyPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       {/* Payment Methods */}
+      <SectionReveal delayMs={120}>
       <section className="py-20 bg-white">
         <div className="container-max section-padding">
           <div className="text-center mb-16">
@@ -198,8 +204,10 @@ export default function HowToBuyPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       {/* Guarantees */}
+      <SectionReveal delayMs={160}>
       <section className="py-20 bg-gradient-brand">
         <div className="container-max section-padding">
           <div className="text-center mb-12">
@@ -224,8 +232,10 @@ export default function HowToBuyPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       {/* CTA Section */}
+      <SectionReveal delayMs={200}>
       <section className="py-20 bg-white">
         <div className="container-max section-padding text-center">
           <h2 className="text-3xl font-bold text-brand-charcoal mb-4">
@@ -252,6 +262,7 @@ export default function HowToBuyPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       <Footer />
     </div>

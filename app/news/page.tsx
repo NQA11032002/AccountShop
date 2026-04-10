@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Eye, Share2, Heart, MessageCircle } from 'lucide-react';
+import SectionReveal from '@/components/SectionReveal';
 
 export default function NewsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -110,6 +111,7 @@ export default function NewsPage() {
 
       <main className="bg-white">
         {/* Hero Section */}
+        <SectionReveal>
         <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -133,8 +135,10 @@ export default function NewsPage() {
             </div>
           </div>
         </section>
+        </SectionReveal>
 
         {/* Featured Articles */}
+        <SectionReveal delayMs={90}>
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-8">Tin Nổi Bật</h2>
@@ -195,8 +199,10 @@ export default function NewsPage() {
             </div>
           </div>
         </section>
+        </SectionReveal>
 
         {/* Main Content */}
+        <SectionReveal delayMs={140}>
         <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row gap-8">
@@ -328,6 +334,7 @@ export default function NewsPage() {
             </div>
           </div>
         </section>
+        </SectionReveal>
       </main>
 
       <Footer />

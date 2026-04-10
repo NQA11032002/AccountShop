@@ -6,6 +6,7 @@ import { Star, Shield, Zap, Users, Award, TrendingUp, CheckCircle, Globe, Clock,
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import SectionReveal from '@/components/SectionReveal';
 
 export default function AboutPage() {
   console.log("AboutPage rendered");
@@ -94,6 +95,7 @@ export default function AboutPage() {
       <Header />
 
       {/* Hero Section */}
+      <SectionReveal>
       <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
         <div className="container-max section-padding">
           <div className="text-center text-white">
@@ -130,8 +132,10 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       {/* Stats Section */}
+      <SectionReveal delayMs={60}>
       <section className="py-16 bg-white">
         <div className="container-max section-padding">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -147,8 +151,10 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       {/* Story Section */}
+      <SectionReveal delayMs={100}>
       <section className="py-16 bg-gray-50">
         <div className="container-max section-padding">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -208,8 +214,10 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       {/* Features Section */}
+      <SectionReveal delayMs={140}>
       <section className="py-16 bg-white">
         <div className="container-max section-padding">
           <div className="text-center mb-12">
@@ -240,8 +248,10 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       {/* Values Section */}
+      <SectionReveal delayMs={180}>
       <section className="py-16 bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="container-max section-padding">
           <div className="text-center mb-12">
@@ -263,8 +273,10 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       {/* CTA Section */}
+      <SectionReveal delayMs={220}>
       <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="container-max section-padding">
           <div className="text-center text-white">
@@ -294,6 +306,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </SectionReveal>
 
       <Footer />
     </div>

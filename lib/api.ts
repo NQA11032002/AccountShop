@@ -6,7 +6,8 @@ import type { userOnetimecode, Onetimecode } from '@/types/Onetimecode';
 import type { ChatgptPayload } from '@/types/chatgpt.interface';
 import type { GiftStatusResponse, AdminGiftActiveResponse } from '@/types/gift.interface';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+/** Base URL API (không có slash cuối). Ví dụ: http://localhost:8000/api */
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
 
 
 interface Order {
@@ -279,25 +280,81 @@ export async function createOrder(orderData: any, sessionId: string): Promise<an
     return data; // trả về { order_id, message }
 }
 
+/** Gộp lỗi validate Laravel (422) thành một chuỗi dễ hiểu */
+function formatRegisterApiError(data: Record<string, unknown>, status: number): string {
+    const errors = data?.errors as Record<string, string[] | string> | undefined;
+    if (errors && typeof errors === 'object') {
+        const firstKey = Object.keys(errors)[0];
+        const val = firstKey ? errors[firstKey] : undefined;
+        const raw = Array.isArray(val) ? val[0] : val;
+        if (typeof raw === 'string') {
+            const r = raw.toLowerCase();
+            if (r.includes('already been taken') || r.includes('đã được sử dụng')) {
+                return 'Email này đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác.';
+            }
+            if (r.includes('email')) {
+                return raw;
+            }
+            return raw;
+        }
+    }
+    const msg = data?.message;
+    if (typeof msg === 'string' && msg.trim()) {
+        const m = msg.toLowerCase();
+        if (m.includes('already been taken')) {
+            return 'Email này đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác.';
+        }
+        return msg;
+    }
+    if (status === 422) {
+        return 'Thông tin không hợp lệ. Vui lòng kiểm tra lại.';
+    }
+    if (status >= 500) {
+        return 'Máy chủ tạm thời lỗi. Vui lòng thử lại sau.';
+    }
+    return 'Đăng ký thất bại. Vui lòng thử lại.';
+}
+
+export type RegisterUserError = Error & { status?: number };
+
 export async function registerUser(
     name: string,
     email: string,
     password: string
 ) {
+    if (!API_URL) {
+        const err = new Error(
+            'Chưa cấu hình NEXT_PUBLIC_API_URL (ví dụ http://localhost:8000/api trong .env.local).'
+        ) as RegisterUserError;
+        err.status = 0;
+        throw err;
+    }
+
     const res = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+            name,
+            email: email.trim(),
+            password,
+        }),
     });
 
-    // Đọc dữ liệu response
-    const data = await res.json();
-
-    if (!res.ok) {
-        throw new Error(data.message || 'Đăng ký thất bại');
+    let data: Record<string, unknown> = {};
+    try {
+        data = (await res.json()) as Record<string, unknown>;
+    } catch {
+        // body không phải JSON
     }
 
-    return data; // Trả data gốc cho hàm gọi xử lý tiếp
+    if (!res.ok) {
+        const message = formatRegisterApiError(data, res.status);
+        const err = new Error(message) as RegisterUserError;
+        err.status = res.status;
+        throw err;
+    }
+
+    return data;
 }
 
 export async function loginUser(data: {
@@ -573,6 +630,8 @@ export const updateAdminGiftCurrent = async (
         end_at?: string;
         duration_minutes?: number;
         duration_seconds?: number;
+        /** Số người trúng thưởng (random khi hết giờ), mặc định 1 */
+        winner_count?: number;
     }
 ): Promise<any> => {
     const res = await fetch(`${API_URL}/admin/gifts/current`, {
@@ -601,7 +660,7 @@ export const sendAdminGiftWinnerGift = async (
         note?: string;
         subject?: string;
     }
-): Promise<{ success: boolean; message?: string }> => {
+): Promise<{ success: boolean; message?: string; data?: { sent: number; total_winners: number; skipped_no_email: number } }> => {
     const res = await fetch(`${API_URL}/admin/gifts/send-winner-gift`, {
         method: 'POST',
         headers: {
@@ -614,7 +673,7 @@ export const sendAdminGiftWinnerGift = async (
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.message || 'Không thể gửi email quà tặng');
-    return data as { success: boolean; message?: string };
+    return data as { success: boolean; message?: string; data?: { sent: number; total_winners: number; skipped_no_email: number } };
 };
 
 

@@ -271,9 +271,9 @@ export default function ProductCard({
     );
   }
 
-  // Grid view (default)
+  // Grid view (default) — h-full + flex để nút "Chi tiết" luôn sát đáy card trong grid
   return (
-    <Card className={`group relative bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden hover:scale-[1.02] flex flex-col w-full max-w-sm mx-auto transform hover:-translate-y-1 ${className}`}>
+    <Card className={`group relative bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden hover:scale-[1.02] flex h-full min-h-0 flex-col w-full max-w-sm mx-auto transform hover:-translate-y-1 ${className}`}>
       {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
@@ -337,8 +337,8 @@ export default function ProductCard({
         </div>
       )}
 
-      <CardContent className={`${config.padding} pt-20 lg:pt-24 flex flex-col relative z-10 min-h-auto justify-between`}>
-        <div className="flex-grow overflow-hidden">
+      <CardContent className={`${config.padding} pt-20 lg:pt-24 flex flex-1 min-h-0 flex-col relative z-10`}>
+        <div className="flex min-h-0 flex-1 flex-col">
           {/* Product Title */}
           <h3 className={`${config.textSize} font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300 line-clamp-1`}
           >
@@ -354,83 +354,77 @@ export default function ProductCard({
             </Badge>
           )}
 
-          {/* Description */}
-          {/* <p className="text-xs lg:text-sm text-gray-600 mb-3 leading-relaxed line-clamp-2">
-            {product.description}
-          </p> */}
-
-        </div>
-
-        <div className="space-y-3">
-          {/* Features Preview */}
-          {showFeatures && (
-            <div className="hidden lg:block">
-              <div className="flex flex-wrap gap-1">
-                {(product.features || []).slice(0, 2).map((feature, idx) => (
-                  <span key={idx} className="inline-flex items-center text-xs bg-green-50 text-green-700 px-2 py-1 rounded-md border border-green-200">
-                    <Zap className="w-3 h-3 mr-1" />
-                    {feature}
-                  </span>
-                ))}
-                {(product.features?.length || 0) > 2 && (
-                  <span className="text-xs text-gray-500 px-2 py-1">
-                    +{(product.features?.length || 0) - 2}
-                  </span>
-                )}
+          <div className="space-y-3">
+            {/* Features Preview */}
+            {showFeatures && (
+              <div className="hidden lg:block">
+                <div className="flex flex-wrap gap-1">
+                  {(product.features || []).slice(0, 2).map((feature, idx) => (
+                    <span key={idx} className="inline-flex items-center text-xs bg-green-50 text-green-700 px-2 py-1 rounded-md border border-green-200">
+                      <Zap className="w-3 h-3 mr-1" />
+                      {feature}
+                    </span>
+                  ))}
+                  {(product.features?.length || 0) > 2 && (
+                    <span className="text-xs text-gray-500 px-2 py-1">
+                      +{(product.features?.length || 0) - 2}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Rating */}
-          <div className="flex items-center">
+            {/* Rating */}
             <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-3 h-3 lg:w-4 lg:h-4 ${i < Math.floor(product.rating)
-                    ? 'text-yellow-400 fill-current'
-                    : 'text-gray-300'
-                    }`}
-                />
-              ))}
-            </div>
-            <span className="ml-2 text-xs lg:text-sm text-gray-500 font-medium">
-              {product.rating} ({product.reviews})
-            </span>
-          </div>
-
-          {/* Price (áp dụng product.discount_percent cho toàn bộ duration) */}
-          <div className="flex items-baseline">
-            <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-              {formatPrice(displayPrice)}
-            </span>
-            {(displayOriginalPrice > displayPrice) && (
-              <span className="ml-2 text-xs lg:text-sm text-gray-400 line-through">
-                {formatPrice(displayOriginalPrice)}
+              <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-3 h-3 lg:w-4 lg:h-4 ${i < Math.floor(product.rating)
+                      ? 'text-yellow-400 fill-current'
+                      : 'text-gray-300'
+                      }`}
+                  />
+                ))}
+              </div>
+              <span className="ml-2 text-xs lg:text-sm text-gray-500 font-medium">
+                {product.rating} ({product.reviews})
               </span>
-            )}
-          </div>
+            </div>
 
-          {/* Gói & Bảo hành - một dòng, tránh trùng (Gói 1 tháng · BH 30 ngày) */}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs lg:text-sm text-gray-600">
-            <span className="inline-flex items-center">
-              <Clock className="w-3 h-3 mr-1 shrink-0" />
-              Gói {featuredDuration.name}
-            </span>
-            {product.warranty && (
-              <>
-                <span className="text-gray-300">·</span>
-                <span className="inline-flex items-center">
-                  <Shield className="w-3 h-3 mr-1 shrink-0" />
-                  BH {product.warranty}
+            {/* Price (áp dụng product.discount_percent cho toàn bộ duration) */}
+            <div className="flex items-baseline">
+              <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
+                {formatPrice(displayPrice)}
+              </span>
+              {(displayOriginalPrice > displayPrice) && (
+                <span className="ml-2 text-xs lg:text-sm text-gray-400 line-through">
+                  {formatPrice(displayOriginalPrice)}
                 </span>
-              </>
-            )}
+              )}
+            </div>
+
+            {/* Gói & Bảo hành - một dòng, tránh trùng (Gói 1 tháng · BH 30 ngày) */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs lg:text-sm text-gray-600">
+              <span className="inline-flex items-center">
+                <Clock className="w-3 h-3 mr-1 shrink-0" />
+                Gói {featuredDuration.name}
+              </span>
+              {product.warranty && (
+                <>
+                  <span className="text-gray-300">·</span>
+                  <span className="inline-flex items-center">
+                    <Shield className="w-3 h-3 mr-1 shrink-0" />
+                    BH {product.warranty}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Action Buttons - nút Chi tiết đủ rộng, không cắt chữ */}
-        <div className="flex gap-2 mt-4">
+        {/* Action Buttons - luôn đáy card khi nằm trong grid (cùng hàng) */}
+        <div className="mt-auto flex shrink-0 gap-2 pt-4">
           <Button
             onClick={handleAddToCart}
             disabled={!product.in_stock || isProcessing}

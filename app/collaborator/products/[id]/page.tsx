@@ -137,7 +137,7 @@ export default function CollaboratorProductDetailPage() {
 
     toast({
       title: "Đang mở Zalo",
-      description: `Liên hệ mua ${product.name} - ${selectedPrice.name}`,
+      description: `Mua ngay: ${product.name} - ${selectedPrice.name}`,
     });
   };
 
@@ -308,7 +308,7 @@ export default function CollaboratorProductDetailPage() {
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-12 text-lg font-semibold"
                 >
                   <CreditCard className="w-5 h-5 mr-2" />
-                  Liên hệ
+                  Mua ngay
                 </Button>
                 <div className="hidden flex gap-3">
                   <Button

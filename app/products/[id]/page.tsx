@@ -162,7 +162,7 @@ export default function ProductDetailPage() {
 
     toast({
       title: 'Đang mở Zalo',
-      description: `Liên hệ mua ${product.name} - ${selectedPrice.name}`,
+      description: `Mua ngay: ${product.name} - ${selectedPrice.name}`,
     });
   };
 
@@ -444,7 +444,7 @@ export default function ProductDetailPage() {
                   className="w-full bg-gradient-to-r from-brand-emerald to-brand-blue hover:from-brand-emerald/90 hover:to-brand-blue/90 text-white h-12 text-lg font-semibold"
                 >
                   <CreditCard className="w-5 h-5 mr-2" />
-                  Liên hệ
+                  Mua ngay
                 </Button>
 
                 <div className="hidden flex justify-end">

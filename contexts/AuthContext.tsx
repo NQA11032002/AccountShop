@@ -133,12 +133,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         status: 200,
         message: 'Đăng ký thành công',
       };
-    } catch (error: any) {
-      // Nếu registerUser throw error => error.message
+    } catch (error: unknown) {
+      const err = error as { message?: string; status?: number };
       return {
         success: false,
-        status: 400, // hoặc lấy thêm status từ error nếu muốn
-        message: 'Email đã tồn tại vui lòng đổi email khác!',
+        status: typeof err.status === 'number' ? err.status : 400,
+        message:
+          err.message?.trim() ||
+          'Đăng ký thất bại. Vui lòng thử lại.',
       };
     } finally {
       setIsLoading(false);
