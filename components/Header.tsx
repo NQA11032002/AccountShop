@@ -29,7 +29,7 @@ const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'Chính sách mua hàng': FileText,
   'Tin tức công nghệ': Newspaper,
   'Liên hệ': Mail,
-  'Prompt GPT': Code,
+  'Câu lệnh': Code,
   'Lấy Code': Gift,
   'Quà tặng': Gift,
 };
@@ -111,7 +111,7 @@ export default function Header() {
     { name: 'Tin tức công nghệ', href: '/news' },
     { name: 'Liên hệ', href: '/contact' },
     { name: 'Quà tặng', href: '/qua-tang' },
-    { name: 'Prompt GPT', href: '/prompt' },
+    { name: 'Câu lệnh', href: '/prompt' },
     { name: 'Lấy Code', href: '/onetimecode' },
   ];
 
@@ -299,19 +299,22 @@ export default function Header() {
     return matches.slice(0, 8);
   }, [products, searchInput, loadingProducts]);
 
-  // Build grouped categories: top-level parents with their children
-  const groupedCategories = (() => {
+  // Build grouped categories: chỉ category cha (parent_id = 0) + danh sách con.
+  // Điều này giúp mega menu khớp với mục lục danh mục trên trang sản phẩm.
+  const groupedCategories = useMemo(() => {
     if (!categories || categories.length === 0) return [];
-    // Top-level parents: parent_id === 0 or falsy
-    // const parents = categories.filter((c) => !c.parent_id || Number(c.parent_id) === 0);
-    // sort alphabetically
-    // parents.sort((a, b) => (String(a.name || '').localeCompare(String(b.name || ''))));
 
-    return categories.map((parent) => ({
+    const parents = categories
+      .filter((c) => !c.parent_id || Number(c.parent_id) === 0)
+      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+    return parents.map((parent) => ({
       parent,
-      children: categories.filter((c) => Number(c.parent_id) === Number(parent.id)).sort((a, b) => (String(a.name || '').localeCompare(String(b.name || '')))),
+      children: categories
+        .filter((c) => Number(c.parent_id) === Number(parent.id))
+        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))),
     }));
-  })();
+  }, [categories]);
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
@@ -376,7 +379,7 @@ export default function Header() {
               <Button
                 type="button"
                 disabled
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-blue/60 text-white p-2 rounded-md cursor-default"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-blue text-white p-2 rounded-md cursor-default"
               >
                 <Search className="w-4 h-4 text-white opacity-80" />
               </Button>

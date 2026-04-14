@@ -234,6 +234,7 @@ interface Order {
 import { deleteAdminUser } from '@/lib/api'; // Import hàm xóa người dùng từ api.ts
 import { copyFile } from 'fs';
 import AdminGiftCampaignTab from "@/components/admin/AdminGiftCampaignTab";
+import AdminPromptManagerTab from "@/components/admin/AdminPromptManagerTab";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -3267,6 +3268,17 @@ QAI Store - Tài khoản premium uy tín #1
                 <Gift className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
                 <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
                   Quà tặng
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="prompt-manager"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Prompt
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -6664,6 +6676,10 @@ QAI Store - Tài khoản premium uy tín #1
 
           <TabsContent value="gift-campaign" className="mt-6">
             <AdminGiftCampaignTab />
+          </TabsContent>
+
+          <TabsContent value="prompt-manager" className="mt-6">
+            <AdminPromptManagerTab />
           </TabsContent>
 
         </Tabs>

@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -54,6 +55,7 @@ export default function AdminGiftCampaignTab() {
   const [giftAccountPassword, setGiftAccountPassword] = useState("");
   const [gift2fa, setGift2fa] = useState("");
   const [giftNote, setGiftNote] = useState("");
+  const [selectedWinnerIds, setSelectedWinnerIds] = useState<string[]>([]);
 
   const [giftName, setGiftName] = useState("");
   const [endAtInput, setEndAtInput] = useState("");
@@ -168,7 +170,22 @@ export default function AdminGiftCampaignTab() {
     setGiftAccountPassword("");
     setGift2fa("");
     setGiftNote("");
+    setSelectedWinnerIds(
+      winnersList
+        .map((w) => w.user_id)
+        .filter((id): id is string => Boolean(id))
+    );
     setSendGiftOpen(true);
+  };
+
+  const toggleWinnerSelection = (userId: string, checked: boolean) => {
+    setSelectedWinnerIds((prev) => {
+      if (checked) {
+        if (prev.includes(userId)) return prev;
+        return [...prev, userId];
+      }
+      return prev.filter((id) => id !== userId);
+    });
   };
 
   const onSendGift = async () => {
@@ -185,6 +202,14 @@ export default function AdminGiftCampaignTab() {
       });
       return;
     }
+    if (selectedWinnerIds.length === 0) {
+      toast({
+        title: "Chưa chọn người nhận",
+        description: "Vui lòng chọn ít nhất 1 khách trúng thưởng để gửi quà.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setSendingGift(true);
     try {
@@ -193,6 +218,7 @@ export default function AdminGiftCampaignTab() {
         account_password: giftAccountPassword.trim(),
         code_2fa: gift2fa.trim() ? gift2fa.trim() : undefined,
         note: giftNote.trim() ? giftNote.trim() : undefined,
+        winner_user_ids: selectedWinnerIds,
       });
       const sent = sendRes.data?.sent ?? winnersList.length;
       const skipped = sendRes.data?.skipped_no_email ?? 0;
@@ -435,21 +461,50 @@ export default function AdminGiftCampaignTab() {
               Gửi quà cho người trúng thưởng
             </DialogTitle>
             <DialogDescription>
-              Hệ thống gửi cùng nội dung quà (email / pass tài khoản bạn nhập bên dưới) tới từng email khách trong danh sách trúng thưởng.
+              Chọn khách trúng thưởng muốn gửi quà. Hệ thống sẽ gửi cùng nội dung quà (email / pass tài khoản bạn nhập bên dưới) tới các khách được chọn.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-1">
               <div className="text-sm font-semibold text-gray-800">
-                Email khách trúng thưởng ({winnersList.length} người)
+                Chọn người nhận ({selectedWinnerIds.length}/{winnersList.length})
               </div>
-              <Textarea
-                value={winnerEmailsText || "—"}
-                disabled
-                className="min-h-[72px] resize-none text-sm"
-                readOnly
-              />
+              <div className="max-h-44 overflow-y-auto rounded-md border border-gray-200 p-3 space-y-2">
+                {winnersList.map((w) => {
+                  const checked = selectedWinnerIds.includes(w.user_id);
+                  return (
+                    <label key={w.user_id} className="flex items-center justify-between gap-3 text-sm">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(value) => toggleWinnerSelection(w.user_id, Boolean(value))}
+                        />
+                        <span className="font-medium text-gray-800 truncate">{w.name || "—"}</span>
+                      </div>
+                      <span className="text-gray-500 truncate">{w.email || "—"}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedWinnerIds(winnersList.map((w) => w.user_id))}
+                >
+                  Chọn tất cả
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedWinnerIds([])}
+                >
+                  Bỏ chọn hết
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -480,7 +535,7 @@ export default function AdminGiftCampaignTab() {
             </Button>
             <Button
               onClick={onSendGift}
-              disabled={sendingGift || winnersList.length === 0}
+              disabled={sendingGift || winnersList.length === 0 || selectedWinnerIds.length === 0}
               className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white"
             >
               {sendingGift ? "Đang gửi..." : "Gửi quà"}

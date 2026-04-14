@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -61,8 +61,12 @@ function LoginForm() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-brand-purple to-brand-blue rounded-2xl mb-4 shadow-lg">
-            <ShieldCheck className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl mb-4 shadow-lg p-2">
+            <img
+              src="/images/logo.png"
+              alt="QAI Store Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-3xl font-bold text-brand-charcoal mb-2">Đăng nhập</h1>
           <p className="text-gray-600">Chào mừng bạn quay trở lại QAI STORE</p>
@@ -130,7 +134,7 @@ function LoginForm() {
                   <input type="checkbox" className="rounded border-gray-300 text-brand-blue focus:ring-brand-blue/20" />
                   <span className="text-gray-600">Ghi nhớ đăng nhập</span>
                 </label>
-                <Link href="#" className="text-brand-blue hover:text-brand-purple transition-colors">
+                <Link href="/forgot-password" className="text-brand-blue hover:text-brand-purple transition-colors">
                   Quên mật khẩu?
                 </Link>
               </div>

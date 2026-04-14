@@ -5,6 +5,7 @@ import type { RankingData } from '@/types/RankingData.interface';
 import type { userOnetimecode, Onetimecode } from '@/types/Onetimecode';
 import type { ChatgptPayload } from '@/types/chatgpt.interface';
 import type { GiftStatusResponse, AdminGiftActiveResponse } from '@/types/gift.interface';
+import type { PromptTemplateItem, PromptTemplateListResponse } from '@/types/prompt.interface';
 
 /** Base URL API (không có slash cuối). Ví dụ: http://localhost:8000/api */
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
@@ -375,6 +376,66 @@ export async function loginUser(data: {
     return res.json();
 }
 
+export async function requestPasswordReset(email: string): Promise<{ success: boolean; message?: string }> {
+    const res = await fetch(`${API_URL}/password/forgot`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(data?.message || 'Không thể gửi mã đặt lại mật khẩu');
+    }
+    return data as { success: boolean; message?: string };
+}
+
+export async function resetPasswordWithCode(payload: {
+    email: string;
+    code: string;
+    password: string;
+    password_confirmation: string;
+}): Promise<{ success: boolean; message?: string }> {
+    const res = await fetch(`${API_URL}/password/reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: payload.email.trim(),
+            code: payload.code.trim(),
+            password: payload.password,
+            password_confirmation: payload.password_confirmation,
+        }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        const errors = data?.errors as Record<string, string[] | string> | undefined;
+        if (errors && typeof errors === 'object') {
+            const firstKey = Object.keys(errors)[0];
+            const firstVal = firstKey ? errors[firstKey] : undefined;
+            const firstMsg = Array.isArray(firstVal) ? firstVal[0] : firstVal;
+            if (typeof firstMsg === 'string') {
+                const m = firstMsg.toLowerCase();
+                if (m.includes('confirmation')) {
+                    throw new Error('Xác nhận mật khẩu không khớp.');
+                }
+                if (m.includes('email')) {
+                    throw new Error('Email không hợp lệ hoặc chưa đúng định dạng.');
+                }
+                if (m.includes('password')) {
+                    throw new Error('Mật khẩu mới không hợp lệ. Vui lòng nhập từ 6 ký tự trở lên.');
+                }
+                throw new Error(firstMsg);
+            }
+        }
+
+        const msg = data?.message as string | undefined;
+        if (msg && msg.trim()) {
+            throw new Error(msg);
+        }
+        throw new Error('Không thể đặt lại mật khẩu');
+    }
+    return data as { success: boolean; message?: string };
+}
+
 export async function logoutUser(sessionId: string) {
     const res = await fetch(`${API_URL}/logout`, {
         method: 'POST',
@@ -606,6 +667,83 @@ export const joinGift = async (sessionId: string): Promise<{ success: boolean; m
 };
 
 /**
+ * GET /prompts - danh sách prompt active cho khách hàng
+ */
+export const fetchPromptTemplates = async (): Promise<PromptTemplateListResponse> => {
+    const res = await fetch(`${API_URL}/prompts`, { cache: 'no-store' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tải prompt');
+    return data as PromptTemplateListResponse;
+};
+
+/**
+ * GET /admin/prompts - admin lấy toàn bộ prompt
+ */
+export const fetchAdminPrompts = async (sessionId: string): Promise<PromptTemplateListResponse> => {
+    const res = await fetch(`${API_URL}/admin/prompts`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tải danh sách prompt');
+    return data as PromptTemplateListResponse;
+};
+
+/**
+ * POST /admin/prompts - tạo prompt mới
+ */
+export const createAdminPrompt = async (
+    sessionId: string,
+    payload: Pick<PromptTemplateItem, 'category' | 'content' | 'sort_order'> & { is_active?: boolean }
+): Promise<{ success: boolean; data: PromptTemplateItem }> => {
+    const res = await fetch(`${API_URL}/admin/prompts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tạo prompt');
+    return data as { success: boolean; data: PromptTemplateItem };
+};
+
+/**
+ * PUT /admin/prompts/{id}
+ */
+export const updateAdminPrompt = async (
+    sessionId: string,
+    id: number,
+    payload: Partial<Pick<PromptTemplateItem, 'category' | 'content' | 'sort_order' | 'is_active'>>
+): Promise<{ success: boolean; data: PromptTemplateItem }> => {
+    const res = await fetch(`${API_URL}/admin/prompts/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể cập nhật prompt');
+    return data as { success: boolean; data: PromptTemplateItem };
+};
+
+/**
+ * DELETE /admin/prompts/{id}
+ */
+export const deleteAdminPrompt = async (sessionId: string, id: number): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch(`${API_URL}/admin/prompts/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${sessionId}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể xóa prompt');
+    return data as { success: boolean; message?: string };
+};
+
+/**
  * GET /admin/gifts/active - Admin xem trạng thái hiện tại
  */
 export const fetchAdminGiftActive = async (sessionId: string): Promise<AdminGiftActiveResponse> => {
@@ -659,6 +797,8 @@ export const sendAdminGiftWinnerGift = async (
         code_2fa?: string;
         note?: string;
         subject?: string;
+        /** Chỉ gửi cho danh sách winner được chọn */
+        winner_user_ids?: string[];
     }
 ): Promise<{ success: boolean; message?: string; data?: { sent: number; total_winners: number; skipped_no_email: number } }> => {
     const res = await fetch(`${API_URL}/admin/gifts/send-winner-gift`, {

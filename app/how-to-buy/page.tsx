@@ -24,12 +24,12 @@ export default function HowToBuyPage() {
     },
     {
       step: 2,
-      title: 'Thanh toán',
-      description: 'Chọn phương thức thanh toán phù hợp và hoàn tất giao dịch',
+      title: 'Mua hàng',
+      description: 'Chọn liên hệ',
       icon: CreditCard,
       details: [
-        'Nạp coin vào tài khoản',
-        'Banking - Chuyển khoản ngân hàng',
+        'Liên hệ trực tiếp Admin để tư vấn',
+        'Zalo: 038.966.0305',
       ]
     },
     {
