@@ -11,11 +11,26 @@ import Footer from "@/components/Footer";
 import { fetchPromptTemplates } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
+type PromptEntry = {
+  id: number | null;
+  title: string | null;
+  content: string;
+};
+
 type PromptCategory = {
   id: string;
   genre: string;
-  prompts: string[];
+  entries: PromptEntry[];
 };
+
+function entriesFromStrings(lines: string[]): PromptEntry[] {
+  return lines.map((content) => ({ id: null, title: null, content }));
+}
+
+function copyTextForPrompt(title: string | null | undefined, content: string): string {
+  const t = title?.trim();
+  return t ? `${t}\n\n${content}` : content;
+}
 
 const guideSteps = [
   {
@@ -40,43 +55,43 @@ const fallbackPromptCategories: PromptCategory[] = [
   {
     id: "all",
     genre: "Tất cả",
-    prompts: [],
+    entries: [],
   },
   {
     id: "marketing",
     genre: "Kinh doanh & Marketing",
-    prompts: [
+    entries: entriesFromStrings([
       "Bạn là chuyên gia marketing. Hãy lập kế hoạch nội dung Facebook 7 ngày cho shop mỹ phẩm thiên nhiên, mục tiêu tăng inbox.",
       "Viết 5 mẫu caption bán hàng ngắn, giọng thân thiện, có CTA rõ ràng cho sản phẩm [tên sản phẩm].",
       "Phân tích tệp khách hàng mục tiêu cho dịch vụ thiết kế website tại Việt Nam theo 3 nhóm chính.",
-    ],
+    ]),
   },
   {
     id: "study",
     genre: "Học tập & Công việc",
-    prompts: [
+    entries: entriesFromStrings([
       "Bạn là gia sư tiếng Anh. Tạo lộ trình học giao tiếp 30 ngày cho người mới bắt đầu, mỗi ngày 30 phút.",
       "Tóm tắt nội dung dưới đây thành 5 ý chính và đặt 3 câu hỏi kiểm tra hiểu bài: [dán nội dung].",
       "Giúp tôi viết email chuyên nghiệp xin gia hạn deadline, lịch sự và ngắn gọn.",
-    ],
+    ]),
   },
   {
     id: "creative",
     genre: "Sáng tạo nội dung",
-    prompts: [
+    entries: entriesFromStrings([
       "Viết kịch bản video TikTok 45 giây về mẹo tiết kiệm thời gian cho dân văn phòng, giọng vui vẻ.",
       "Viết một câu chuyện ngắn truyền cảm hứng về thói quen kỷ luật bản thân, kết thúc có thông điệp tích cực.",
       "Tạo 10 tiêu đề blog hấp dẫn cho chủ đề học AI cho người mới.",
-    ],
+    ]),
   },
   {
     id: "tech",
     genre: "Công nghệ & Lập trình",
-    prompts: [
+    entries: entriesFromStrings([
       "Giải thích REST API cho người mới bằng ví dụ đời thường và minh họa bằng JSON.",
       "Review đoạn code sau, chỉ ra lỗi tiềm ẩn và đề xuất phiên bản tối ưu hơn: [dán code].",
       "Tạo checklist triển khai website lên VPS an toàn cho production.",
-    ],
+    ]),
   },
 ];
 
@@ -94,20 +109,25 @@ export default function PromptPage() {
       setLoadingPrompts(true);
       try {
         const res = await fetchPromptTemplates();
-        const grouped = new Map<string, string[]>();
+        const grouped = new Map<string, PromptEntry[]>();
         res.data.forEach((p) => {
           const category = (p.category || "Khác").trim();
           if (!grouped.has(category)) grouped.set(category, []);
-          grouped.get(category)!.push(p.content);
+          const title = p.title?.trim() ? p.title.trim() : null;
+          grouped.get(category)!.push({
+            id: p.id,
+            title,
+            content: p.content,
+          });
         });
 
         if (grouped.size > 0) {
           const dynamicCategories: PromptCategory[] = [
-            { id: "all", genre: "Tất cả", prompts: [] },
-            ...Array.from(grouped.entries()).map(([genre, prompts]) => ({
+            { id: "all", genre: "Tất cả", entries: [] },
+            ...Array.from(grouped.entries()).map(([genre, entries]) => ({
               id: genre.toLowerCase().replace(/\s+/g, "-"),
               genre,
-              prompts,
+              entries,
             })),
           ];
           setPromptCategories(dynamicCategories);
@@ -138,10 +158,12 @@ export default function PromptPage() {
 
   const filteredPromptItems = useMemo(() => {
     return filteredCategories.flatMap((cat) =>
-      cat.prompts.map((prompt) => ({
+      cat.entries.map((row) => ({
         categoryId: cat.id,
         categoryName: cat.genre,
-        prompt,
+        id: row.id,
+        title: row.title,
+        content: row.content,
       }))
     );
   }, [filteredCategories]);
@@ -167,9 +189,9 @@ export default function PromptPage() {
     }
   }, [currentPage, totalPages]);
 
-  const copyPrompt = async (prompt: string) => {
-    await navigator.clipboard.writeText(prompt);
-    setCopiedPrompt(prompt);
+  const copyPrompt = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedPrompt(text);
     setTimeout(() => setCopiedPrompt(null), 1800);
   };
 
@@ -282,37 +304,49 @@ export default function PromptPage() {
 
               {!loadingPrompts && filteredPromptItems.length > 0 && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {paginatedPromptItems.map((item, idx) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+                    {paginatedPromptItems.map((item, idx) => {
+                      const fullCopy = copyTextForPrompt(item.title, item.content);
+                      return (
                       <Card
-                        key={`${item.categoryId}-${idx}-${item.prompt.slice(0, 20)}`}
-                        className="bg-white/95 border-white/30 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 animate-fade-in"
+                        key={item.id != null ? `p-${item.id}` : `${item.categoryId}-${idx}-${item.content.slice(0, 20)}`}
+                        className="flex h-full min-h-0 flex-col bg-white/95 border-white/30 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 animate-fade-in"
                         style={{ animationDelay: `${idx * 60}ms` }}
                       >
-                        <CardContent className="p-5">
-                          <div className="flex items-center justify-between gap-2 mb-3">
-                            <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 border border-indigo-200">
-                              {item.categoryName}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              #{(currentPage - 1) * promptsPerPage + idx + 1}
-                            </Badge>
+                        <CardContent className="flex flex-1 min-h-0 flex-col gap-4 p-5">
+                          <div className="shrink-0 space-y-3 border-b border-slate-200 pb-3">
+                            <div className="flex w-full items-center justify-between gap-4">
+                              <span className="min-w-0 flex-1 text-sm font-semibold text-indigo-700 leading-snug break-words">
+                                {item.categoryName}
+                              </span>
+                              <span className="shrink-0 text-xs font-medium text-slate-500 tabular-nums">
+                                Prompt #{(currentPage - 1) * promptsPerPage + idx + 1}
+                              </span>
+                            </div>
+                            {item.title?.trim() ? (
+                              <p className="text-sm font-semibold text-slate-900 leading-snug break-words">
+                                {item.title.trim()}
+                              </p>
+                            ) : null}
                           </div>
-                          <p className="text-sm text-slate-700 leading-relaxed min-h-[72px]">{item.prompt}</p>
-                          <div className="mt-4">
+                          <p className="min-h-0 flex-1 text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                            {item.content}
+                          </p>
+                          <div className="shrink-0 pt-1">
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => copyPrompt(item.prompt)}
+                              onClick={() => copyPrompt(fullCopy)}
                               className="text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
                             >
                               <Copy className="w-3 h-3 mr-1" />
-                              {copiedPrompt === item.prompt ? "Đã sao chép" : "Sao chép prompt"}
+                              {copiedPrompt === fullCopy ? "Đã sao chép" : "Sao chép prompt"}
                             </Button>
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    );
+                    })}
                   </div>
 
                   <Card className="bg-white/10 border-white/20 backdrop-blur shadow-xl">

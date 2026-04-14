@@ -233,10 +233,12 @@ export default function Header() {
           }
         }
 
-        // dedupe by id (keep first)
-        const map = new Map<number, any>();
+        // dedupe by composite key (parent_id + id) to avoid
+        // collisions when parent and child share the same numeric id.
+        const map = new Map<string, any>();
         flat.forEach((c) => {
-          if (!map.has(c.id)) map.set(c.id, c);
+          const key = `${Number(c.parent_id ?? 0)}-${Number(c.id)}`;
+          if (!map.has(key)) map.set(key, c);
         });
         const unique = Array.from(map.values());
 
@@ -299,8 +301,7 @@ export default function Header() {
     return matches.slice(0, 8);
   }, [products, searchInput, loadingProducts]);
 
-  // Build grouped categories: chỉ category cha (parent_id = 0) + danh sách con.
-  // Điều này giúp mega menu khớp với mục lục danh mục trên trang sản phẩm.
+  // Build grouped categories: category cha + danh sách con.
   const groupedCategories = useMemo(() => {
     if (!categories || categories.length === 0) return [];
 
@@ -315,6 +316,37 @@ export default function Header() {
         .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))),
     }));
   }, [categories]);
+
+  // Với mỗi category cha, lấy tối đa 5 sản phẩm tượng trưng để hiển thị ở mega menu.
+  const groupedCategoriesWithProducts = useMemo(() => {
+    if (groupedCategories.length === 0) return [];
+
+    return groupedCategories.map(({ parent, children }) => {
+      const categoryIds = new Set<number>([
+        Number(parent.id),
+        ...children.map((child) => Number(child.id)),
+      ]);
+
+      const representativeProducts = products.filter((product) => {
+        const productCategory: any = (product as any)?.category;
+
+        if (productCategory && typeof productCategory === 'object') {
+          const categoryId = Number(productCategory.id);
+          const parentId = Number(productCategory.parent_id ?? 0);
+          return categoryIds.has(categoryId) || Number(parent.id) === parentId;
+        }
+
+        const parsedCategoryId = Number(productCategory);
+        return !Number.isNaN(parsedCategoryId) && categoryIds.has(parsedCategoryId);
+      }).slice(0, 5);
+
+      return {
+        parent,
+        children,
+        representativeProducts,
+      };
+    });
+  }, [groupedCategories, products]);
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
@@ -604,8 +636,8 @@ export default function Header() {
                       ) : categoriesError ? (
                         <div className="py-10 text-center text-red-500">Không tải được danh mục</div>
                       ) : (
-                        <div className="grid grid-cols-2 xl:grid-cols-3 gap-6">
-                          {groupedCategories.slice(0, 6).map(({ parent, children }) => (
+                        <div className="grid grid-cols-2 xl:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto pr-2">
+                          {groupedCategoriesWithProducts.map(({ parent, children, representativeProducts }) => (
                             <div key={parent.id} className="space-y-3">
                               <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
                                 <div className="w-8 h-8 bg-gradient-to-br from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center shadow-sm">
@@ -617,8 +649,19 @@ export default function Header() {
                               </div>
 
                               <ul className="space-y-1">
-                                {children?.length > 0 ? (
-                                  children.slice(0, 5).map((child) => (
+                                {representativeProducts.length > 0 ? (
+                                  representativeProducts.map((product) => (
+                                    <li key={product.id}>
+                                      <Link
+                                        href={`/products/${product.id}`}
+                                        className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition hover:translate-x-1"
+                                      >
+                                        {product.name}
+                                      </Link>
+                                    </li>
+                                  ))
+                                ) : children?.length > 0 ? (
+                                  children.map((child) => (
                                     <li key={child.id}>
                                       <Link
                                         href={`/products?category=${encodeURIComponent(child.slug ?? String(child.id))}`}
@@ -639,16 +682,6 @@ export default function Header() {
                                   </li>
                                 )}
 
-                                {children?.length > 5 && (
-                                  <li>
-                                    <Link
-                                      href={`/products?category=${encodeURIComponent(parent.slug ?? String(parent.id))}`}
-                                      className="block text-xs text-blue-600 font-medium px-2 py-1.5 hover:text-blue-700"
-                                    >
-                                      + {children.length - 5} mục khác
-                                    </Link>
-                                  </li>
-                                )}
                               </ul>
                             </div>
                           ))}
@@ -795,7 +828,6 @@ export default function Header() {
                     <div className="space-y-1">
                       {categories
                         .filter((c) => !c.parent_id || Number(c.parent_id) === 0)
-                        .slice(0, 10)
                         .map((top) => (
                           <Link
                             key={top.id}

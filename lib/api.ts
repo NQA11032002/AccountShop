@@ -694,7 +694,7 @@ export const fetchAdminPrompts = async (sessionId: string): Promise<PromptTempla
  */
 export const createAdminPrompt = async (
     sessionId: string,
-    payload: Pick<PromptTemplateItem, 'category' | 'content' | 'sort_order'> & { is_active?: boolean }
+    payload: Pick<PromptTemplateItem, 'category' | 'content' | 'sort_order'> & { title?: string | null; is_active?: boolean }
 ): Promise<{ success: boolean; data: PromptTemplateItem }> => {
     const res = await fetch(`${API_URL}/admin/prompts`, {
         method: 'POST',
@@ -715,7 +715,7 @@ export const createAdminPrompt = async (
 export const updateAdminPrompt = async (
     sessionId: string,
     id: number,
-    payload: Partial<Pick<PromptTemplateItem, 'category' | 'content' | 'sort_order' | 'is_active'>>
+    payload: Partial<Pick<PromptTemplateItem, 'category' | 'title' | 'content' | 'sort_order' | 'is_active'>>
 ): Promise<{ success: boolean; data: PromptTemplateItem }> => {
     const res = await fetch(`${API_URL}/admin/prompts/${id}`, {
         method: 'PUT',

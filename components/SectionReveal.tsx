@@ -37,8 +37,11 @@ export default function SectionReveal({ children, delayMs = 0, className = '' }:
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Show only while the section is in viewport.
-        setIsVisible(entry.isIntersecting);
+        // Reveal once when section enters viewport, then keep visible.
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
       },
       {
         root: null,
