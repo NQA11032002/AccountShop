@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function ZaloButton() {
     return (
-        <div className="fixed right-5 bottom-5 flex flex-col gap-3 z-50">
+        <div className="fixed right-3 bottom-4 z-[60] flex flex-col gap-3 sm:right-5 sm:bottom-5">
             {/* Zalo */}
             <Link
                 href="https://zalo.me/0389660305"

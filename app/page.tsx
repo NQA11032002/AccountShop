@@ -8,7 +8,6 @@ import WhyChooseUs from '@/components/WhyChooseUs';
 import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
 import Footer from '@/components/Footer';
-import Zalo from '@/components/Zalo';
 import RandomPurchaseNotification from '@/components/RandomPurchaseNotification';
 import SectionReveal from '@/components/SectionReveal';
 
@@ -49,7 +48,6 @@ export default function Home() {
         <SectionReveal delayMs={320}>
           <FAQ />
         </SectionReveal>
-        <Zalo />
       </main>
       {/* Notify giả lập khách hàng thêm vào giỏ hàng */}
       <RandomPurchaseNotification />
