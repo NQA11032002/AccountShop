@@ -379,6 +379,15 @@ export default function DepositApprovals() {
                                 </DialogHeader>
                                 {selectedDeposit && (
                                   <div className="space-y-4">
+                                    {selectedDeposit.status === 'pending' && (
+                                      <Alert>
+                                        <AlertDescription className="text-sm">
+                                          Thông tin dành cho khách hàng: Giao dịch của bạn đang chờ admin xác nhận.
+                                          Nếu sau 10 phút chưa được duyệt, liên hệ Zalo:{" "}
+                                          <span className="font-bold">038.966.0305</span>
+                                        </AlertDescription>
+                                      </Alert>
+                                    )}
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                       <div>
                                         <Label>Mã đơn hàng</Label>

@@ -799,6 +799,8 @@ export const sendAdminGiftWinnerGift = async (
         subject?: string;
         /** Chỉ gửi cho danh sách winner được chọn */
         winner_user_ids?: string[];
+        /** Url ảnh đính kèm (public) */
+        image_urls?: string[];
     }
 ): Promise<{ success: boolean; message?: string; data?: { sent: number; total_winners: number; skipped_no_email: number } }> => {
     const res = await fetch(`${API_URL}/admin/gifts/send-winner-gift`, {
@@ -814,6 +816,32 @@ export const sendAdminGiftWinnerGift = async (
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.message || 'Không thể gửi email quà tặng');
     return data as { success: boolean; message?: string; data?: { sent: number; total_winners: number; skipped_no_email: number } };
+};
+
+/**
+ * POST /admin/gifts/upload-images - upload ảnh đính kèm cho quà tặng
+ */
+export const uploadAdminGiftImages = async (
+    sessionId: string,
+    files: File[],
+): Promise<{ success: boolean; images: Array<{ url: string; filename: string }> }> => {
+    const formData = new FormData();
+    files.forEach((file) => {
+        formData.append('images[]', file);
+    });
+
+    const res = await fetch(`${API_URL}/admin/gifts/upload-images`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            Accept: 'application/json',
+        },
+        body: formData,
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || 'Không thể upload hình ảnh quà tặng');
+    return data as { success: boolean; images: Array<{ url: string; filename: string }> };
 };
 
 

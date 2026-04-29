@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { fetchAdminGiftActive, sendAdminGiftWinnerGift, updateAdminGiftCurrent } from "@/lib/api";
+import { fetchAdminGiftActive, sendAdminGiftWinnerGift, uploadAdminGiftImages, updateAdminGiftCurrent } from "@/lib/api";
 import type { AdminGiftActiveData } from "@/types/gift.interface";
 
 function toDateTimeLocal(iso: string) {
@@ -55,6 +55,8 @@ export default function AdminGiftCampaignTab() {
   const [giftAccountPassword, setGiftAccountPassword] = useState("");
   const [gift2fa, setGift2fa] = useState("");
   const [giftNote, setGiftNote] = useState("");
+  const [giftImageFiles, setGiftImageFiles] = useState<File[]>([]);
+  const [giftImagePreviewUrls, setGiftImagePreviewUrls] = useState<string[]>([]);
   const [selectedWinnerIds, setSelectedWinnerIds] = useState<string[]>([]);
 
   const [giftName, setGiftName] = useState("");
@@ -170,6 +172,9 @@ export default function AdminGiftCampaignTab() {
     setGiftAccountPassword("");
     setGift2fa("");
     setGiftNote("");
+    giftImagePreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    setGiftImageFiles([]);
+    setGiftImagePreviewUrls([]);
     setSelectedWinnerIds(
       winnersList
         .map((w) => w.user_id)
@@ -186,6 +191,26 @@ export default function AdminGiftCampaignTab() {
       }
       return prev.filter((id) => id !== userId);
     });
+  };
+
+  const removeGiftImageAt = (index: number) => {
+    setGiftImagePreviewUrls((prev) => {
+      const url = prev[index];
+      if (url) URL.revokeObjectURL(url);
+      return prev.filter((_, i) => i !== index);
+    });
+    setGiftImageFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const onGiftImagesSelected = (selectedFiles: File[]) => {
+    const imageFiles = selectedFiles.filter((f) => f.type.startsWith("image/"));
+    const limited = imageFiles.slice(0, 10);
+
+    giftImagePreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    const previews = limited.map((f) => URL.createObjectURL(f));
+
+    setGiftImageFiles(limited);
+    setGiftImagePreviewUrls(previews);
   };
 
   const onSendGift = async () => {
@@ -213,12 +238,19 @@ export default function AdminGiftCampaignTab() {
 
     setSendingGift(true);
     try {
+      let imageUrls: string[] | undefined = undefined;
+      if (giftImageFiles.length > 0) {
+        const uploadRes = await uploadAdminGiftImages(sessionId, giftImageFiles);
+        imageUrls = uploadRes.images.map((img) => img.url);
+      }
+
       const sendRes = await sendAdminGiftWinnerGift(sessionId, {
         account_email: giftAccountEmail.trim(),
         account_password: giftAccountPassword.trim(),
         code_2fa: gift2fa.trim() ? gift2fa.trim() : undefined,
         note: giftNote.trim() ? giftNote.trim() : undefined,
         winner_user_ids: selectedWinnerIds,
+        image_urls: imageUrls,
       });
       const sent = sendRes.data?.sent ?? winnersList.length;
       const skipped = sendRes.data?.skipped_no_email ?? 0;
@@ -230,6 +262,10 @@ export default function AdminGiftCampaignTab() {
             : `Đã gửi email cho ${sent} người trúng thưởng.`,
       });
       setSendGiftOpen(false);
+      // Cleanup preview urls after sending
+      giftImagePreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+      setGiftImageFiles([]);
+      setGiftImagePreviewUrls([]);
     } catch (e: any) {
       toast({
         title: "Gửi email thất bại",
@@ -239,6 +275,13 @@ export default function AdminGiftCampaignTab() {
     } finally {
       setSendingGift(false);
     }
+  };
+
+  const onCancelSendGift = () => {
+    setSendGiftOpen(false);
+    giftImagePreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    setGiftImageFiles([]);
+    setGiftImagePreviewUrls([]);
   };
 
   if (!user || user.role !== "admin") {
@@ -527,10 +570,48 @@ export default function AdminGiftCampaignTab() {
               <div className="text-sm font-semibold text-gray-800">Ghi chú (tuỳ chọn)</div>
               <Textarea value={giftNote} onChange={(e) => setGiftNote(e.target.value)} placeholder="Hướng dẫn đăng nhập, lưu ý đổi mật khẩu, thời hạn..." />
             </div>
+
+            <div className="space-y-1">
+              <div className="text-sm font-semibold text-gray-800">Hình ảnh đính kèm (tuỳ chọn)</div>
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  onGiftImagesSelected(files);
+                }}
+              />
+              <div className="text-xs text-gray-500">
+                Tối đa 10 ảnh. Ảnh sẽ được upload và nhúng vào email.
+              </div>
+
+              {giftImagePreviewUrls.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  {giftImagePreviewUrls.map((src, idx) => (
+                    <div key={`${src}-${idx}`} className="relative">
+                      <img
+                        src={src}
+                        alt={`Gift image ${idx + 1}`}
+                        className="h-20 w-full object-cover rounded-md border border-gray-200 bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeGiftImageAt(idx)}
+                        className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 flex items-center justify-center text-xs"
+                        aria-label="Xóa ảnh"
+                      >
+                        x
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <DialogFooter className="mt-2">
-            <Button variant="outline" onClick={() => setSendGiftOpen(false)} disabled={sendingGift}>
+            <Button variant="outline" onClick={onCancelSendGift} disabled={sendingGift}>
               Hủy
             </Button>
             <Button
