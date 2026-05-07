@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function HeroSection() {
-  console.log("HeroSection component rendered");
-
   const handleExploreClick = () => {
     console.log("Explore button clicked");
     document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' });
@@ -18,13 +16,13 @@ export default function HeroSection() {
   };
 
   const stats = [
-    { label: 'Tài khoản đã bán', value: '10,000+' },
+    { label: 'Đơn hàng đã xử lý', value: '10,000+' },
     { label: 'Khách hàng hài lòng', value: '5,000+' },
     { label: 'Đánh giá 5 sao', value: '98%' },
   ];
 
   const features = [
-    { icon: Shield, text: 'Bảo hành tài khoản' },
+    { icon: Shield, text: 'Bảo hành dịch vụ' },
     { icon: Zap, text: 'Giao hàng tự động 24/7' },
     { icon: Star, text: 'Hỗ trợ nhanh chóng' },
   ];
@@ -51,14 +49,14 @@ export default function HeroSection() {
             {/* Headline */}
             <div className="space-y-3 sm:space-y-4">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[3.25rem] font-bold text-white leading-[1.15] tracking-tight">
-                Tài khoản Premium
+                Shop dịch vụ số
                 <br />
                 <span className="gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent">
-                  Giá tốt nhất!
+                  Uy tín & nhanh chóng
                 </span>
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-white/85 max-w-lg mx-auto lg:mx-0 text-balance leading-relaxed">
-                Mua tài khoản Netflix, Spotify, ChatGPT Plus, YouTube Premium và nhiều dịch vụ premium khác với giá ưu đãi nhất thị trường.
+                Cung cấp các gói dịch vụ số chính hãng, hỗ trợ tận tình, xử lý tự động 24/7. Quy trình rõ ràng, bảo hành minh bạch và tối ưu chi phí cho bạn.
               </p>
             </div>
 
@@ -102,61 +100,61 @@ export default function HeroSection() {
           {/* Right Content - Floating Cards */}
           <div className="relative animate-fade-in animation-delay-600 order-first lg:order-none mt-4 sm:mt-8 lg:mt-0">
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6 max-w-md mx-auto lg:max-w-none">
-              {/* Netflix Card */}
+              {/* Card 1 */}
               <div className="product-card bg-red-600 text-white p-4 sm:p-6 animate-float rounded-xl shadow-xl hover:shadow-2xl">
                 <div className="space-y-2 sm:space-y-3">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded flex items-center justify-center shrink-0">
                     <span className="text-red-600 font-bold text-xs sm:text-sm">C</span>
                   </div>
-                  <h3 className="font-bold text-sm sm:text-lg">Capcut Pro</h3>
-                  <p className="text-red-100 text-xs sm:text-sm">Mở khóa tính năng</p>
+                  <h3 className="font-bold text-sm sm:text-lg">Gói Công cụ</h3>
+                  <p className="text-red-100 text-xs sm:text-sm">Tối ưu trải nghiệm</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-lg sm:text-2xl font-bold">10K</span>
+                    <span className="text-lg sm:text-2xl font-bold">&nbsp;</span>
                     <Badge className="bg-white text-red-600 text-[10px] sm:text-xs">Bán chạy</Badge>
                   </div>
                 </div>
               </div>
 
-              {/* Spotify Card */}
+              {/* Card 2 */}
               <div className="product-card bg-green-500 text-white p-4 sm:p-6 animate-float animation-delay-200 mt-4 sm:mt-8 rounded-xl shadow-xl hover:shadow-2xl">
                 <div className="space-y-2 sm:space-y-3">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center shrink-0">
                     <span className="text-green-500 font-bold text-xs sm:text-sm">♪</span>
                   </div>
-                  <h3 className="font-bold text-sm sm:text-lg">Spotify Premium</h3>
-                  <p className="text-green-100 text-xs sm:text-sm">Không quảng cáo</p>
+                  <h3 className="font-bold text-sm sm:text-lg">Gói Giải trí</h3>
+                  <p className="text-green-100 text-xs sm:text-sm">Mượt mà, tiện lợi</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-lg sm:text-2xl font-bold">350k</span>
+                    <span className="text-lg sm:text-2xl font-bold">&nbsp;</span>
                     <Badge className="bg-white text-green-500 text-[10px] sm:text-xs">Hot</Badge>
                   </div>
                 </div>
               </div>
 
-              {/* ChatGPT Card */}
+              {/* Card 3 */}
               <div className="product-card bg-purple-600 text-white p-4 sm:p-6 animate-float animation-delay-400 -mt-2 sm:-mt-4 rounded-xl shadow-xl hover:shadow-2xl">
                 <div className="space-y-2 sm:space-y-3">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded flex items-center justify-center shrink-0">
                     <span className="text-purple-600 font-bold text-xs sm:text-sm">AI</span>
                   </div>
-                  <h3 className="font-bold text-sm sm:text-lg">ChatGPT Plus</h3>
-                  <p className="text-purple-100 text-xs sm:text-sm">không giới hạn tin nhắn</p>
+                  <h3 className="font-bold text-sm sm:text-lg">Gói AI</h3>
+                  <p className="text-purple-100 text-xs sm:text-sm">Tăng năng suất</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-lg sm:text-2xl font-bold">69k</span>
+                    <span className="text-lg sm:text-2xl font-bold">&nbsp;</span>
                     <Badge className="bg-white text-purple-600 text-[10px] sm:text-xs">Mới</Badge>
                   </div>
                 </div>
               </div>
 
-              {/* YouTube Premium Card */}
+              {/* Card 4 */}
               <div className="product-card bg-red-500 text-white p-4 sm:p-6 animate-float animation-delay-600 rounded-xl shadow-xl hover:shadow-2xl">
                 <div className="space-y-2 sm:space-y-3">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded flex items-center justify-center shrink-0">
                     <span className="text-red-500 font-bold text-xs sm:text-sm">▶</span>
                   </div>
-                  <h3 className="font-bold text-sm sm:text-lg">YouTube Premium</h3>
-                  <p className="text-red-100 text-xs sm:text-sm">Không quảng cáo</p>
+                  <h3 className="font-bold text-sm sm:text-lg">Gói Video</h3>
+                  <p className="text-red-100 text-xs sm:text-sm">Xem & học tập</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-lg sm:text-2xl font-bold">70K</span>
+                    <span className="text-lg sm:text-2xl font-bold">&nbsp;</span>
                     <Badge className="bg-white text-red-500 text-[10px] sm:text-xs">Ưu đãi</Badge>
                   </div>
                 </div>

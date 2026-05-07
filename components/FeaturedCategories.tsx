@@ -1,50 +1,69 @@
 "use client";
 
-import { useRef, useState, useEffect } from 'react';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Bot, Sparkles, Music2, Palette, ShieldCheck, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import ProductCard from '@/components/ProductCard';
-import { useProducts } from '@/lib/products';
-
-const FEATURED_LIMIT = 9;
 
 export default function FeaturedCategories() {
-  const { products } = useProducts();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-
-  const featuredProducts = products.slice(0, FEATURED_LIMIT);
-
-  const updateScrollState = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
-  };
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    updateScrollState();
-    el.addEventListener('scroll', updateScrollState);
-    window.addEventListener('resize', updateScrollState);
-    return () => {
-      el.removeEventListener('scroll', updateScrollState);
-      window.removeEventListener('resize', updateScrollState);
-    };
-  }, [featuredProducts.length]);
-
-  const scroll = (direction: 'left' | 'right') => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const step = el.clientWidth * 0.85;
-    el.scrollBy({ left: direction === 'left' ? -step : step, behavior: 'smooth' });
-  };
+  const cards = [
+    {
+      icon: Bot,
+      title: 'Gói AI',
+      desc: 'Tăng tốc học tập & công việc với trợ lý AI, tối ưu quy trình và tiết kiệm thời gian.',
+      gradient: 'from-emerald-500/15 via-sky-500/10 to-violet-500/10',
+      ring: 'ring-emerald-500/20',
+      iconBg: 'bg-emerald-500/10',
+      iconColor: 'text-emerald-700',
+    },
+    {
+      icon: Music2,
+      title: 'Gói Giải trí',
+      desc: 'Trải nghiệm nội dung mượt mà, phù hợp học tập – giải trí – thư giãn mỗi ngày.',
+      gradient: 'from-green-500/15 via-teal-500/10 to-blue-500/10',
+      ring: 'ring-green-500/20',
+      iconBg: 'bg-green-500/10',
+      iconColor: 'text-green-700',
+    },
+    {
+      icon: Palette,
+      title: 'Gói Thiết kế',
+      desc: 'Dành cho sáng tạo: template, tài nguyên và công cụ giúp làm nhanh – làm đẹp – làm chuẩn.',
+      gradient: 'from-pink-500/15 via-fuchsia-500/10 to-indigo-500/10',
+      ring: 'ring-pink-500/20',
+      iconBg: 'bg-pink-500/10',
+      iconColor: 'text-pink-700',
+    },
+    {
+      icon: Sparkles,
+      title: 'Gói Công cụ',
+      desc: 'Nâng trải nghiệm sử dụng, tối ưu thao tác hằng ngày với các công cụ tiện lợi.',
+      gradient: 'from-amber-500/15 via-orange-500/10 to-rose-500/10',
+      ring: 'ring-amber-500/20',
+      iconBg: 'bg-amber-500/10',
+      iconColor: 'text-amber-700',
+    },
+    {
+      icon: ShieldCheck,
+      title: 'Gói Bảo mật',
+      desc: 'Ưu tiên an toàn & riêng tư. Phù hợp nhu cầu bảo vệ thiết bị và dữ liệu cá nhân.',
+      gradient: 'from-slate-500/15 via-blue-500/10 to-cyan-500/10',
+      ring: 'ring-slate-500/20',
+      iconBg: 'bg-slate-500/10',
+      iconColor: 'text-slate-700',
+    },
+    {
+      icon: GraduationCap,
+      title: 'Gói Học tập',
+      desc: 'Học tập hiệu quả hơn với tài liệu, công cụ hỗ trợ và nội dung phù hợp nhiều cấp độ.',
+      gradient: 'from-indigo-500/15 via-sky-500/10 to-emerald-500/10',
+      ring: 'ring-indigo-500/20',
+      iconBg: 'bg-indigo-500/10',
+      iconColor: 'text-indigo-700',
+    },
+  ];
 
   return (
-    <section id="categories" className="section-spacing bg-white">
+    <section id="categories" className="section-spacing-home bg-white">
       <div className="container-max section-padding">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-16 animate-fade-in">
@@ -52,57 +71,57 @@ export default function FeaturedCategories() {
             Danh mục nổi bật
           </Badge>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-charcoal mb-3 sm:mb-4 px-2">
-            Tài khoản Premium
-            <span className="gradient-text"> Chất lượng cao</span>
+            Gói dịch vụ số
+            <span className="gradient-text"> nổi bật</span>
           </h2>
           <p className="text-base sm:text-lg text-brand-gray/80 text-balance leading-relaxed px-2">
-            Khám phá bộ sưu tập các tài khoản premium được yêu thích nhất với giá cả hợp lý và bảo hành uy tín
+            Chọn nhanh nhóm dịch vụ phù hợp nhu cầu. Mỗi gói đều có mô tả rõ ràng, thời hạn minh bạch và kênh hỗ trợ sẵn sàng.
           </p>
         </div>
 
-        {/* Carousel với mũi tên */}
-        <div className="relative mb-10 sm:mb-12">
-          {canScrollLeft && (
-            <button
-              type="button"
-              onClick={() => scroll('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white border-2 border-brand-blue/30 text-brand-blue shadow-lg hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center"
-              aria-label="Xem trước"
+        {/* Pretty category cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-12">
+          {cards.map((c, idx) => (
+            <div
+              key={c.title}
+              className={`group relative overflow-hidden rounded-2xl border border-gray-200 bg-white ring-1 ${c.ring} shadow-sm hover:shadow-xl transition-all duration-300 animate-fade-in`}
+              style={{ animationDelay: `${idx * 50}ms` }}
             >
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-          )}
-          {canScrollRight && (
-            <button
-              type="button"
-              onClick={() => scroll('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white border-2 border-brand-blue/30 text-brand-blue shadow-lg hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center"
-              aria-label="Xem tiếp"
-            >
-              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-          )}
+              <div className={`absolute inset-0 bg-gradient-to-br ${c.gradient}`} />
+              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/40 blur-2xl" />
+              <div className="absolute -left-12 -bottom-12 h-44 w-44 rounded-full bg-white/30 blur-2xl" />
 
-          <div
-            ref={scrollRef}
-            className="flex gap-6 sm:gap-8 overflow-x-auto scroll-smooth scrollbar-hide py-2 px-1"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {featuredProducts.map((product, index) => (
-              <div
-                key={product.id}
-                className="flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[340px] animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <ProductCard
-                  product={product}
-                  size="large"
-                  showFeatures={true}
-                  showFavoriteButton={true}
-                />
+              <div className="relative p-6">
+                <div className="flex items-start gap-3">
+                  <div className={`w-12 h-12 rounded-2xl ${c.iconBg} border border-white/60 flex items-center justify-center shadow-sm`}>
+                    <c.icon className={`w-6 h-6 ${c.iconColor}`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-lg font-bold text-gray-900">{c.title}</h3>
+                      <span className="text-xs font-semibold text-gray-600 bg-white/60 border border-white/70 rounded-full px-2.5 py-1">
+                        Chi tiết
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-700 leading-relaxed">
+                      {c.desc}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                      <span className="inline-flex items-center rounded-full bg-white/70 border border-white/80 px-2.5 py-1 text-gray-700">
+                        Quy trình rõ ràng
+                      </span>
+                      <span className="inline-flex items-center rounded-full bg-white/70 border border-white/80 px-2.5 py-1 text-gray-700">
+                        Hỗ trợ nhanh
+                      </span>
+                      <span className="inline-flex items-center rounded-full bg-white/70 border border-white/80 px-2.5 py-1 text-gray-700">
+                        Bảo hành minh bạch
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
         {/* View All Button */}

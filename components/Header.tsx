@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Crown, ChevronDown, LogOut, Heart, Ticket, Home, Info, Package, FileText, Newspaper, Mail, Code, Gift } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Crown, LogOut, Heart, Ticket, Home, Info, Package, FileText, Newspaper, Mail, Code, Gift } from 'lucide-react';
 import DataSyncHelper from '@/lib/syncHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,7 @@ import type { ProductBase } from '@/lib/products';
 const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'Trang chủ': Home,
   'Giới thiệu': Info,
-  'Danh mục sản phẩm': Package,
+  'Sản phẩm': Package,
   'Sản phẩm': Package,
   'Chính sách mua hàng': FileText,
   'Tin tức công nghệ': Newspaper,
@@ -106,7 +106,7 @@ export default function Header() {
   const navigation = [
     { name: 'Trang chủ', href: '/' },
     { name: 'Giới thiệu', href: '/about' },
-    { name: 'Danh mục sản phẩm', href: '/products' },
+    { name: 'Sản phẩm', href: '/products' },
     { name: 'Chính sách mua hàng', href: '/how-to-buy' },
     { name: 'Tin tức công nghệ', href: '/news' },
     { name: 'Liên hệ', href: '/contact' },
@@ -363,7 +363,7 @@ export default function Header() {
                 QAI STORE
               </h1>
               <p className="text-[10px] sm:text-sm text-gray-400 group-hover:text-gray-500 transition hidden sm:block">
-                SHOP TÀI KHOẢN
+                SHOP DỊCH VỤ SỐ
               </p>
             </div>
           </Link>
@@ -377,7 +377,7 @@ export default function Header() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
               <Input
                 type="text"
-                placeholder="Tìm kiếm tài khoản, khóa học, phần mềm..."
+                placeholder="Tìm kiếm dịch vụ, khóa học, phần mềm..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-12 pr-12 py-3 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition"
@@ -506,7 +506,7 @@ export default function Header() {
                       <DropdownMenuItem asChild>
                         <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg">
                           <Shield className="mr-3 h-4 w-4 text-purple-600" />
-                          <span>Tài khoản của tôi</span>
+                        <span>Thông tin của tôi</span>
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
@@ -618,109 +618,12 @@ export default function Header() {
         <nav className="hidden lg:flex items-center justify-center h-12 gap-2 xl:gap-6">
           {navLinks.map((item) => (
             <div key={item.name} className="relative group">
-              {item.name === "Danh mục sản phẩm" ? (
-                <>
-                  <Link
-                    href={item.href}
-                    className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition flex items-center"
-                  >
-                    {item.name}
-                    <ChevronDown className="w-4 h-4 ml-1 group-hover:rotate-180 transition-transform duration-300" />
-                  </Link>
-
-                  {/* Mega menu */}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-[min(100vw-24px,1000px)] bg-white/95 backdrop-blur-lg rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 mt-2">
-                    <div className="p-6">
-                      {loadingCategories ? (
-                        <div className="py-10 text-center text-gray-500">Đang tải danh mục...</div>
-                      ) : categoriesError ? (
-                        <div className="py-10 text-center text-red-500">Không tải được danh mục</div>
-                      ) : (
-                        <div className="grid grid-cols-2 xl:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto pr-2">
-                          {groupedCategoriesWithProducts.map(({ parent, children, representativeProducts }) => (
-                            <div key={parent.id} className="space-y-3">
-                              <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
-                                <div className="w-8 h-8 bg-gradient-to-br from-brand-blue to-brand-emerald rounded-lg flex items-center justify-center shadow-sm">
-                                  <span className="text-white text-sm">📂</span>
-                                </div>
-                                <h3 className="font-semibold text-gray-800 text-xs uppercase tracking-wider">
-                                  {parent.name}
-                                </h3>
-                              </div>
-
-                              <ul className="space-y-1">
-                                {representativeProducts.length > 0 ? (
-                                  representativeProducts.map((product) => (
-                                    <li key={product.id}>
-                                      <Link
-                                        href={`/products/${product.id}`}
-                                        className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition hover:translate-x-1"
-                                      >
-                                        {product.name}
-                                      </Link>
-                                    </li>
-                                  ))
-                                ) : children?.length > 0 ? (
-                                  children.map((child) => (
-                                    <li key={child.id}>
-                                      <Link
-                                        href={`/products?category=${encodeURIComponent(child.slug ?? String(child.id))}`}
-                                        className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition hover:translate-x-1"
-                                      >
-                                        {child.name}
-                                      </Link>
-                                    </li>
-                                  ))
-                                ) : (
-                                  <li>
-                                    <Link
-                                      href={`/products?category=${encodeURIComponent(parent.slug ?? String(parent.id))}`}
-                                      className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 px-2 py-1.5 rounded-md transition hover:translate-x-1"
-                                    >
-                                      {parent.name}
-                                    </Link>
-                                  </li>
-                                )}
-
-                              </ul>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between gap-3">
-                        <p className="text-gray-500 text-sm hidden sm:block">
-                          Khám phá hàng trăm sản phẩm chất lượng
-                        </p>
-                        <div className="flex gap-3">
-                          <Link href="/products">
-                            <Button
-                              size="sm"
-                              className="bg-gradient-to-r from-brand-blue to-brand-emerald hover:from-brand-blue/90 hover:to-brand-emerald/90 text-white text-xs px-4 py-2 shadow-md"
-                            >
-                              Xem tất cả
-                            </Button>
-                          </Link>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs px-4 py-2"
-                          >
-                            Hỗ trợ
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <Link
-                  href={item.href}
-                  className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition flex items-center"
-                >
-                  {item.name}
-                </Link>
-              )}
+              <Link
+                href={item.href}
+                className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition flex items-center"
+              >
+                {item.name}
+              </Link>
             </div>
           ))}
         </nav>

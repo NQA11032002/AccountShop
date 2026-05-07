@@ -25,6 +25,8 @@ interface ProductCardProps {
   className?: string;
   /** Base path for product detail link (e.g. "/collaborator/products" for CTV). Default "/products". */
   detailPath?: string;
+  /** Hide price display (useful for homepage). */
+  hidePrice?: boolean;
 }
 
 const defaultDetailPath = '/products';
@@ -36,7 +38,8 @@ export default function ProductCard({
   showFavoriteButton = true,
   size = 'medium',
   className = '',
-  detailPath = defaultDetailPath
+  detailPath = defaultDetailPath,
+  hidePrice = false
 }: ProductCardProps) {
   const router = useRouter();
   const productHref = `${detailPath}/${product.id}`;
@@ -245,16 +248,18 @@ export default function ProductCard({
               <span className="text-sm text-gray-500">({product.reviews} đánh giá)</span>
             </div>
 
-            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-                {formatPrice(displayPrice)}
-              </span>
-              {(displayOriginalPrice > displayPrice) && (
-                <span className="text-sm text-gray-400 line-through">
-                  {formatPrice(displayOriginalPrice)}
+            {!hidePrice && (
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
+                  {formatPrice(displayPrice)}
                 </span>
-              )}
-            </div>
+                {(displayOriginalPrice > displayPrice) && (
+                  <span className="text-sm text-gray-400 line-through">
+                    {formatPrice(displayOriginalPrice)}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Actions */}
             <div className="grid grid-cols-1 gap-2">
@@ -393,16 +398,18 @@ export default function ProductCard({
             </div>
 
             {/* Price (áp dụng product.discount_percent cho toàn bộ duration) */}
-            <div className="flex items-baseline">
-              <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-                {formatPrice(displayPrice)}
-              </span>
-              {(displayOriginalPrice > displayPrice) && (
-                <span className="ml-2 text-xs lg:text-sm text-gray-400 line-through">
-                  {formatPrice(displayOriginalPrice)}
+            {!hidePrice && (
+              <div className="flex items-baseline">
+                <span className={`${config.priceSize} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
+                  {formatPrice(displayPrice)}
                 </span>
-              )}
-            </div>
+                {(displayOriginalPrice > displayPrice) && (
+                  <span className="ml-2 text-xs lg:text-sm text-gray-400 line-through">
+                    {formatPrice(displayOriginalPrice)}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Gói & Bảo hành - một dòng, tránh trùng (Gói 1 tháng · BH 30 ngày) */}
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs lg:text-sm text-gray-600">

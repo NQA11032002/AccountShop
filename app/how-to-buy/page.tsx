@@ -13,7 +13,7 @@ export default function HowToBuyPage() {
     {
       step: 1,
       title: 'Chọn sản phẩm',
-      description: 'Duyệt qua danh mục và chọn tài khoản premium bạn muốn mua',
+      description: 'Duyệt qua danh mục và chọn gói dịch vụ số phù hợp nhu cầu',
       icon: CheckCircle,
       details: [
         'Xem thông tin chi tiết sản phẩm',
@@ -34,8 +34,8 @@ export default function HowToBuyPage() {
     },
     {
       step: 3,
-      title: 'Nhận tài khoản',
-      description: 'Nhận thông tin đăng nhập qua Email, Telegram, Zalo, Facebook trong 5 phút - 5 tiếng',
+      title: 'Nhận thông tin sử dụng',
+      description: 'Nhận hướng dẫn/thông tin sử dụng qua Email, Telegram, Zalo, Facebook trong 5 phút - 5 tiếng',
       icon: Download,
       details: [
         'Giao hàng tự động 24/7',
@@ -52,7 +52,7 @@ export default function HowToBuyPage() {
       details: [
         'Hỗ trợ 24/7 qua Zalo - Facebook - Telegram',
         'Zalo: 038.966.0305',
-        'Đổi tài khoản nếu có lỗi',
+        'Hỗ trợ xử lý theo chính sách nếu có lỗi',
         'Bảo hành thời hạn theo gói mua'
       ]
     }
@@ -83,8 +83,8 @@ export default function HowToBuyPage() {
   ];
 
   const guarantees = [
-    { icon: Shield, title: 'Bảo hành tài khoản', desc: 'Đổi tài khoản mới nếu có lỗi' },
-    { icon: Clock, title: 'Giao hàng tức thì', desc: 'Nhận tài khoản trong 5 phút - 5 tiếng' },
+    { icon: Shield, title: 'Bảo hành dịch vụ', desc: 'Hỗ trợ xử lý theo chính sách nếu có lỗi' },
+    { icon: Clock, title: 'Giao hàng tức thì', desc: 'Nhận thông tin sử dụng trong 5 phút - 5 tiếng' },
     { icon: MessageCircle, title: 'Hỗ trợ 24/7', desc: 'Đội ngũ hỗ trợ luôn sẵn sàng' }
   ];
 
@@ -101,13 +101,13 @@ export default function HowToBuyPage() {
               Hướng dẫn mua hàng
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Cách mua tài khoản
+              Chính sách mua hàng
               <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text p-1">
                 Đơn giản & Nhanh chóng
               </span>
             </h1>
             <p className="text-xl text-white/80 max-w-2xl mx-auto">
-              Chỉ 4 bước đơn giản để sở hữu tài khoản premium với giá tốt nhất
+              Chỉ 4 bước đơn giản để bắt đầu sử dụng dịch vụ một cách nhanh chóng
             </p>
           </div>
         </div>
@@ -239,10 +239,10 @@ export default function HowToBuyPage() {
       <section className="py-20 bg-white">
         <div className="container-max section-padding text-center">
           <h2 className="text-3xl font-bold text-brand-charcoal mb-4">
-            Sẵn sàng mua tài khoản?
+            Sẵn sàng bắt đầu?
           </h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Hàng nghìn tài khoản premium đang chờ bạn khám phá với giá tốt nhất thị trường
+            Khám phá danh sách gói dịch vụ số và chọn lựa phù hợp nhu cầu của bạn
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button

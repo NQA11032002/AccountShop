@@ -110,9 +110,7 @@ export default function RandomPurchaseNotification({
             Một khách hàng vừa thêm{" "}
             <span className="text-indigo-600">{product.name}</span> vào giỏ hàng
           </p>
-          <p className="mt-1 text-sm font-bold text-emerald-600">
-            {formatPrice(product.price)}
-          </p>
+          {/* Hide price on homepage */}
         </div>
 
         <button

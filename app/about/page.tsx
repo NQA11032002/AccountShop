@@ -13,7 +13,7 @@ export default function AboutPage() {
 
   const stats = [
     { label: 'Khách hàng tin tưởng', value: '10,000+', icon: Users },
-    { label: 'Tài khoản đã bán', value: '50,000+', icon: Award },
+    { label: 'Đơn hàng đã xử lý', value: '50,000+', icon: Award },
     { label: 'Tỷ lệ hài lòng', value: '98%', icon: Heart },
     { label: 'Năm hoạt động', value: '5+', icon: TrendingUp },
   ];
@@ -22,13 +22,13 @@ export default function AboutPage() {
     {
       icon: Shield,
       title: 'Bảo mật tuyệt đối',
-      description: 'Tất cả tài khoản được kiểm tra kỹ lưỡng, đảm bảo an toàn cho khách hàng',
+      description: 'Quy trình rõ ràng, ưu tiên an toàn và quyền riêng tư cho khách hàng',
       color: 'bg-blue-500'
     },
     {
       icon: Zap,
       title: 'Giao hàng tức thì',
-      description: 'Hệ thống tự động 24/7, nhận tài khoản ngay sau khi thanh toán',
+      description: 'Hệ thống tự động 24/7, nhận hướng dẫn/thông tin sử dụng ngay sau khi thanh toán',
       color: 'bg-yellow-500'
     },
     {
@@ -40,19 +40,19 @@ export default function AboutPage() {
     {
       icon: Award,
       title: 'Chất lượng đảm bảo',
-      description: 'Cam kết hoàn tiền 100% nếu tài khoản không hoạt động',
+      description: 'Cam kết hoàn tiền 100% nếu dịch vụ không đúng mô tả hoặc không hoạt động',
       color: 'bg-purple-500'
     },
     {
       icon: Globe,
       title: 'Đa dạng dịch vụ',
-      description: 'Hơn 100+ loại tài khoản premium từ các nền tảng hàng đầu',
+      description: 'Nhiều nhóm dịch vụ số phù hợp học tập, công việc, giải trí và sáng tạo',
       color: 'bg-red-500'
     },
     {
       icon: Clock,
       title: 'Bảo hành dài hạn',
-      description: 'Bảo hành từ 30-365 ngày tùy theo từng loại tài khoản',
+      description: 'Bảo hành theo từng gói dịch vụ, thời hạn và điều kiện minh bạch',
       color: 'bg-indigo-500'
     }
   ];
@@ -65,7 +65,7 @@ export default function AboutPage() {
     },
     {
       title: 'Chất lượng',
-      description: 'Chỉ cung cấp các tài khoản premium chính hãng',
+      description: 'Ưu tiên trải nghiệm ổn định và nội dung đúng mô tả',
       icon: '⭐'
     },
     {
@@ -103,14 +103,14 @@ export default function AboutPage() {
               Về chúng tôi
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              QAI STORE - Nơi mua tài khoản
+              QAI STORE - Nền tảng dịch vụ số
               <span className="block bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
-                Premium uy tín nhất
+                Uy tín & minh bạch
               </span>
             </h1>
             <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8">
-              Với hơn 5 năm kinh nghiệm trong lĩnh vực cung cấp tài khoản premium,
-              chúng tôi tự hào là đối tác tin cậy của hàng chục nghìn khách hàng trên toàn quốc.
+              Với hơn 5 năm kinh nghiệm vận hành dịch vụ số,
+              chúng tôi tự hào được hàng chục nghìn khách hàng trên toàn quốc tin tưởng lựa chọn.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -167,17 +167,16 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-4 text-gray-600">
                 <p>
-                  Khởi đầu từ năm 2019, 5K Shop được thành lập với mục tiêu giúp người dùng Việt Nam
-                  có thể truy cập các dịch vụ premium với chi phí hợp lý nhất.
+                  Khởi đầu từ năm 2019, QAI STORE được thành lập với mục tiêu giúp người dùng Việt Nam
+                  tiếp cận các dịch vụ số với chi phí hợp lý và trải nghiệm ổn định.
                 </p>
                 <p>
-                  Chúng tôi hiểu rằng không phải ai cũng có điều kiện trả phí đầy đủ cho các dịch vụ
-                  như Netflix, Spotify, Adobe Creative Suite... Vì vậy, chúng tôi đã tìm ra giải pháp
-                  chia sẻ tài khoản hợp pháp và an toàn.
+                  Chúng tôi hiểu rằng không phải ai cũng muốn mất thời gian tìm hiểu, so sánh, hay xử lý rắc rối kỹ thuật.
+                  Vì vậy, chúng tôi xây dựng quy trình gọn gàng, hướng dẫn rõ ràng và hỗ trợ nhanh khi bạn cần.
                 </p>
                 <p>
-                  Đến nay, với hơn 10,000 khách hàng tin tưởng và 50,000+ tài khoản đã bán thành công,
-                  5K Shop đã trở thành thương hiệu hàng đầu trong lĩnh vực này.
+                  Đến nay, với hơn 10,000 khách hàng tin tưởng và 50,000+ đơn hàng đã xử lý,
+                  QAI STORE đang ngày càng hoàn thiện chất lượng dịch vụ và trải nghiệm mua hàng.
                 </p>
               </div>
               <div className="mt-8 flex items-center space-x-4">
@@ -196,8 +195,8 @@ export default function AboutPage() {
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
                 <h3 className="text-2xl font-bold mb-4">Tầm nhìn của chúng tôi</h3>
                 <p className="text-white/90 mb-6">
-                  Trở thành nền tảng số 1 Việt Nam trong việc cung cấp tài khoản premium,
-                  mang đến trải nghiệm công nghệ tốt nhất với chi phí tối ưu.
+                  Trở thành nền tảng dịch vụ số được tin dùng tại Việt Nam,
+                  mang đến trải nghiệm tốt với quy trình minh bạch và chi phí tối ưu.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/10 rounded-lg p-4">
@@ -225,10 +224,10 @@ export default function AboutPage() {
               Tại sao chọn chúng tôi
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-              Những điều đặc biệt tại 5K Shop
+              Những điều đặc biệt tại QAI STORE
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Chúng tôi không chỉ bán tài khoản, mà còn mang đến trải nghiệm mua sắm tuyệt vời nhất
+              Chúng tôi tập trung vào trải nghiệm: nhanh, rõ ràng, và được hỗ trợ kịp thời
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -284,7 +283,7 @@ export default function AboutPage() {
               Sẵn sàng trải nghiệm dịch vụ tốt nhất?
             </h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Hãy để chúng tôi giúp bạn tiết kiệm chi phí và tận hưởng những dịch vụ premium tuyệt vời nhất
+              Hãy để chúng tôi giúp bạn tiết kiệm thời gian và trải nghiệm dịch vụ số một cách đơn giản, rõ ràng
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -292,7 +291,7 @@ export default function AboutPage() {
                 size="lg"
                 className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-4"
               >
-                Mua ngay
+                Xem danh sách gói
               </Button>
               <Button
                 onClick={handleContactClick}

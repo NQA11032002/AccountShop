@@ -378,13 +378,13 @@ function ProductsContent() {
               🌟 Tất cả sản phẩm
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-              Tài khoản Premium
+              Gói dịch vụ số
               <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
                 Chất lượng cao
               </span>
             </h1>
             <p className="text-xl text-white/80 max-w-2xl mx-auto">
-              Khám phá bộ sưu tập đầy đủ các tài khoản premium với giá tốt nhất thị trường
+              Khám phá danh sách gói dịch vụ số với mô tả rõ ràng, hỗ trợ nhanh và chính sách minh bạch
             </p>
           </div>
         </div>
@@ -402,7 +402,7 @@ function ProductsContent() {
                     <Grid3X3 className="w-5 h-5 mr-2" />
                     Danh mục sản phẩm
                   </h2>
-                  <p className="text-blue-100 text-sm mt-1">Tìm tài khoản theo danh mục</p>
+                  <p className="text-blue-100 text-sm mt-1">Tìm gói theo danh mục</p>
                 </div>
 
                 <div className="p-6 space-y-3">

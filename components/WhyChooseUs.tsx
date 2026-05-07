@@ -11,7 +11,7 @@ export default function WhyChooseUs() {
     {
       icon: Clock,
       title: 'Giao hàng tự động 24/7',
-      description: 'Nhận tài khoản ngay lập tức sau khi thanh toán thành công, không cần chờ đợi.',
+      description: 'Nhận thông tin sử dụng ngay sau khi thanh toán thành công, không cần chờ đợi.',
       highlight: 'Tức thì',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
@@ -19,8 +19,8 @@ export default function WhyChooseUs() {
     },
     {
       icon: Shield,
-      title: 'Bảo hành tài khoản',
-      description: 'Cam kết bảo hành và hỗ trợ đổi tài khoản mới nếu có vấn đề trong thời gian sử dụng.',
+      title: 'Bảo hành dịch vụ',
+      description: 'Cam kết bảo hành và hỗ trợ đổi/hoàn theo chính sách nếu phát sinh vấn đề trong thời gian sử dụng.',
       highlight: 'Bảo hành',
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -65,14 +65,14 @@ export default function WhyChooseUs() {
   ];
 
   const stats = [
-    { number: '10,000+', label: 'Tài khoản đã bán', icon: Award },
+    { number: '10,000+', label: 'Đơn hàng đã xử lý', icon: Award },
     { number: '5,000+', label: 'Khách hàng hài lòng', icon: Users },
     { number: '98%', label: 'Đánh giá tích cực', icon: RefreshCw },
     { number: '24/7', label: 'Hỗ trợ không ngừng', icon: Clock }
   ];
 
   return (
-    <section className="section-spacing bg-white">
+    <section className="section-spacing-home bg-white">
       <div className="container-max section-padding">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-16 animate-fade-in">
@@ -84,7 +84,7 @@ export default function WhyChooseUs() {
             <span className="gradient-text"> tin tưởng chúng tôi</span>
           </h2>
           <p className="text-base sm:text-lg text-gray-600 text-balance px-2">
-            Chúng tôi cam kết mang đến trải nghiệm mua sắm tài khoản premium tốt nhất với dịch vụ chuyên nghiệp và uy tín
+            Chúng tôi cam kết mang đến trải nghiệm mua sắm dịch vụ số tốt nhất với quy trình rõ ràng và hỗ trợ tận tâm
           </p>
         </div>
 

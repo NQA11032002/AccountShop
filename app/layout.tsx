@@ -19,9 +19,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'QAI STORE - Shop Tài Khoản Premium Uy Tín',
-  description: 'Mua tài khoản Netflix, Spotify, ChatGPT Plus, YouTube Premium với giá tốt nhất. Bảo hành uy tín, giao hàng tự động 24/7.',
-  keywords: 'tài khoản premium, netflix, spotify, chatgpt plus, youtube premium, canva pro, adobe creative',
+  title: 'QAI STORE - Shop dịch vụ số uy tín',
+  description: 'Cung cấp các gói dịch vụ số, hỗ trợ nhanh chóng, giao hàng tự động 24/7. Quy trình rõ ràng, bảo hành minh bạch.',
+  keywords: 'dịch vụ số, gói dịch vụ, gói nâng cấp, shop uy tín, bảo hành, giao hàng tự động',
   authors: [{ name: 'QAI STORE' }],
   icons: {
     icon: [
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'QAI STORE - Shop Tài Khoản Premium Uy Tín',
-    description: 'Mua tài khoản Netflix, Spotify, ChatGPT Plus, YouTube Premium với giá tốt nhất. Bảo hành uy tín, giao hàng tự động 24/7.',
+    title: 'QAI STORE - Shop dịch vụ số uy tín',
+    description: 'Cung cấp các gói dịch vụ số, hỗ trợ nhanh chóng, giao hàng tự động 24/7. Quy trình rõ ràng, bảo hành minh bạch.',
     type: 'website',
     locale: 'vi_VN',
     images: [

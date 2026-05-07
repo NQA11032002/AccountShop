@@ -13,32 +13,32 @@ export default function FAQ() {
 
   const faqs = [
     {
-      question: 'Tài khoản có hoạt động ổn định không?',
-      answer: 'Tất cả tài khoản đều được kiểm tra kỹ trước khi bán và có bảo hành. Nếu gặp vấn đề, chúng tôi sẽ hỗ trợ đổi tài khoản mới hoặc hoàn tiền 100%.'
+      question: 'Dịch vụ có ổn định không?',
+      answer: 'Tất cả gói dịch vụ đều được kiểm tra kỹ trước khi bàn giao và có bảo hành. Nếu gặp vấn đề, chúng tôi sẽ hỗ trợ xử lý theo chính sách hoặc hoàn tiền 100%.'
     },
     {
-      question: 'Làm sao để nhận tài khoản sau khi thanh toán?',
-      answer: 'Sau khi thanh toán thành công, hệ thống sẽ tự động gửi thông tin tài khoản qua email hoặc Telegram/Zalo trong vòng 1-5 phút. Không cần chờ đợi.'
+      question: 'Làm sao để nhận thông tin sử dụng sau khi thanh toán?',
+      answer: 'Sau khi thanh toán thành công, hệ thống sẽ tự động gửi hướng dẫn/thông tin sử dụng qua email hoặc Telegram/Zalo trong vòng 1-5 phút. Không cần chờ đợi.'
     },
     {
       question: 'Có những hình thức thanh toán nào?',
       answer: 'Chúng tôi chấp nhận thanh toán qua Momo, chuyển khoản ngân hàng (Vietcombank, Techcombank, BIDV), thẻ cào điện thoại và các ví điện tử khác.'
     },
     {
-      question: 'Tài khoản có bị đổi mật khẩu không?',
-      answer: 'Không, bạn sẽ nhận được thông tin đăng nhập hoàn chỉnh và có thể sử dụng ngay. Tuy nhiên, không nên thay đổi thông tin tài khoản để đảm bảo hoạt động ổn định.'
+      question: 'Có cần thay đổi thông tin đăng nhập không?',
+      answer: 'Bạn sẽ nhận được hướng dẫn/thông tin cần thiết để sử dụng ngay. Để đảm bảo ổn định, vui lòng làm theo hướng dẫn kèm theo (nếu có).'
     },
     {
       question: 'Có được sử dụng đồng thời trên nhiều thiết bị?',
-      answer: 'Tùy từng loại tài khoản sẽ có giới hạn thiết bị khác nhau. Netflix Premium cho phép 4 màn hình, Spotify Premium 1 thiết bị cùng lúc. Chi tiết sẽ được ghi rõ trong mô tả sản phẩm.'
+      answer: 'Tùy từng gói dịch vụ sẽ có giới hạn thiết bị khác nhau. Chi tiết sẽ được ghi rõ trong mô tả sản phẩm.'
     },
     {
       question: 'Chính sách bảo hành như thế nào?',
-      answer: 'Tất cả tài khoản đều có bảo hành theo thời hạn gói mua. Nếu tài khoản gặp sự cố, chúng tôi sẽ đổi tài khoản mới hoặc hoàn tiền trong vòng 24h.'
+      answer: 'Tất cả gói dịch vụ đều có bảo hành theo thời hạn gói mua. Nếu phát sinh sự cố, chúng tôi sẽ hỗ trợ xử lý hoặc hoàn tiền trong vòng 24h theo chính sách.'
     },
     {
       question: 'Có cần cung cấp thông tin cá nhân không?',
-      answer: 'Chỉ cần email hoặc số điện thoại để nhận thông tin tài khoản. Chúng tôi cam kết bảo mật thông tin khách hàng tuyệt đối.'
+      answer: 'Chỉ cần email hoặc số điện thoại để nhận hướng dẫn/thông tin sử dụng. Chúng tôi cam kết bảo mật thông tin khách hàng tuyệt đối.'
     },
     {
       question: 'Làm sao liên hệ hỗ trợ khi cần?',
@@ -46,16 +46,16 @@ export default function FAQ() {
     },
     {
       question: 'Có được đổi trả nếu không hài lòng?',
-      answer: 'Trong vòng 24h đầu, nếu tài khoản không hoạt động hoặc không đúng mô tả, chúng tôi sẽ đổi tài khoản mới hoặc hoàn tiền 100%.'
+      answer: 'Trong vòng 24h đầu, nếu dịch vụ không hoạt động hoặc không đúng mô tả, chúng tôi sẽ hỗ trợ xử lý hoặc hoàn tiền 100%.'
     },
     {
       question: 'Tại sao giá rẻ hơn mua chính hãng?',
-      answer: 'Chúng tôi có nguồn cung ổn định và bán với số lượng lớn nên có thể đưa ra giá tốt nhất cho khách hàng. Tài khoản vẫn đảm bảo chất lượng như chính hãng.'
+      answer: 'Chúng tôi tối ưu chi phí vận hành và xử lý số lượng lớn nên có thể đưa ra mức giá tốt cho khách hàng, vẫn đảm bảo chất lượng theo mô tả.'
     }
   ];
 
   return (
-    <section className="section-spacing bg-white">
+    <section className="section-spacing-home bg-white">
       <div className="container-max section-padding">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-16 animate-fade-in">
@@ -67,7 +67,7 @@ export default function FAQ() {
             <span className="gradient-text"> thắc mắc</span>
           </h2>
           <p className="text-base sm:text-lg text-gray-600 text-balance px-2">
-            Tìm hiểu thêm về dịch vụ và quy trình mua tài khoản tại QAI STORE
+            Tìm hiểu thêm về dịch vụ và quy trình mua hàng tại QAI STORE
           </p>
         </div>
 

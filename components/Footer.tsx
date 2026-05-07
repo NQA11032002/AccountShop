@@ -18,18 +18,18 @@ export default function Footer() {
 
   const quickLinks = [
     { name: 'Trang chủ', href: '#home' },
-    { name: 'Danh mục tài khoản', href: '#categories' },
+    { name: 'Danh mục dịch vụ', href: '#categories' },
     { name: 'Cách mua hàng', href: '#how-to-buy' },
     { name: 'Liên hệ', href: '#contact' },
   ];
 
   const categories = [
-    { name: 'Netflix Premium', href: '#netflix' },
-    { name: 'Spotify Premium', href: '#spotify' },
-    { name: 'ChatGPT Plus', href: '#chatgpt' },
-    { name: 'YouTube Premium', href: '#youtube' },
-    { name: 'Canva Pro', href: '#canva' },
-    { name: 'Adobe Creative', href: '#adobe' },
+    { name: 'Gói AI', href: '#categories' },
+    { name: 'Gói Giải trí', href: '#categories' },
+    { name: 'Gói Thiết kế', href: '#categories' },
+    { name: 'Gói Công cụ', href: '#categories' },
+    { name: 'Gói Học tập', href: '#categories' },
+    { name: 'Gói Bảo mật', href: '#categories' },
   ];
 
   const policies = [
@@ -54,13 +54,13 @@ export default function Footer() {
               </div>
               <div>
                 <h3 className="text-xl font-bold">QAI STORE</h3>
-                <p className="text-gray-400 text-sm">SHOP TÀI KHOẢN</p>
+                <p className="text-gray-400 text-sm">SHOP DỊCH VỤ SỐ</p>
               </div>
             </div>
 
             {/* Description */}
             <p className="text-gray-300 text-sm leading-relaxed max-w-sm">
-              Cung cấp tài khoản premium chất lượng cao với giá tốt nhất thị trường.
+              Cung cấp các gói dịch vụ số với giá hợp lý và quy trình rõ ràng.
               Cam kết bảo hành và hỗ trợ khách hàng 24/7.
             </p>
 

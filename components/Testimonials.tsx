@@ -34,8 +34,8 @@ export default function Testimonials() {
       role: 'Sinh viên',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Mình đã mua Netflix Premium từ QAI Store được 3 tháng rồi, tài khoản vẫn hoạt động tốt. Giá rẻ hơn mua chính hãng rất nhiều và có bảo hành nữa. Rất uy tín!',
-      product: 'Netflix Premium',
+      comment: 'Mình đã mua gói dịch vụ ở QAI Store được 3 tháng rồi, dùng ổn định. Giá hợp lý và có bảo hành rõ ràng. Rất uy tín!',
+      product: 'Gói dịch vụ',
       date: '2 ngày trước',
       verified: true
     },
@@ -45,8 +45,8 @@ export default function Testimonials() {
       role: 'Nhân viên văn phòng',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Spotify Premium mua ở đây rất OK. Giao hàng tự động ngay sau khi chuyển khoản, không phải chờ đợi. Âm thanh chất lượng cao, không có quảng cáo nào cả.',
-      product: 'Spotify Premium',
+      comment: 'Mua ở đây rất OK. Xử lý tự động ngay sau khi chuyển khoản, không phải chờ đợi. Hướng dẫn rõ ràng, hỗ trợ nhanh.',
+      product: 'Gói giải trí',
       date: '1 tuần trước',
       verified: true
     },
@@ -56,8 +56,8 @@ export default function Testimonials() {
       role: 'Freelancer',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'ChatGPT Plus ở QAI Store giá tốt lắm. Mình dùng để làm việc hàng ngày, GPT-4 nhanh và mượt. Hỗ trợ khách hàng qua Telegram rất nhanh, có vấn đề gì là giải quyết liền.',
-      product: 'ChatGPT Plus',
+      comment: 'Gói AI ở QAI Store giá tốt. Mình dùng để làm việc hằng ngày, phản hồi nhanh và ổn định. Hỗ trợ qua Telegram rất nhanh, có vấn đề là xử lý liền.',
+      product: 'Gói AI',
       date: '3 ngày trước',
       verified: true
     },
@@ -67,8 +67,8 @@ export default function Testimonials() {
       role: 'Content Creator',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Canva Pro mua ở đây rất tiện, có đầy đủ template premium và font chữ đẹp. Giá chỉ bằng 1/3 so với mua chính hãng. Đã mua lần 2 rồi, sẽ tiếp tục ủng hộ shop.',
-      product: 'Canva Pro',
+      comment: 'Gói thiết kế mua ở đây rất tiện, có nhiều tài nguyên và hướng dẫn dễ hiểu. Giá hợp lý. Đã mua lần 2 rồi, sẽ tiếp tục ủng hộ shop.',
+      product: 'Gói thiết kế',
       date: '5 ngày trước',
       verified: true
     },
@@ -78,8 +78,8 @@ export default function Testimonials() {
       role: 'Designer',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Adobe Creative Suite đầy đủ các app, dùng Photoshop, Illustrator mượt mà. Tài khoản ổn định, chưa gặp vấn đề gì. Sẽ giới thiệu cho bạn bè cùng nghề.',
-      product: 'Adobe Creative',
+      comment: 'Gói công cụ rất ổn định, dùng mượt và đáp ứng công việc. Chưa gặp vấn đề gì. Sẽ giới thiệu cho bạn bè cùng nghề.',
+      product: 'Gói công cụ',
       date: '1 ngày trước',
       verified: true
     },
@@ -89,8 +89,8 @@ export default function Testimonials() {
       role: 'Học sinh',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'YouTube Premium không quảng cáo rất tuyệt. Xem video học tập không bị gián đoạn, còn có YouTube Music nữa. Shop bán giá sinh viên, rất hợp lý.',
-      product: 'YouTube Premium',
+      comment: 'Mình dùng gói giải trí để học tập và xem nội dung không bị gián đoạn. Shop hỗ trợ nhanh, giá hợp lý.',
+      product: 'Gói giải trí',
       date: '4 ngày trước',
       verified: true
     }
@@ -129,7 +129,7 @@ export default function Testimonials() {
   );
 
   return (
-    <section className="section-spacing bg-gradient-to-br from-gray-50 to-white">
+    <section className="section-spacing-home bg-gradient-to-br from-gray-50 to-white">
       <div className="container-max section-padding">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-16 animate-fade-in">

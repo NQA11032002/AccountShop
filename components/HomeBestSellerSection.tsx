@@ -12,17 +12,16 @@ export default function HomeBestSellerSection() {
           {/* Left content */}
           <div className="space-y-5 sm:space-y-6">
             <p className="text-xs sm:text-sm font-semibold text-emerald-600 uppercase tracking-wide">
-              Nâng cấp ChatGPT Plus chính chủ
+              Gói AI nâng cao
             </p>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-snug">
-              ChatGPT Plus – công cụ AI{" "}
+              Trợ lý AI – công cụ{" "}
               <span className="bg-gradient-to-r from-emerald-500 to-sky-500 bg-clip-text text-transparent">
-                mạnh mẽ nhất hiện nay
+                tăng tốc công việc mỗi ngày
               </span>
             </h2>
             <p className="text-sm sm:text-base text-gray-600 max-w-2xl">
-              Trả lời nhanh hơn, chính xác hơn, luôn sẵn sàng kể cả giờ cao điểm. Hỗ
-              trợ học tập, làm việc, sáng tạo nội dung và kinh doanh mỗi ngày.
+              Phản hồi nhanh, ổn định và dễ sử dụng. Hỗ trợ học tập, làm việc, sáng tạo nội dung và vận hành kinh doanh hằng ngày.
             </p>
 
             <div className="grid gap-3 sm:grid-cols-3 sm:gap-4 text-sm">
@@ -35,7 +34,7 @@ export default function HomeBestSellerSection() {
                     Chính chủ, bảo hành
                   </p>
                   <p className="text-[11px] sm:text-xs text-gray-600">
-                    Tài khoản an toàn, hỗ trợ tận tâm trong suốt thời gian sử dụng.
+                    Dịch vụ an toàn, hỗ trợ tận tâm trong suốt thời gian sử dụng.
                   </p>
                 </div>
               </div>
@@ -68,9 +67,9 @@ export default function HomeBestSellerSection() {
             </div>
 
             <div className="pt-2">
-              <Link href="/products?search=Chat%20GPT">
+              <Link href="/products">
                 <Button className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded-full shadow-lg hover:shadow-xl transition-all">
-                  Mua tài khoản ChatGPT Plus ngay
+                  Xem gói AI ngay
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -89,7 +88,7 @@ export default function HomeBestSellerSection() {
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-emerald-600 text-xs font-bold">
                     C
                   </span>
-                  ChatGPT Plus chính chủ
+                  Gói AI nâng cao
                 </div>
 
                 <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold leading-snug">
@@ -97,8 +96,7 @@ export default function HomeBestSellerSection() {
                 </h3>
 
                 <p className="text-xs sm:text-sm text-emerald-50/90">
-                  Truy cập GPT-4, tốc độ trả lời nhanh, ưu tiên server vào giờ cao điểm.
-                  Tối ưu công việc, tiết kiệm hàng giờ mỗi tuần.
+                  Phản hồi nhanh, trải nghiệm mượt và ổn định. Tối ưu công việc, tiết kiệm thời gian mỗi tuần.
                 </p>
 
                 <div className="mt-2 grid grid-cols-3 gap-3 text-center text-xs sm:text-sm">
