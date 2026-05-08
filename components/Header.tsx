@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, Crown, LogOut, Heart, Ticket, Home, Info, Package, FileText, Newspaper, Mail, Code, Gift } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, LogOut, Heart, Home, Info, Package, FileText, Newspaper, Mail, Code, Gift } from 'lucide-react';
 import DataSyncHelper from '@/lib/syncHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,11 +26,11 @@ const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'Giới thiệu': Info,
   'Sản phẩm': Package,
   'Sản phẩm': Package,
-  'Chính sách mua hàng': FileText,
+  'Hướng dẫn': FileText,
   'Tin tức công nghệ': Newspaper,
   'Liên hệ': Mail,
   'Câu lệnh': Code,
-  'Lấy Code': Gift,
+  'Nhận mã': Gift,
   'Quà tặng': Gift,
 };
 
@@ -107,12 +107,12 @@ export default function Header() {
     { name: 'Trang chủ', href: '/' },
     { name: 'Giới thiệu', href: '/about' },
     { name: 'Sản phẩm', href: '/products' },
-    { name: 'Chính sách mua hàng', href: '/how-to-buy' },
+    { name: 'Hướng dẫn', href: '/how-to-buy' },
     { name: 'Tin tức công nghệ', href: '/news' },
     { name: 'Liên hệ', href: '/contact' },
     { name: 'Quà tặng', href: '/qua-tang' },
     { name: 'Câu lệnh', href: '/prompt' },
-    { name: 'Lấy Code', href: '/onetimecode' },
+    { name: 'Nhận mã', href: '/onetimecode' },
   ];
 
   const collaboratorNavigation = [
@@ -501,28 +501,6 @@ export default function Header() {
                     </DropdownMenuItem>
                   )}
                   {(user.role === "admin" || user.role === "collaborator") && <DropdownMenuSeparator className="bg-gray-100" />}
-                  {user.role !== "collaborator" && (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href="/accounts" className="flex items-center px-4 py-3 hover:bg-purple-50 rounded-lg">
-                          <Shield className="mr-3 h-4 w-4 text-purple-600" />
-                        <span>Thông tin của tôi</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/my-ranking" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
-                          <Crown className="mr-3 h-4 w-4 text-purple-600" />
-                          <span>Hạng của tôi</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/my-vouchers" className="flex items-center px-4 py-3 hover:bg-amber-50 rounded-lg">
-                          <Ticket className="mr-3 h-4 w-4 text-amber-600" />
-                          <span>Voucher của tôi</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
                   {user.role !== "collaborator" && (
                     <DropdownMenuItem asChild>
                       <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">

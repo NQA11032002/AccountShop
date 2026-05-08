@@ -31,7 +31,7 @@ export default function Prompt() {
         if (expiresIn > 0) {
             toast({
                 title: "⏳ Vui lòng đợi",
-                description: `Bạn phải đợi ${expiresIn} giây nữa để lấy mã mới.`,
+                description: `Vui lòng đợi ${expiresIn} giây nữa trước khi nhận mã mới.`,
                 variant: "default",
             });
             return;
@@ -65,15 +65,15 @@ export default function Prompt() {
             }
             else {
                 toast({
-                    title: "⚠️ Lấy code không thành công",
-                    description: `Email tài khoản hoặc của Anh/Chị chưa được đăng ký bên shop!`,
+                    title: "⚠️ Không nhận được mã",
+                    description: `Email đăng ký dịch vụ hoặc email của Anh/Chị chưa được ghi nhận tại shop!`,
                     variant: "destructive",
                 });
             }
         } catch (e) {
             toast({
-                title: "⚠️ Lấy code không thành công",
-                description: `có lỗi xả ra trong quá trình lấy code`,
+                title: "⚠️ Không nhận được mã",
+                description: `Đã có lỗi xảy ra trong quá trình cấp mã. Vui lòng thử lại sau.`,
                 variant: "destructive",
             });
         }
@@ -111,16 +111,16 @@ export default function Prompt() {
                 <div className="container-max section-padding">
                     <div className="text-center text-white">
                         <Badge className="bg-white/20 text-white border-white/30 mb-4 text-sm px-4 py-2">
-                            🌟 Lấy Code Truy Cập
+                            🌟 Mã truy cập tức thì
                         </Badge>
                         <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-                            Tài khoản Premium
+                            Gói quyền Premium
                             <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
                                 Chất lượng cao
                             </span>
                         </h1>
                         <p className="text-xl text-white/80 max-w-2xl mx-auto">
-                            Hệ thống lấy Code tự động hỗ trợ truy cập các dịch vụ đăng nhập cần Code.
+                            Hệ thống tự động cấp mã dùng một lần, hỗ trợ Anh/Chị kích hoạt quyền sử dụng các dịch vụ có yêu cầu nhập mã.
                         </p>
                     </div>
                 </div>
@@ -134,7 +134,7 @@ export default function Prompt() {
                             <CardHeader className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white rounded-t-lg">
                                 <CardTitle className="text-2xl font-bold flex items-center">
                                     <Send className="w-6 h-6 mr-2" />
-                                    Hệ thống lấy code tự động
+                                    Hệ thống cấp mã tự động
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-8">
@@ -142,7 +142,7 @@ export default function Prompt() {
                                     {/* Email */}
                                     <div>
                                         <Label htmlFor="emailAccount" className="text-gray-700 font-medium">
-                                            Email tài khoản *
+                                            Email đăng ký gói dịch vụ *
                                         </Label>
                                         <Input
                                             id="emailAccount"
@@ -176,7 +176,7 @@ export default function Prompt() {
                                         {status && (
                                             <div className='flex gap-3 items-center'>
                                                 <Label htmlFor="problem" className="text-gray-700 font-medium">
-                                                    Mã code của bạn: <span className='bg-violet-500 text-white p-3 rounded-md'>{code}</span>
+                                                    Mã xác thực của bạn: <span className='bg-violet-500 text-white p-3 rounded-md'>{code}</span>
                                                 </Label>
                                                 <Button
                                                     variant="outline"
@@ -203,15 +203,15 @@ export default function Prompt() {
                                         className="w-full bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white hover:from-blue-700 hover:to-purple-700 t font-semibold py-3 text-lg"
                                     >
                                         <Send className="w-5 h-5 mr-2" />
-                                        {expiresIn > 0 ? `Vui lòng đợi ${expiresIn}s` : 'Lấy mã Code'}
+                                        {expiresIn > 0 ? `Vui lòng đợi ${expiresIn}s` : 'Nhận mã xác thực'}
                                     </Button>
                                 </form>
 
                                 <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                                     <p className="text-sm text-blue-800">
                                         <strong>Lưu ý:</strong> Để được hỗ trợ nhanh nhất, vui lòng liên hệ trực tiếp qua Zalo hoặc điện thoại (038.966.0305)! <br></br>
-                                        Vui lòng không share code cho người khác, truy cập đúng số lượng thiết bị đã đăng ký!. <br></br>
-                                        Hệ thống có lưu thiết bị khi lấy, phát hiện tài khoản bị share shop sẽ không bảo hành dịch vụ
+                                        Vui lòng không chia sẻ mã cho người khác và chỉ dùng trên đúng số lượng thiết bị đã đăng ký. <br></br>
+                                        Hệ thống ghi nhận thiết bị khi nhận mã; phát hiện vi phạm chia sẻ trái phép, shop không bảo hành quyền sử dụng dịch vụ.
 
                                     </p>
                                 </div>

@@ -101,7 +101,7 @@ export default function HowToBuyPage() {
               Hướng dẫn mua hàng
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Chính sách mua hàng
+              Hướng dẫn
               <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text p-1">
                 Đơn giản & Nhanh chóng
               </span>
