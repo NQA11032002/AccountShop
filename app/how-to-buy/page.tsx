@@ -3,7 +3,7 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CheckCircle, CreditCard, Download, MessageCircle, Shield, Clock, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import SectionReveal from '@/components/SectionReveal';
@@ -55,30 +55,6 @@ export default function HowToBuyPage() {
         'Hỗ trợ xử lý theo chính sách nếu có lỗi',
         'Bảo hành thời hạn theo gói mua'
       ]
-    }
-  ];
-
-  const paymentMethods = [
-    {
-      name: 'Momo',
-      logo: '💳',
-      description: 'Chuyển khoản qua ví Momo, nhanh chóng và tiện lợi',
-      fee: 'Miễn phí',
-      time: 'Tức thì'
-    },
-    {
-      name: 'Banking',
-      logo: '🏦',
-      description: 'Chuyển khoản qua ngân hàng (Vietcombank, Techcombank, BIDV)',
-      fee: 'Theo ngân hàng',
-      time: '1-5 phút'
-    },
-    {
-      name: 'Thẻ cào',
-      logo: '📱',
-      description: 'Thanh toán bằng thẻ cào điện thoại các nhà mạng',
-      fee: '5-10%',
-      time: '5-10 phút'
     }
   ];
 
@@ -160,46 +136,6 @@ export default function HowToBuyPage() {
                   </Card>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      </SectionReveal>
-
-      {/* Payment Methods */}
-      <SectionReveal delayMs={120}>
-      <section className="py-20 bg-white">
-        <div className="container-max section-padding">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-brand-charcoal mb-4">
-              Phương thức thanh toán
-            </h2>
-            <p className="text-lg text-gray-600">
-              Đa dạng hình thức thanh toán để bạn lựa chọn
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {paymentMethods.map((method) => (
-              <Card key={method.name} className="product-card">
-                <CardHeader className="text-center">
-                  <div className="text-4xl mb-4">{method.logo}</div>
-                  <CardTitle className="text-xl">{method.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-gray-600 text-sm">{method.description}</p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Phí giao dịch:</span>
-                      <span className="font-medium text-brand-emerald">{method.fee}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Thời gian xử lý:</span>
-                      <span className="font-medium text-brand-blue">{method.time}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             ))}
           </div>
         </div>

@@ -1,7 +1,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const DISABLED_USER_PATHS = ["/accounts", "/my-ranking", "/my-vouchers"];
+const DISABLED_USER_PATHS = [
+  "/accounts",
+  "/my-ranking",
+  "/my-vouchers",
+  "/products",
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -22,5 +27,7 @@ export const config = {
     "/my-ranking/:path*",
     "/my-vouchers",
     "/my-vouchers/:path*",
+    "/products",
+    "/products/:path*",
   ],
 };

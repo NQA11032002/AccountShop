@@ -21,10 +21,12 @@ import { fetchCategories, fetchProducts } from '@/lib/api';
 import type { Category, ParentCategory } from '@/types/category.interface';
 import type { ProductBase } from '@/lib/products';
 
+/** Tạm đóng trang catalog /products (middleware cũng chặn URL). Đặt false khi mở lại. */
+const PRODUCTS_PUBLIC_TEMP_DISABLED = true;
+
 const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'Trang chủ': Home,
   'Giới thiệu': Info,
-  'Sản phẩm': Package,
   'Sản phẩm': Package,
   'Hướng dẫn': FileText,
   'Tin tức công nghệ': Newspaper,
@@ -106,7 +108,6 @@ export default function Header() {
   const navigation = [
     { name: 'Trang chủ', href: '/' },
     { name: 'Giới thiệu', href: '/about' },
-    { name: 'Sản phẩm', href: '/products' },
     { name: 'Hướng dẫn', href: '/how-to-buy' },
     { name: 'Tin tức công nghệ', href: '/news' },
     { name: 'Liên hệ', href: '/contact' },
@@ -159,6 +160,7 @@ export default function Header() {
   }, [searchInput]);
 
   useEffect(() => {
+    if (PRODUCTS_PUBLIC_TEMP_DISABLED) return;
     const q = debouncedSearchInput;
     if (!q) return;
 
@@ -392,6 +394,13 @@ export default function Header() {
                         const name = product.name || '';
                         setSearchInput(name);
                         setDebouncedSearchInput(name);
+                        if (PRODUCTS_PUBLIC_TEMP_DISABLED) {
+                          toast({
+                            title: "Tạm ngưng",
+                            description: "Trang danh mục dịch vụ đang tạm đóng.",
+                          });
+                          return;
+                        }
                         router.push(`/products/${product.id}`);
                       }}
                       className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between"
@@ -574,6 +583,13 @@ export default function Header() {
                         setSearchInput('');
                         setShowMobileSearch(false);
                         setDebouncedSearchInput(product.name || '');
+                        if (PRODUCTS_PUBLIC_TEMP_DISABLED) {
+                          toast({
+                            title: "Tạm ngưng",
+                            description: "Trang danh mục dịch vụ đang tạm đóng.",
+                          });
+                          return;
+                        }
                         router.push(`/products/${product.id}`);
                       }}
                       className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between border-b border-gray-50 last:border-0"
@@ -700,8 +716,8 @@ export default function Header() {
                   </div>
                 )}
 
-                {/* Categories */}
-                {!loadingCategories && categories?.length > 0 && (
+                {/* Categories — ẩn khi đang tạm đóng /products */}
+                {!PRODUCTS_PUBLIC_TEMP_DISABLED && !loadingCategories && categories?.length > 0 && (
                   <div className="mb-4">
                     <p className="px-4 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
                       Danh mục

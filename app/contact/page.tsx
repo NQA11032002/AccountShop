@@ -159,17 +159,17 @@ export default function ContactPage() {
                       />
                     </div>
 
-                    {/* Problem */}
+                    {/* Short subject / request topic */}
                     <div>
                       <Label htmlFor="problem" className="text-gray-700 font-medium">
-                        Vấn đề gặp phải *
+                        Nội dung cần hỗ trợ *
                       </Label>
                       <Input
                         id="problem"
                         name="problem"
                         value={formData.problem}
                         onChange={handleInputChange}
-                        placeholder="Ví dụ: Lỗi đăng nhập tài khoản Netflix"
+                        placeholder="Ví dụ: Tra cứu đơn hàng, hỏi về thời gian xử lý…"
                         required
                         className="mt-2 border-gray-300 focus:border-brand-blue focus:ring-brand-blue"
                       />
@@ -185,7 +185,7 @@ export default function ContactPage() {
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
-                        placeholder="Vui lòng mô tả chi tiết vấn đề bạn đang gặp phải để chúng tôi có thể hỗ trợ tốt nhất..."
+                        placeholder="Mô tả rõ yêu cầu (mã đơn nếu có, thời điểm thanh toán…) để shop hỗ trợ nhanh hơn."
                         rows={5}
                         required
                         className="mt-2 border-gray-300 focus:border-brand-blue focus:ring-brand-blue resize-none"
