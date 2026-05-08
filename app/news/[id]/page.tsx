@@ -171,13 +171,13 @@ export default function NewsDetailPage() {
     },
     {
       id: 4,
-      title: 'VPN Premium: Bảo Vệ Quyền Riêng Tư Trong Thời Đại Số',
-      excerpt: 'Tại sao VPN premium ngày càng trở nên quan trọng và cách chọn dịch vụ VPN phù hợp.',
+      title: 'VPN Cao cấp: Bảo Vệ Quyền Riêng Tư Trong Thời Đại Số',
+      excerpt: 'Tại sao VPN cao cấp ngày càng trở nên quan trọng và cách chọn dịch vụ VPN phù hợp.',
       content: `
-        <h2>VPN Premium - Sự đầu tư cần thiết cho an toàn mạng</h2>
-        <p>Trong thời đại số hóa hiện tại, việc bảo vệ quyền riêng tư trực tuyến đã trở thành ưu tiên hàng đầu. VPN Premium không chỉ là một công cụ bảo mật mà còn là "lá chắn" bảo vệ thông tin cá nhân khỏi những mối đe dọa mạng.</p>
+        <h2>VPN Cao cấp - Sự đầu tư cần thiết cho an toàn mạng</h2>
+        <p>Trong thời đại số hóa hiện tại, việc bảo vệ quyền riêng tư trực tuyến đã trở thành ưu tiên hàng đầu. VPN cao cấp không chỉ là một công cụ bảo mật mà còn là "lá chắn" bảo vệ thông tin cá nhân khỏi những mối đe dọa mạng.</p>
         
-        <h3>Tại sao cần VPN Premium?</h3>
+        <h3>Tại sao cần VPN cao cấp?</h3>
         <ul>
           <li><strong>Mã hóa cấp quân sự:</strong> AES-256 encryption bảo vệ dữ liệu tuyệt đối</li>
           <li><strong>No-logs policy:</strong> Không lưu trữ lịch sử duyệt web của người dùng</li>
@@ -185,16 +185,16 @@ export default function NewsDetailPage() {
           <li><strong>Multi-platform support:</strong> Hỗ trợ đồng thời nhiều thiết bị</li>
         </ul>
 
-        <h3>So sánh VPN miễn phí vs Premium</h3>
+        <h3>So sánh VPN miễn phí vs Cao cấp</h3>
         <table>
-          <tr><th>Tiêu chí</th><th>Miễn phí</th><th>Premium</th></tr>
+          <tr><th>Tiêu chí</th><th>Miễn phí</th><th>Cao cấp</th></tr>
           <tr><td>Băng thông</td><td>Hạn chế</td><td>Không giới hạn</td></tr>
           <tr><td>Số lượng server</td><td>Ít</td><td>Hàng nghìn server</td></tr>
           <tr><td>Quảng cáo</td><td>Có</td><td>Không</td></tr>
           <tr><td>Hỗ trợ 24/7</td><td>Không</td><td>Có</td></tr>
         </table>
 
-        <h3>Top VPN Premium đáng tin cậy</h3>
+        <h3>Top VPN cao cấp đáng tin cậy</h3>
         <ul>
           <li><strong>ExpressVPN:</strong> Tốc độ cao, server toàn cầu</li>
           <li><strong>NordVPN:</strong> Bảo mật tối ưu, giá cả hợp lý</li>
@@ -220,13 +220,13 @@ export default function NewsDetailPage() {
     },
     {
       id: 5,
-      title: 'Spotify Premium vs Apple Music: Cuộc Chiến Streaming 2024',
+      title: 'Spotify Cao cấp vs Apple Music: Cuộc Chiến Streaming 2024',
       excerpt: 'So sánh chi tiết hai dịch vụ streaming hàng đầu và những tính năng mới được cập nhật.',
       content: `
         <h2>Cuộc chiến streaming 2024: Ai sẽ thống trị?</h2>
         <p>Thị trường streaming nhạc số đang chứng kiến cuộc cạnh tranh gay gắt giữa hai ông lớn Spotify và Apple Music. Cả hai đều không ngừng cập nhật tính năng mới để thu hút và giữ chân người dùng.</p>
         
-        <h3>Spotify Premium - Những điểm mạnh</h3>
+        <h3>Spotify Cao cấp - Những điểm mạnh</h3>
         <ul>
           <li><strong>AI Discover:</strong> Algorithm gợi ý nhạc thông minh nhất thị trường</li>
           <li><strong>Podcast Integration:</strong> Thư viện podcast khổng lồ và exclusive content</li>
@@ -246,7 +246,7 @@ export default function NewsDetailPage() {
         <table>
           <tr><th>Tiêu chí</th><th>Spotify</th><th>Apple Music</th></tr>
           <tr><td>Thư viện nhạc</td><td>80+ triệu</td><td>75+ triệu</td></tr>
-          <tr><td>Giá premium</td><td>159k/tháng</td><td>149k/tháng</td></tr>
+          <tr><td>Giá gói cao cấp</td><td>159k/tháng</td><td>149k/tháng</td></tr>
           <tr><td>Chất lượng âm thanh</td><td>320kbps</td><td>Lossless</td></tr>
           <tr><td>Free tier</td><td>Có (có quảng cáo)</td><td>Không</td></tr>
         </table>
@@ -268,7 +268,7 @@ export default function NewsDetailPage() {
       likes: 178,
       image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&h=600&fit=crop',
       featured: false,
-      tags: ['Spotify', 'Apple Music', 'Streaming', 'Music', 'Premium', 'Comparison']
+      tags: ['Spotify', 'Apple Music', 'Streaming', 'Music', 'Cao cấp', 'Comparison']
     },
     {
       id: 6,

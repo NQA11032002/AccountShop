@@ -61,8 +61,8 @@ export default function NewsPage() {
     },
     {
       id: 4,
-      title: 'VPN Premium: Bảo Vệ Quyền Riêng Tư Trong Thời Đại Số',
-      excerpt: 'Tại sao VPN premium ngày càng trở nên quan trọng và cách chọn dịch vụ VPN phù hợp.',
+      title: 'VPN Cao cấp: Bảo Vệ Quyền Riêng Tư Trong Thời Đại Số',
+      excerpt: 'Tại sao VPN cao cấp ngày càng trở nên quan trọng và cách chọn dịch vụ VPN phù hợp.',
       category: 'security',
       author: 'Phạm Văn Security',
       date: '2024-06-12',
@@ -73,7 +73,7 @@ export default function NewsPage() {
     },
     {
       id: 5,
-      title: 'Spotify Premium vs Apple Music: Cuộc Chiến Streaming 2024',
+      title: 'Spotify Cao cấp vs Apple Music: Cuộc Chiến Streaming 2024',
       excerpt: 'So sánh chi tiết hai dịch vụ streaming hàng đầu và những tính năng mới được cập nhật.',
       category: 'apps',
       author: 'Hoàng Thị Music',
@@ -119,7 +119,7 @@ export default function NewsPage() {
                 Tin Tức Công Nghệ
               </h1>
               <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-8">
-                Cập nhật những tin tức mới nhất về công nghệ, phần mềm, và các dịch vụ số
+                Cập nhật những tin tức mới nhất về công nghệ, phần mềm, và các giải pháp
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Badge className="bg-white/20 text-white text-lg px-4 py-2">

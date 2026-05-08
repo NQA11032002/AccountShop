@@ -22,7 +22,7 @@ export default function HeroSection() {
   ];
 
   const features = [
-    { icon: Shield, text: 'Bảo hành dịch vụ' },
+    { icon: Shield, text: 'Cam kết hỗ trợ' },
     { icon: Zap, text: 'Giao hàng tự động 24/7' },
     { icon: Star, text: 'Hỗ trợ nhanh chóng' },
   ];
@@ -53,14 +53,14 @@ export default function HeroSection() {
             {/* Headline */}
             <div className="space-y-3 sm:space-y-4">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[3.25rem] font-bold text-white leading-[1.15] tracking-tight">
-                Shop dịch vụ số
+                Cung cấp giải pháp
                 <br />
                 <span className="gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent">
                   Uy tín & nhanh chóng
                 </span>
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-white/85 max-w-xl mx-auto lg:mx-0 text-balance leading-relaxed">
-                Cung cấp các gói dịch vụ số chính hãng, hỗ trợ tận tình, xử lý tự động 24/7. Quy trình rõ ràng, bảo hành minh bạch và tối ưu chi phí cho bạn.
+                Cung cấp các gói giải pháp phù hợp nhu cầu, hỗ trợ tận tình, xử lý tự động 24/7. Quy trình rõ ràng, cam kết minh bạch và tối ưu chi phí cho bạn.
               </p>
             </div>
 

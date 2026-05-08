@@ -71,11 +71,11 @@ export default function FeaturedCategories() {
             Danh mục nổi bật
           </Badge>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-charcoal mb-3 sm:mb-4 px-2">
-            Gói dịch vụ số
+            Gói giải pháp
             <span className="gradient-text"> nổi bật</span>
           </h2>
           <p className="text-base sm:text-lg text-brand-gray/80 text-balance leading-relaxed px-2">
-            Chọn nhanh nhóm dịch vụ phù hợp nhu cầu. Mỗi gói đều có mô tả rõ ràng, thời hạn minh bạch và kênh hỗ trợ sẵn sàng.
+            Chọn nhanh nhóm giải pháp phù hợp nhu cầu. Mỗi gói đều có mô tả rõ ràng, thời hạn minh bạch và kênh hỗ trợ sẵn sàng.
           </p>
         </div>
 

@@ -18,7 +18,7 @@ export default function FAQ() {
     },
     {
       question: 'Làm sao để nhận thông tin sử dụng sau khi thanh toán?',
-      answer: 'Sau khi thanh toán thành công, hệ thống sẽ tự động gửi hướng dẫn/thông tin sử dụng qua email hoặc Telegram/Zalo trong vòng 1-5 phút. Không cần chờ đợi.'
+      answer: 'Sau khi hoàn tất thanh toán, hệ thống sẽ gửi hướng dẫn và thông tin truy cập qua email hoặc Telegram/Zalo (thường trong vòng 1–5 phút). Nếu quá thời gian này bạn chưa nhận được, hãy liên hệ hỗ trợ để được xử lý.'
     },
     {
       question: 'Có những hình thức thanh toán nào?',
@@ -49,8 +49,8 @@ export default function FAQ() {
       answer: 'Trong vòng 24h đầu, nếu dịch vụ không hoạt động hoặc không đúng mô tả, chúng tôi sẽ hỗ trợ xử lý hoặc hoàn tiền 100%.'
     },
     {
-      question: 'Tại sao giá rẻ hơn mua chính hãng?',
-      answer: 'Chúng tôi tối ưu chi phí vận hành và xử lý số lượng lớn nên có thể đưa ra mức giá tốt cho khách hàng, vẫn đảm bảo chất lượng theo mô tả.'
+      question: 'Vì sao giá có thể tối ưu hơn?',
+      answer: 'Chúng tôi tối ưu quy trình vận hành và chi phí triển khai nên có thể đưa ra mức giá tốt hơn, đồng thời vẫn đảm bảo nội dung và quyền lợi đúng theo mô tả.'
     }
   ];
 

@@ -56,7 +56,7 @@ export default function TopProducts() {
               Vì sao chọn QAI STORE?
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-2">
-              Nền tảng dịch vụ số với quy trình rõ ràng, hỗ trợ nhanh và chính sách minh bạch.
+              Nền tảng cung cấp giải pháp với quy trình rõ ràng, hỗ trợ nhanh và chính sách minh bạch.
             </p>
           </div>
 
@@ -112,7 +112,7 @@ export default function TopProducts() {
           <div className="text-center mt-8 sm:mt-12">
             <Link href="/products">
               <Button className="bg-white border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-medium transition-all duration-300 shadow-md hover:shadow-xl w-full sm:w-auto max-w-xs sm:max-w-none mx-auto">
-                Xem danh sách gói dịch vụ
+                Xem danh sách gói giải pháp
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 shrink-0" />
               </Button>
             </Link>

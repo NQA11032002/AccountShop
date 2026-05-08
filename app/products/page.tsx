@@ -378,13 +378,13 @@ function ProductsContent() {
               🌟 Tất cả sản phẩm
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-              Gói dịch vụ số
+              Gói giải pháp
               <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
                 Chất lượng cao
               </span>
             </h1>
             <p className="text-xl text-white/80 max-w-2xl mx-auto">
-              Khám phá danh sách gói dịch vụ số với mô tả rõ ràng, hỗ trợ nhanh và chính sách minh bạch
+              Khám phá danh sách gói giải pháp với mô tả rõ ràng, hỗ trợ nhanh và chính sách minh bạch
             </p>
           </div>
         </div>

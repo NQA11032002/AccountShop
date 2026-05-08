@@ -212,7 +212,7 @@ export default function ProductDetailPage() {
       'Font premium': 'Hàng nghìn font chữ đẹp',
       'Stock photos': 'Thư viện ảnh stock miễn phí'
     };
-    return descriptions[feature] || 'Tính năng premium chất lượng cao';
+    return descriptions[feature] || 'Tính năng nâng cao chất lượng cao';
   };
 
   const handleSubmitReview = async () => {

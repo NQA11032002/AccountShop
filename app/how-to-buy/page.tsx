@@ -13,7 +13,7 @@ export default function HowToBuyPage() {
     {
       step: 1,
       title: 'Chọn sản phẩm',
-      description: 'Duyệt qua danh mục và chọn gói dịch vụ số phù hợp nhu cầu',
+      description: 'Duyệt qua danh mục và chọn gói giải pháp phù hợp nhu cầu',
       icon: CheckCircle,
       details: [
         'Xem thông tin chi tiết sản phẩm',
@@ -59,7 +59,7 @@ export default function HowToBuyPage() {
   ];
 
   const guarantees = [
-    { icon: Shield, title: 'Bảo hành dịch vụ', desc: 'Hỗ trợ xử lý theo chính sách nếu có lỗi' },
+    { icon: Shield, title: 'Cam kết hỗ trợ', desc: 'Hỗ trợ xử lý theo chính sách nếu có lỗi' },
     { icon: Clock, title: 'Giao hàng tức thì', desc: 'Nhận thông tin sử dụng trong 5 phút - 5 tiếng' },
     { icon: MessageCircle, title: 'Hỗ trợ 24/7', desc: 'Đội ngũ hỗ trợ luôn sẵn sàng' }
   ];
@@ -178,7 +178,7 @@ export default function HowToBuyPage() {
             Sẵn sàng bắt đầu?
           </h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Khám phá danh sách gói dịch vụ số và chọn lựa phù hợp nhu cầu của bạn
+            Khám phá danh sách gói giải pháp và chọn lựa phù hợp nhu cầu của bạn
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button

@@ -68,7 +68,7 @@ export default function CartPage() {
                 Giỏ hàng trống
               </h1>
               <p className="text-gray-600 mb-8">
-                Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các tài khoản premium của chúng tôi!
+                Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các tài khoản cao cấp của chúng tôi!
               </p>
               <Button
                 onClick={handleContinueShopping}

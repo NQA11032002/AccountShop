@@ -114,7 +114,7 @@ export default function Prompt() {
                             🌟 Mã truy cập tức thì
                         </Badge>
                         <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-                            Gói quyền Premium
+                            Gói quyền cao cấp
                             <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
                                 Chất lượng cao
                             </span>

@@ -46,13 +46,13 @@ export default function AboutPage() {
     {
       icon: Globe,
       title: 'Đa dạng dịch vụ',
-      description: 'Nhiều nhóm dịch vụ số phù hợp học tập, công việc, giải trí và sáng tạo',
+      description: 'Nhiều nhóm giải pháp phù hợp học tập, công việc, giải trí và sáng tạo',
       color: 'bg-red-500'
     },
     {
       icon: Clock,
       title: 'Bảo hành dài hạn',
-      description: 'Bảo hành theo từng gói dịch vụ, thời hạn và điều kiện minh bạch',
+      description: 'Bảo hành theo từng gói giải pháp, thời hạn và điều kiện minh bạch',
       color: 'bg-indigo-500'
     }
   ];
@@ -103,13 +103,13 @@ export default function AboutPage() {
               Về chúng tôi
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              QAI STORE - Nền tảng dịch vụ số
+              QAI STORE - Nền tảng cung cấp giải pháp
               <span className="block bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
                 Uy tín & minh bạch
               </span>
             </h1>
             <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8">
-              Với hơn 5 năm kinh nghiệm vận hành dịch vụ số,
+              Với hơn 5 năm kinh nghiệm vận hành,
               chúng tôi tự hào được hàng chục nghìn khách hàng trên toàn quốc tin tưởng lựa chọn.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -168,7 +168,7 @@ export default function AboutPage() {
               <div className="space-y-4 text-gray-600">
                 <p>
                   Khởi đầu từ năm 2019, QAI STORE được thành lập với mục tiêu giúp người dùng Việt Nam
-                  tiếp cận các dịch vụ số với chi phí hợp lý và trải nghiệm ổn định.
+                  tiếp cận các giải pháp với chi phí hợp lý và trải nghiệm ổn định.
                 </p>
                 <p>
                   Chúng tôi hiểu rằng không phải ai cũng muốn mất thời gian tìm hiểu, so sánh, hay xử lý rắc rối kỹ thuật.
@@ -195,7 +195,7 @@ export default function AboutPage() {
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
                 <h3 className="text-2xl font-bold mb-4">Tầm nhìn của chúng tôi</h3>
                 <p className="text-white/90 mb-6">
-                  Trở thành nền tảng dịch vụ số được tin dùng tại Việt Nam,
+                  Trở thành nền tảng cung cấp giải pháp được tin dùng tại Việt Nam,
                   mang đến trải nghiệm tốt với quy trình minh bạch và chi phí tối ưu.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
@@ -206,6 +206,89 @@ export default function AboutPage() {
                   <div className="bg-white/10 rounded-lg p-4">
                     <div className="text-2xl font-bold">100+</div>
                     <div className="text-sm text-white/80">Dịch vụ</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      </SectionReveal>
+
+      {/* Founder Section */}
+      <SectionReveal delayMs={120}>
+      <section className="py-16 bg-white">
+        <div className="container-max section-padding">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-10">
+              <Badge className="bg-purple-100 text-purple-800 mb-4">
+                Đội ngũ
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
+                Founder
+              </h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Người phụ trách định hướng và trải nghiệm khách hàng tại QAI STORE.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-100 shadow-lg overflow-hidden">
+              <div className="p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                <div className="shrink-0">
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-white">
+                    <img
+                      src="/images/founder.png"
+                      alt="Founder"
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 text-center sm:text-left">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-center sm:justify-start">
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      Nguyễn Quốc Anh
+                    </h3>
+                    <Badge className="bg-brand-blue text-white w-fit mx-auto sm:mx-0">
+                      Founder
+                    </Badge>
+                  </div>
+                  <div className="mt-3 space-y-3 text-gray-700 leading-relaxed">
+                    <p>
+                      Mình là <span className="font-semibold">Nguyễn Quốc Anh</span> – Founder của QAI STORE. Mình phụ trách định hướng sản phẩm,
+                      tiêu chuẩn vận hành và trải nghiệm khách hàng.
+                    </p>
+                    <p>
+                      Mục tiêu của QAI STORE là xây dựng một nền tảng cung cấp giải pháp <span className="font-semibold">rõ ràng</span>,
+                      <span className="font-semibold"> minh bạch</span> và <span className="font-semibold">hỗ trợ nhanh</span> – để bạn lựa chọn dễ,
+                      sử dụng thuận tiện và luôn có kênh hỗ trợ khi cần.
+                    </p>
+                    <p>
+                      Mình ưu tiên 3 tiêu chí khi triển khai: mô tả chuẩn – quy trình gọn – xử lý đúng cam kết. Đội ngũ sẽ đồng hành xuyên suốt,
+                      từ khâu tư vấn chọn gói phù hợp đến hỗ trợ trong quá trình sử dụng.
+                    </p>
+
+                    <div className="pt-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                        <div className="flex items-start gap-2">
+                          <span className="mt-0.5 h-2 w-2 rounded-full bg-brand-blue" aria-hidden />
+                          <span><span className="font-semibold">Định hướng</span>: trải nghiệm đơn giản, rõ ràng, dễ dùng.</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="mt-0.5 h-2 w-2 rounded-full bg-brand-emerald" aria-hidden />
+                          <span><span className="font-semibold">Cam kết</span>: nội dung & quyền lợi đúng theo mô tả.</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="mt-0.5 h-2 w-2 rounded-full bg-brand-purple" aria-hidden />
+                          <span><span className="font-semibold">Hỗ trợ</span>: phản hồi nhanh, xử lý theo quy trình.</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="mt-0.5 h-2 w-2 rounded-full bg-amber-500" aria-hidden />
+                          <span><span className="font-semibold">Minh bạch</span>: chính sách rõ ràng, không mập mờ.</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -280,10 +363,10 @@ export default function AboutPage() {
         <div className="container-max section-padding">
           <div className="text-center text-white">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Sẵn sàng trải nghiệm dịch vụ tốt nhất?
+              Sẵn sàng trải nghiệm tốt nhất?
             </h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Hãy để chúng tôi giúp bạn tiết kiệm thời gian và trải nghiệm dịch vụ số một cách đơn giản, rõ ràng
+              Hãy để chúng tôi giúp bạn tiết kiệm thời gian và trải nghiệm một cách đơn giản, rõ ràng
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button

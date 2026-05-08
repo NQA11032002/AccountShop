@@ -68,13 +68,13 @@ export default function PromotionalAccounts() {
     },
     {
       id: 104,
-      name: "YouTube Premium",
+      name: "YouTube Cao cấp",
       originalPrice: 149000,
       discountedPrice: 59000,
       discount: 60,
       image: "https://logo.clearbit.com/youtube.com",
       sold: 47,
-      description: "Nâng cấp Youtube Premium Chính Chủ Giá Từ 59k",
+      description: "Nâng cấp YouTube Cao cấp (chính chủ) giá từ 59k",
       isOfficial: true,
       category: "Streaming"
     }

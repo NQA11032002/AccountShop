@@ -383,7 +383,7 @@ export default function Header() {
                 QAI STORE
               </h1>
               <p className="text-[10px] sm:text-sm text-gray-400 group-hover:text-gray-500 transition hidden sm:block">
-                SHOP DỊCH VỤ SỐ
+                CUNG CẤP GIẢI PHÁP
               </p>
             </div>
           </Link>
@@ -397,7 +397,7 @@ export default function Header() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
               <Input
                 type="text"
-                placeholder="Tìm kiếm dịch vụ, khóa học, phần mềm..."
+                placeholder="Tìm kiếm giải pháp, khóa học, phần mềm..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-12 pr-12 py-3 w-full rounded-lg border-gray-200 bg-white text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition"
@@ -415,7 +415,7 @@ export default function Header() {
                         if (PRODUCTS_PUBLIC_TEMP_DISABLED) {
                           toast({
                             title: "Tạm ngưng",
-                            description: "Trang danh mục dịch vụ đang tạm đóng.",
+                            description: "Trang danh mục đang tạm đóng.",
                           });
                           return;
                         }
@@ -607,7 +607,7 @@ export default function Header() {
                         if (PRODUCTS_PUBLIC_TEMP_DISABLED) {
                           toast({
                             title: "Tạm ngưng",
-                            description: "Trang danh mục dịch vụ đang tạm đóng.",
+                            description: "Trang danh mục đang tạm đóng.",
                           });
                           return;
                         }

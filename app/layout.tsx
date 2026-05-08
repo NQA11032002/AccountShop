@@ -19,9 +19,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'QAI STORE - Shop dịch vụ số uy tín',
-  description: 'Cung cấp các gói dịch vụ số, hỗ trợ nhanh chóng, giao hàng tự động 24/7. Quy trình rõ ràng, bảo hành minh bạch.',
-  keywords: 'dịch vụ số, gói dịch vụ, gói nâng cấp, shop uy tín, bảo hành, giao hàng tự động',
+  title: 'QAI STORE - Cung cấp giải pháp uy tín',
+  description: 'Cung cấp các gói giải pháp, hỗ trợ nhanh chóng, xử lý tự động 24/7. Quy trình rõ ràng, cam kết minh bạch.',
+  keywords: 'giải pháp, gói giải pháp, phần mềm, khóa học, gói nâng cấp, shop uy tín, bảo hành, xử lý tự động',
   authors: [{ name: 'QAI STORE' }],
   icons: {
     icon: [
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'QAI STORE - Shop dịch vụ số uy tín',
-    description: 'Cung cấp các gói dịch vụ số, hỗ trợ nhanh chóng, giao hàng tự động 24/7. Quy trình rõ ràng, bảo hành minh bạch.',
+    title: 'QAI STORE - Cung cấp giải pháp uy tín',
+    description: 'Cung cấp các gói giải pháp, hỗ trợ nhanh chóng, xử lý tự động 24/7. Quy trình rõ ràng, cam kết minh bạch.',
     type: 'website',
     locale: 'vi_VN',
     images: [

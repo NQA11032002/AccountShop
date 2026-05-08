@@ -401,7 +401,7 @@ Lưu ý quan trọng:
 Cảm ơn bạn đã chọn QAI Store! 💙
 
 ---
-QAI Store - Tài khoản premium uy tín #1
+QAI Store - Tài khoản cao cấp uy tín #1
 📞 Hotline/Zalo: 038.966.0305
 📧 Email: qastore.cskh@gmail.com`);
   const [sendingEmails, setSendingEmails] = useState(false);
@@ -2310,7 +2310,7 @@ QAI Store - Tài khoản premium uy tín #1
           <div style="background-color: #f0f9ff; padding: 15px; border-left: 4px solid #2563eb; margin: 20px 0;">
             <h3 style="color: #1e40af; margin-top: 0;">🚀 Tin tức mới:</h3>
             <ul>
-              <li>Bổ sung thêm nhiều sản phẩm premium mới</li>
+              <li>Bổ sung thêm nhiều sản phẩm cao cấp mới</li>
               <li>Cải thiện hệ thống giao hàng tự động 24/7</li>
               <li>Hỗ trợ khách hàng nhanh chóng hơn</li>
             </ul>
@@ -2328,7 +2328,7 @@ QAI Store - Tài khoản premium uy tín #1
           
           <p style="text-align: center; color: #6b7280; font-size: 14px;">
             Cảm ơn bạn đã chọn QAI Store! 💙<br>
-            QAI Store - Tài khoản premium uy tín #1<br>
+            QAI Store - Tài khoản cao cấp uy tín #1<br>
             📞 Hotline/Zalo: 038.966.0305 | 📧 Email: qaistore.cskh@gmail.com
           </p>
         </div>
@@ -2485,7 +2485,7 @@ QAI Store - Tài khoản premium uy tín #1
     // Nếu đang gửi cho 1 đơn cụ thể trong modal → ưu tiên dùng dữ liệu admin nhập
     if (sendAccountModal.order && sendAccountModal.order.id === order.id) {
       const firstProduct = order.products[0];
-      const typeAccount = firstProduct?.name || 'Tài khoản Premium';
+      const typeAccount = firstProduct?.name || 'Tài khoản Cao cấp';
       const duration = durationInput || firstProduct?.duration || '1 tháng';
 
       return {
@@ -2505,7 +2505,7 @@ QAI Store - Tài khoản premium uy tín #1
       : undefined;
 
     const firstProduct = order.products[0];
-    const typeAccount = accountForOrder?.product_type || firstProduct?.name || 'Tài khoản Premium';
+    const typeAccount = accountForOrder?.product_type || firstProduct?.name || 'Tài khoản Cao cấp';
 
     const accountEmail = accountForOrder?.account_email || order.userEmail;
     const accountPassword = accountForOrder?.account_password || 'MẬT_KHẨU_SẼ_GỬI_RIÊNG';
@@ -2527,10 +2527,10 @@ QAI Store - Tài khoản premium uy tín #1
 
   const getProductLink = (productName: string) => {
     const links: { [key: string]: string } = {
-      'Netflix Premium': 'https://netflix.com',
-      'Spotify Premium': 'https://spotify.com',
+      'Netflix Cao cấp': 'https://netflix.com',
+      'Spotify Cao cấp': 'https://spotify.com',
       'ChatGPT Plus': 'https://chat.openai.com',
-      'YouTube Premium': 'https://youtube.com',
+      'YouTube Cao cấp': 'https://youtube.com',
       'Adobe Creative Cloud': 'https://adobe.com'
     };
     return links[productName] || 'https://example.com';
@@ -2709,7 +2709,7 @@ Lưu ý quan trọng:
 Cảm ơn bạn đã chọn QAI Store! 💙
 
 ---
-QAI Store - Tài khoản premium uy tín #1
+QAI Store - Tài khoản cao cấp uy tín #1
 📞 Hotline/Zalo: 038.966.0305
 📧 Email: qaistore.cskh@gmail.com`);
   };
@@ -2733,7 +2733,7 @@ QAI Store - Tài khoản premium uy tín #1
         userId: user.id || 'admin',
         userEmail: user.email,
         customerName: user.name,
-        products: [{ name: 'Netflix Premium (Test)', quantity: 1, price: 50000 }],
+        products: [{ name: 'Netflix Cao cấp (Test)', quantity: 1, price: 50000 }],
         total: 50000,
         status: 'completed' as const,
         paymentMethod: 'Test',
@@ -6813,8 +6813,8 @@ QAI Store - Tài khoản premium uy tín #1
               </DialogTitle>
               <DialogDescription>
                 {sendAccountModal.order ?
-                  `Gửi thông tin tài khoản premium đến ${sendAccountModal.order.userEmail}` :
-                  `Gửi thông tin tài khoản premium đến ${selectedOrders.length} khách hàng được chọn`
+                  `Gửi thông tin tài khoản cao cấp đến ${sendAccountModal.order.userEmail}` :
+                  `Gửi thông tin tài khoản cao cấp đến ${selectedOrders.length} khách hàng được chọn`
                 }
               </DialogDescription>
             </DialogHeader>

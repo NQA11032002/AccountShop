@@ -34,7 +34,7 @@ export default function ProductFeatures({ productId, features }: ProductFeatures
         languages: ['100+ ngôn ngữ', 'Code generation', 'Translation', 'Writing assistant'],
         exclusive: ['DALL-E 3', 'Advanced Data Analysis', 'Web browsing', 'Custom GPTs']
       },
-      4: { // YouTube Premium
+      4: { // YouTube Cao cấp
         compatibility: ['Web', 'Mobile', 'TV App', 'Gaming Console'],
         quality: ['4K Video', 'Enhanced bitrate', 'Background play', 'Picture-in-picture'],
         languages: ['Auto-translate', 'Captions', 'Multi-language audio'],
@@ -58,7 +58,7 @@ export default function ProductFeatures({ productId, features }: ProductFeatures
       compatibility: ['Multi-platform'],
       quality: ['High quality'],
       languages: ['Multi-language'],
-      exclusive: ['Premium features']
+      exclusive: ['Tính năng nâng cao']
     };
   };
 
@@ -106,7 +106,7 @@ export default function ProductFeatures({ productId, features }: ProductFeatures
                     </div>
                     <div>
                       <div className="font-semibold text-gray-800">{feature}</div>
-                      <div className="text-sm text-gray-600">Tính năng premium chất lượng cao</div>
+                      <div className="text-sm text-gray-600">Tính năng nâng cao chất lượng cao</div>
                     </div>
                   </div>
                 ))}
@@ -138,7 +138,7 @@ export default function ProductFeatures({ productId, features }: ProductFeatures
 
           {activeTab === 'quality' && (
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-brand-charcoal mb-4">👑 Chất lượng Premium</h3>
+              <h3 className="text-xl font-bold text-brand-charcoal mb-4">👑 Chất lượng cao cấp</h3>
               <div className="space-y-3">
                 {detailedFeatures.quality.map((quality: string, index: number) => (
                   <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-100">
@@ -149,7 +149,7 @@ export default function ProductFeatures({ productId, features }: ProductFeatures
                       <span className="font-medium text-gray-800">{quality}</span>
                     </div>
                     <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
-                      Premium
+                      Cao cấp
                     </Badge>
                   </div>
                 ))}
@@ -169,7 +169,7 @@ export default function ProductFeatures({ productId, features }: ProductFeatures
                       </div>
                       <div>
                         <div className="font-semibold text-gray-800 mb-1">{exclusive}</div>
-                        <div className="text-sm text-gray-600">Chỉ có trong phiên bản Premium</div>
+                        <div className="text-sm text-gray-600">Chỉ có trong phiên bản cao cấp</div>
                       </div>
                     </div>
                   </div>

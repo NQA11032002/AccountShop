@@ -19,7 +19,7 @@ export default function WhyChooseUs() {
     },
     {
       icon: Shield,
-      title: 'Bảo hành dịch vụ',
+      title: 'Cam kết hỗ trợ',
       description: 'Cam kết bảo hành và hỗ trợ đổi/hoàn theo chính sách nếu phát sinh vấn đề trong thời gian sử dụng.',
       highlight: 'Bảo hành',
       color: 'text-green-600',
@@ -84,7 +84,7 @@ export default function WhyChooseUs() {
             <span className="gradient-text"> tin tưởng chúng tôi</span>
           </h2>
           <p className="text-base sm:text-lg text-gray-600 text-balance px-2">
-            Chúng tôi cam kết mang đến trải nghiệm mua sắm dịch vụ số tốt nhất với quy trình rõ ràng và hỗ trợ tận tâm
+            Chúng tôi cam kết mang đến trải nghiệm mua sắm tốt nhất với quy trình rõ ràng và hỗ trợ tận tâm
           </p>
         </div>
 

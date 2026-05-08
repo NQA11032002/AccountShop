@@ -100,7 +100,7 @@ export default function AccountsPage() {
             productColor: a.productColor ?? 'bg-gray-100',
             purchaseDate,
             expiryDate,
-            platform: a.productType ?? 'Premium',
+            platform: a.productType ?? 'Cao cấp',
             status,
             duration: a.duration ? `${a.duration} tháng` : '—',
             orderId: String(a.orderId ?? ''),
@@ -241,7 +241,7 @@ export default function AccountsPage() {
           productColor: a.productColor ?? 'bg-gray-100',
           purchaseDate,
           expiryDate,
-          platform: a.productType ?? 'Premium',
+          platform: a.productType ?? 'Cao cấp',
           status,
           duration: a.duration ? `${a.duration} tháng` : '—',
           orderId: String(a.orderId ?? ''),
@@ -553,7 +553,7 @@ export default function AccountsPage() {
               </div>
 
               <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
-                Theo dõi và quản lý tất cả tài khoản premium của bạn một cách <span className="text-yellow-300 font-semibold">an toàn</span> và <span className="text-emerald-300 font-semibold">hiệu quả</span>
+                Theo dõi và quản lý tất cả tài khoản cao cấp của bạn một cách <span className="text-yellow-300 font-semibold">an toàn</span> và <span className="text-emerald-300 font-semibold">hiệu quả</span>
               </p>
 
               {/* Enhanced Stats Cards */}
@@ -919,7 +919,7 @@ export default function AccountsPage() {
                     <div className="mt-12 p-6 bg-gradient-to-r from-blue-100/50 to-emerald-100/50 rounded-2xl border border-blue-200/50">
                       <h4 className="font-semibold text-gray-800 mb-2">💡 Gợi ý cho bạn</h4>
                       <p className="text-sm text-gray-600">
-                        Mua tài khoản premium để truy cập vào hàng trăm dịch vụ chất lượng cao với giá ưu đãi!
+                        Mua tài khoản cao cấp để truy cập vào hàng trăm giải pháp chất lượng cao với giá ưu đãi!
                       </p>
                     </div>
                   )}

@@ -611,12 +611,12 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
         email: `netflix.premium.${Date.now()}@qaistore.com`,
         password: `NF${Math.random().toString(36).substring(2, 10).toUpperCase()}!`,
         profilePins: ['1234', '5678', '9012', '3456'],
-        note: 'Tài khoản Netflix Premium 4K - Sử dụng được trên 4 thiết bị cùng lúc'
+        note: 'Tài khoản Netflix cao cấp 4K - Sử dụng được trên 4 thiết bị cùng lúc'
       },
       2: { // Spotify
         email: `spotify.premium.${Date.now()}@qaistore.com`,
         password: `SP${Math.random().toString(36).substring(2, 10).toUpperCase()}!`,
-        note: 'Tài khoản Spotify Premium - Nghe nhạc chất lượng cao không giới hạn'
+        note: 'Tài khoản Spotify cao cấp - Nghe nhạc chất lượng cao không giới hạn'
       },
       3: { // ChatGPT Plus
         email: `chatgpt.plus.${Date.now()}@qaistore.com`,
@@ -626,12 +626,12 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       4: { // YouTube Premium
         email: `youtube.premium.${Date.now()}@qaistore.com`,
         password: `YT${Math.random().toString(36).substring(2, 10).toUpperCase()}!`,
-        note: 'Tài khoản YouTube Premium - Xem video không quảng cáo + YouTube Music'
+        note: 'Tài khoản YouTube cao cấp - Xem video không quảng cáo + YouTube Music'
       },
       5: { // Canva Pro
         email: `canva.pro.${Date.now()}@qaistore.com`,
         password: `CV${Math.random().toString(36).substring(2, 10).toUpperCase()}!`,
-        note: 'Tài khoản Canva Pro - Thiết kế chuyên nghiệp với template premium'
+        note: 'Tài khoản Canva Pro - Thiết kế chuyên nghiệp với template cao cấp'
       },
       6: { // Adobe Creative
         email: `adobe.creative.${Date.now()}@qaistore.com`,
@@ -643,7 +643,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
     return serviceCredentials[item.id] || {
       email: `account.${Date.now()}@qaistore.com`,
       password: `ACC${Math.random().toString(36).substring(2, 10).toUpperCase()}!`,
-      note: 'Tài khoản premium chất lượng cao'
+      note: 'Tài khoản cao cấp chất lượng cao'
     };
   };
 

@@ -18,7 +18,7 @@ export default function Footer() {
 
   const quickLinks = [
     { name: 'Trang chủ', href: '#home' },
-    { name: 'Danh mục dịch vụ', href: '#categories' },
+    { name: 'Danh mục giải pháp', href: '#categories' },
     { name: 'Cách mua hàng', href: '#how-to-buy' },
     { name: 'Liên hệ', href: '#contact' },
   ];
@@ -34,7 +34,7 @@ export default function Footer() {
 
   const policies = [
     { name: 'Chính sách bảo hành', href: '#warranty' },
-    { name: 'Điều khoản dịch vụ', href: '#terms' },
+    { name: 'Điều khoản sử dụng', href: '#terms' },
     { name: 'Chính sách bảo mật', href: '#privacy' },
     { name: 'Chính sách đổi trả', href: '#return' },
   ];
@@ -54,13 +54,13 @@ export default function Footer() {
               </div>
               <div>
                 <h3 className="text-xl font-bold">QAI STORE</h3>
-                <p className="text-gray-400 text-sm">SHOP DỊCH VỤ SỐ</p>
+                <p className="text-gray-400 text-sm">CUNG CẤP GIẢI PHÁP</p>
               </div>
             </div>
 
             {/* Description */}
             <p className="text-gray-300 text-sm leading-relaxed max-w-sm">
-              Cung cấp các gói dịch vụ số với giá hợp lý và quy trình rõ ràng.
+              Cung cấp các gói giải pháp với giá hợp lý và quy trình rõ ràng.
               Cam kết bảo hành và hỗ trợ khách hàng 24/7.
             </p>
 

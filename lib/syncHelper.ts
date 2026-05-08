@@ -941,7 +941,7 @@ export class DataSyncHelper {
         id: adminProduct.id,
         name: adminProduct.name,
         category: adminProduct.category,
-        description: adminProduct.description || `${adminProduct.name} - Premium quality service`,
+        description: adminProduct.description || `${adminProduct.name} - Dịch vụ chất lượng cao`,
         price: adminProduct.price,
         originalPrice: adminProduct.originalPrice,
         rating: adminProduct.rating || 4.8,
@@ -951,7 +951,7 @@ export class DataSyncHelper {
         badge: adminProduct.status === 'active' ? 'Còn hàng' : 'Hết hàng',
         badgeColor: adminProduct.status === 'active' ? 'bg-green-500' : 'bg-red-500',
         features: [
-          'Chất lượng premium',
+          'Chất lượng cao cấp',
           'Bảo hành 30 ngày',
           'Hỗ trợ 24/7',
           'Giao hàng tức thì'
@@ -1691,7 +1691,7 @@ export class DataSyncHelper {
       id: adminProduct.id,
       name: adminProduct.name,
       category: adminProduct.category,
-      description: adminProduct.description || `${adminProduct.name} - Premium quality service`,
+      description: adminProduct.description || `${adminProduct.name} - Dịch vụ chất lượng cao`,
       price: adminProduct.price,
       originalPrice: adminProduct.originalPrice,
       rating: adminProduct.rating || 4.8,
@@ -1701,7 +1701,7 @@ export class DataSyncHelper {
       badge: adminProduct.badge || (adminProduct.status === 'active' ? 'Còn hàng' : 'Hết hàng'),
       badgeColor: adminProduct.badgeColor || (adminProduct.status === 'active' ? 'bg-green-500' : 'bg-red-500'),
       features: adminProduct.features || [
-        'Chất lượng premium',
+        'Chất lượng cao cấp',
         'Bảo hành 30 ngày',
         'Hỗ trợ 24/7',
         'Giao hàng tức thì'
