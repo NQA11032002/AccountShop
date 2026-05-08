@@ -72,10 +72,15 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /* Prevent accidental horizontal overflow from sliders/negative margins/vw widths */
+    overflow-x: clip;
   }
 
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
+    /* Keep layout stable when scrollbar appears/disappears */
+    scrollbar-gutter: stable;
   }
 }
 

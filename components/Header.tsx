@@ -29,7 +29,7 @@ const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'Giới thiệu': Info,
   'Sản phẩm': Package,
   'Hướng dẫn': FileText,
-  'Tin tức công nghệ': Newspaper,
+  'Tin tức': Newspaper,
   'Liên hệ': Mail,
   'Câu lệnh': Code,
   'Nhận mã': Gift,
@@ -109,7 +109,7 @@ export default function Header() {
     { name: 'Trang chủ', href: '/' },
     { name: 'Giới thiệu', href: '/about' },
     { name: 'Hướng dẫn', href: '/how-to-buy' },
-    { name: 'Tin tức công nghệ', href: '/news' },
+    { name: 'Tin tức', href: '/news' },
     { name: 'Liên hệ', href: '/contact' },
     { name: 'Quà tặng', href: '/qua-tang' },
     { name: 'Câu lệnh', href: '/prompt' },
@@ -128,15 +128,29 @@ export default function Header() {
     setShowMobileSearch(false);
   };
 
-  // Lock body scroll when mobile menu is open
+  // Lock body scroll when mobile drawer is open.
+  // Also compensate scrollbar width to avoid horizontal layout shift.
   useEffect(() => {
+    // Only relevant on mobile/tablet where drawer exists.
+    const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+    if (isDesktop) return;
+
+    const body = document.body;
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+
     if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      body.style.overflow = 'hidden';
+      body.style.paddingRight = scrollbarWidth > 0 ? `${scrollbarWidth}px` : prevPaddingRight;
     } else {
-      document.body.style.overflow = '';
+      body.style.overflow = prevOverflow || '';
+      body.style.paddingRight = prevPaddingRight || '';
     }
+
     return () => {
-      document.body.style.overflow = '';
+      body.style.overflow = prevOverflow || '';
+      body.style.paddingRight = prevPaddingRight || '';
     };
   }, [isMenuOpen]);
 
@@ -351,7 +365,11 @@ export default function Header() {
   }, [groupedCategories, products]);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
+    <>
+      {/* Spacer để nội dung không bị header fixed che */}
+      <div className="h-14 sm:h-16 lg:h-28" aria-hidden />
+
+      <header className="fixed top-0 inset-x-0 z-[1000] bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* TOP BAR */}
         <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-3">
@@ -490,8 +508,11 @@ export default function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  align="end"
-                  className="w-64 bg-white/95 backdrop-blur-md border-white/20 text-gray-800 shadow-xl rounded-xl"
+                  align="start"
+                  portalled={false}
+                  sideOffset={10}
+                  alignOffset={0}
+                  className="z-[1100] w-64 bg-white/95 backdrop-blur-md border-white/20 text-gray-800 rounded-xl shadow-[0_18px_60px_rgba(0,0,0,0.35)] ring-1 ring-black/5"
                 >
                   {user.role === "admin" && (
                     <DropdownMenuItem asChild>
@@ -770,7 +791,7 @@ export default function Header() {
           document.body
         )}
       </div>
-    </header>
-
+      </header>
+    </>
   );
 }
