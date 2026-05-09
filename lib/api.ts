@@ -176,6 +176,54 @@ export async function uploadProductImage(
     return { filename, url };
 }
 
+/**
+ * Upload ảnh mẫu cho prompt kiểu "Hình ảnh".
+ * POST /admin/prompts/upload-image — key form "image"
+ */
+export async function uploadPromptSampleImage(
+    file: File,
+    sessionId: string,
+): Promise<UploadImageResult> {
+    const fd = new FormData();
+    fd.append("image", file, file.name);
+
+    const res = await fetch(`${API_URL}/admin/prompts/upload-image`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${sessionId}` },
+        body: fd,
+        cache: "no-store",
+    });
+
+    const raw = await res.text();
+    if (!res.ok) throw new Error(`Upload failed (${res.status}): ${raw.slice(0, 200)}`);
+
+    let data: any;
+    try {
+        data = extractJson(raw);
+    } catch (e: any) {
+        throw new Error(e?.message || "Upload response is not JSON");
+    }
+
+    if (!data?.success || !data?.filename) {
+        const msg = data?.message || data?.errors?.image?.[0] || "Upload ảnh prompt thất bại";
+        throw new Error(msg);
+    }
+
+    const filename = String(data.filename);
+    const url = data.url || resolveApiAssetUrl(`/images/prompts/${filename}`);
+
+    return { filename, url };
+}
+
+/** URL đầy đủ để hiển thị ảnh lưu trên backend (http... hoặc /images/...). */
+export function resolveApiAssetUrl(imageUrlOrPath: string): string {
+    const t = (imageUrlOrPath || "").trim();
+    if (!t) return "";
+    if (t.startsWith("http://") || t.startsWith("https://")) return t;
+    const base = API_URL.replace(/\/api\/?$/i, "");
+    if (t.startsWith("/")) return `${base}${t}`;
+    return `${base}/${t.replace(/^\/*/, "")}`;
+}
 
 /** Helper: từ tên file trong DB -> URL để hiển thị ảnh */
 export function imageFilenameToUrl(filename?: string | null): string {
@@ -694,7 +742,13 @@ export const fetchAdminPrompts = async (sessionId: string): Promise<PromptTempla
  */
 export const createAdminPrompt = async (
     sessionId: string,
-    payload: Pick<PromptTemplateItem, 'category' | 'content' | 'sort_order'> & { title?: string | null; is_active?: boolean }
+    payload: Pick<PromptTemplateItem, 'category' | 'content' | 'sort_order'> & {
+        title?: string | null;
+        is_active?: boolean;
+        kind?: 'text' | 'image';
+        image_url?: string | null;
+        tag?: string | null;
+    }
 ): Promise<{ success: boolean; data: PromptTemplateItem }> => {
     const res = await fetch(`${API_URL}/admin/prompts`, {
         method: 'POST',
@@ -715,7 +769,9 @@ export const createAdminPrompt = async (
 export const updateAdminPrompt = async (
     sessionId: string,
     id: number,
-    payload: Partial<Pick<PromptTemplateItem, 'category' | 'title' | 'content' | 'sort_order' | 'is_active'>>
+    payload: Partial<
+        Pick<PromptTemplateItem, 'category' | 'title' | 'content' | 'sort_order' | 'is_active' | 'kind' | 'image_url' | 'tag'>
+    >
 ): Promise<{ success: boolean; data: PromptTemplateItem }> => {
     const res = await fetch(`${API_URL}/admin/prompts/${id}`, {
         method: 'PUT',

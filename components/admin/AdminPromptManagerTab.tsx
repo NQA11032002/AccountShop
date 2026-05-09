@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,8 +24,11 @@ import {
   deleteAdminPrompt,
   fetchAdminPrompts,
   updateAdminPrompt,
+  uploadPromptSampleImage,
+  resolveApiAssetUrl,
 } from "@/lib/api";
-import { Plus, Save, Trash2, BookText } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Plus, Save, Trash2, BookText, Image as ImageIcon } from "lucide-react";
 
 /** Số thứ tự tiếp theo trong thể loại (max + 1). `excludeId` bỏ qua bản ghi đang sửa khi đổi thể loại. */
 function nextSortOrderForCategory(
@@ -47,6 +50,9 @@ type PromptFormState = {
   title: string;
   content: string;
   is_active: boolean;
+  kind: "text" | "image";
+  image_url: string;
+  tag: string;
 };
 
 const emptyForm: PromptFormState = {
@@ -54,6 +60,9 @@ const emptyForm: PromptFormState = {
   title: "",
   content: "",
   is_active: true,
+  kind: "text",
+  image_url: "",
+  tag: "",
 };
 
 export default function AdminPromptManagerTab() {
@@ -66,10 +75,15 @@ export default function AdminPromptManagerTab() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [kindFilter, setKindFilter] = useState<"all" | "text" | "image">("all");
+  const [imageUploading, setImageUploading] = useState(false);
+  const promptImageInputRef = useRef<HTMLInputElement>(null);
 
-  const loadPrompts = async () => {
+  /** `silent`: cập nhật danh sách sau thêm/sửa/xóa mà không ẩn bảng (tránh nhảy scroll / cảm giác reload trang). */
+  const loadPrompts = async (options?: { silent?: boolean }) => {
     if (!sessionId) return;
-    setLoading(true);
+    const silent = options?.silent === true;
+    if (!silent) setLoading(true);
     try {
       const res = await fetchAdminPrompts(sessionId);
       setItems(res.data);
@@ -80,7 +94,7 @@ export default function AdminPromptManagerTab() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -98,9 +112,17 @@ export default function AdminPromptManagerTab() {
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    if (categoryFilter === "all") return items;
-    return items.filter((i) => i.category === categoryFilter);
-  }, [items, categoryFilter]);
+    let list = items;
+    if (kindFilter === "text") {
+      list = list.filter((i) => (i.kind ?? "text") !== "image");
+    } else if (kindFilter === "image") {
+      list = list.filter((i) => i.kind === "image");
+    }
+    if (categoryFilter !== "all") {
+      list = list.filter((i) => i.category === categoryFilter);
+    }
+    return list;
+  }, [items, categoryFilter, kindFilter]);
 
   /** Số thứ tự sẽ dùng khi bấm lưu (chỉ hiển thị, không nhập tay). */
   const sortOrderPreview = useMemo(() => {
@@ -129,6 +151,9 @@ export default function AdminPromptManagerTab() {
       title: item.title ?? "",
       content: item.content,
       is_active: Boolean(item.is_active),
+      kind: item.kind === "image" ? "image" : "text",
+      image_url: item.image_url ?? "",
+      tag: item.tag ?? "",
     });
   };
 
@@ -141,6 +166,18 @@ export default function AdminPromptManagerTab() {
         variant: "destructive",
       });
       return;
+    }
+
+    if (form.kind === "image") {
+      const ref = form.image_url.trim();
+      if (!ref) {
+        toast({
+          title: "Thiếu ảnh mẫu",
+          description: "Vui lòng tải ảnh lên (hoặc điền URL/đường dẫn trong mục tuỳ chọn).",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setSaving(true);
@@ -158,26 +195,27 @@ export default function AdminPromptManagerTab() {
         }
       }
 
+      const basePayload = {
+        category: cat,
+        title: form.title.trim() || null,
+        content: form.content.trim(),
+        sort_order,
+        is_active: form.is_active,
+        kind: form.kind,
+        image_url: form.kind === "image" ? form.image_url.trim() : null,
+        tag: form.kind === "image" ? form.tag.trim() || null : null,
+      };
+
       if (editingId) {
-        await updateAdminPrompt(sessionId, editingId, {
-          category: cat,
-          title: form.title.trim() || null,
-          content: form.content.trim(),
-          sort_order,
-          is_active: form.is_active,
-        });
+        await updateAdminPrompt(sessionId, editingId, basePayload);
         toast({ title: "Đã cập nhật prompt" });
       } else {
         await createAdminPrompt(sessionId, {
-          category: cat,
-          title: form.title.trim() || null,
-          content: form.content.trim(),
-          sort_order,
-          is_active: form.is_active,
+          ...basePayload,
         });
         toast({ title: "Đã tạo prompt mới" });
       }
-      await loadPrompts();
+      await loadPrompts({ silent: true });
       resetForm();
     } catch (e: any) {
       toast({
@@ -196,7 +234,7 @@ export default function AdminPromptManagerTab() {
     try {
       await deleteAdminPrompt(sessionId, id);
       toast({ title: "Đã xóa prompt" });
-      await loadPrompts();
+      await loadPrompts({ silent: true });
       if (editingId === id) resetForm();
     } catch (e: any) {
       toast({
@@ -204,6 +242,27 @@ export default function AdminPromptManagerTab() {
         description: e?.message || "Vui lòng thử lại.",
         variant: "destructive",
       });
+    }
+  };
+
+  const onPickPromptImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !sessionId) return;
+
+    setImageUploading(true);
+    try {
+      const { url } = await uploadPromptSampleImage(file, sessionId);
+      setForm((s) => ({ ...s, image_url: url }));
+      toast({ title: "Đã tải ảnh lên" });
+    } catch (err: any) {
+      toast({
+        title: "Upload thất bại",
+        description: err?.message || "Vui lòng thử ảnh jpg/png/webp dưới 5MB.",
+        variant: "destructive",
+      });
+    } finally {
+      setImageUploading(false);
     }
   };
 
@@ -219,15 +278,34 @@ export default function AdminPromptManagerTab() {
             <BookText className="w-5 h-5 text-indigo-600" />
             Quản lý Prompt
           </CardTitle>
+          <p className="text-sm text-gray-500 pt-1">
+            Loại <span className="font-medium">Hình ảnh</span>: tải ảnh mẫu lên server + nhập nội dung prompt để khách sao chép (hiển thị tab Hình ảnh).
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label>Loại prompt</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                value={form.kind}
+                onChange={(e) =>
+                  setForm((s) => ({
+                    ...s,
+                    kind: e.target.value === "image" ? "image" : "text",
+                  }))
+                }
+              >
+                <option value="text">Văn bản (thư viện prompt)</option>
+                <option value="image">Hình ảnh (card ảnh + Xem prompt)</option>
+              </select>
+            </div>
             <div className="space-y-1">
               <Label>Thể loại</Label>
               <Input
                 value={form.category}
                 onChange={(e) => setForm((s) => ({ ...s, category: e.target.value }))}
-                placeholder="Ví dụ: Kinh doanh & Marketing"
+                placeholder={form.kind === "image" ? "Ví dụ: Ảnh AI" : "Ví dụ: Kinh doanh & Marketing"}
               />
             </div>
             <div className="space-y-1">
@@ -257,20 +335,98 @@ export default function AdminPromptManagerTab() {
               <Input
                 value={form.title}
                 onChange={(e) => setForm((s) => ({ ...s, title: e.target.value }))}
-                placeholder="Ví dụ: 1. Giao vai rõ ràng ngay từ đầu"
+                placeholder={
+                  form.kind === "image"
+                    ? "Hiển thị trong modal và alt ảnh (vd: Poster sản phẩm tối giản)"
+                    : "Ví dụ: 1. Giao vai rõ ràng ngay từ đầu"
+                }
               />
               <p className="text-xs text-gray-500">
-                Tách riêng với nội dung prompt; hiển thị trên trang khách và trong cột &quot;Tiêu đề&quot; bảng dưới.
+                {form.kind === "image"
+                  ? "Tiêu đề modal khi khách xem prompt; ảnh tải lên bên dưới."
+                  : "Tách riêng với nội dung prompt; hiển thị trên trang khách và trong cột Tiêu đề bảng dưới."}
               </p>
             </div>
           </div>
 
+          {form.kind === "image" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-lg border border-indigo-100 bg-indigo-50/50 p-4">
+              <div className="space-y-2 md:col-span-2">
+                <Label className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4" />
+                  Ảnh mẫu (tải file)
+                </Label>
+                <div className="flex flex-wrap items-center gap-3">
+                  <input
+                    ref={promptImageInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif,image/avif,.jpg,.jpeg,.png,.webp,.gif,.avif"
+                    className="hidden"
+                    disabled={imageUploading || !sessionId}
+                    onChange={onPickPromptImage}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={imageUploading || !sessionId}
+                    onClick={() => promptImageInputRef.current?.click()}
+                  >
+                    {imageUploading ? "Đang tải lên..." : "Chọn ảnh từ máy"}
+                  </Button>
+                  {form.image_url.trim() ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600"
+                      onClick={() => setForm((s) => ({ ...s, image_url: "" }))}
+                    >
+                      Gỡ ảnh
+                    </Button>
+                  ) : null}
+                </div>
+                {form.image_url.trim() ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- URL từ backend / upload
+                  <img
+                    src={resolveApiAssetUrl(form.image_url)}
+                    alt=""
+                    className="mt-2 max-h-40 w-auto max-w-full rounded-lg border border-gray-200 bg-white object-contain"
+                  />
+                ) : (
+                  <p className="text-xs text-gray-500">Chưa có ảnh. Chấp nhận jpg, png, webp, gif, avif — tối đa 5MB.</p>
+                )}
+                <details className="mt-2 text-sm">
+                  <summary className="cursor-pointer text-gray-600 hover:text-gray-900">Hoặc nhập URL / đường dẫn thủ công</summary>
+                  <Input
+                    value={form.image_url}
+                    onChange={(ev) => setForm((s) => ({ ...s, image_url: ev.target.value }))}
+                    placeholder="https://... hoặc /images/prompts/tên-file.webp"
+                    className="mt-2 font-mono text-xs"
+                  />
+                </details>
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <Label>Tag (tùy chọn)</Label>
+                <Input
+                  value={form.tag}
+                  onChange={(e) => setForm((s) => ({ ...s, tag: e.target.value }))}
+                  placeholder="Ví dụ: Commercial — Midjourney"
+                />
+                <p className="text-xs text-gray-500">Hiển thị trong popup phóng to ảnh (không hiện trên card).</p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1">
-            <Label>Nội dung Prompt</Label>
+            <Label>{form.kind === "image" ? "Nội dung prompt (sao chép)" : "Nội dung Prompt"}</Label>
             <Textarea
               value={form.content}
               onChange={(e) => setForm((s) => ({ ...s, content: e.target.value }))}
-              placeholder="Nhập nội dung prompt..."
+              placeholder={
+                form.kind === "image"
+                  ? "Toàn bộ prompt tạo ảnh (tiếng Anh hoặc theo công cụ)..."
+                  : "Nhập nội dung prompt..."
+              }
               className="min-h-[110px]"
             />
           </div>
@@ -298,29 +454,63 @@ export default function AdminPromptManagerTab() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between gap-3">
-            <span>Danh sách Prompt ({filteredItems.length})</span>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant={categoryFilter === "all" ? "default" : "outline"}
-                onClick={() => setCategoryFilter("all")}
-              >
-                Tất cả
-              </Button>
-              {categories.map((cat) => (
-                <Button
-                  key={cat}
-                  size="sm"
-                  variant={categoryFilter === cat ? "default" : "outline"}
-                  onClick={() => setCategoryFilter(cat)}
+        <CardHeader className="space-y-0 pb-3">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <CardTitle className="text-base font-semibold shrink-0">
+              Danh sách Prompt{" "}
+              <span className="font-normal text-gray-500">({filteredItems.length})</span>
+            </CardTitle>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="text-gray-500 shrink-0 whitespace-nowrap">Loại</span>
+                <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+                  {(
+                    [
+                      { v: "all" as const, label: "Tất cả" },
+                      { v: "text" as const, label: "Văn bản" },
+                      { v: "image" as const, label: "Ảnh" },
+                    ] satisfies { v: typeof kindFilter; label: string }[]
+                  ).map(({ v, label }) => (
+                    <button
+                      key={v}
+                      type="button"
+                      className={cn(
+                        "h-7 rounded-md px-2.5 font-medium transition-colors whitespace-nowrap",
+                        kindFilter === v
+                          ? "bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/80"
+                          : "text-gray-600 hover:text-gray-900"
+                      )}
+                      onClick={() => setKindFilter(v)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-gray-500 shrink-0 whitespace-nowrap">Thể loại</span>
+                <select
+                  aria-label="Lọc theo thể loại"
+                  className={cn(
+                    "h-7 min-h-7 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs",
+                    "text-gray-900 max-w-[200px] sm:max-w-[240px]",
+                    "focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400"
+                  )}
+                  value={categoryFilter === "all" ? "all" : categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
                 >
-                  {cat}
-                </Button>
-              ))}
+                  <option value="all">— Tất cả —</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -329,9 +519,10 @@ export default function AdminPromptManagerTab() {
             <div className="text-gray-500">Chưa có prompt nào.</div>
           ) : (
             <div className="rounded-xl border border-gray-200 overflow-x-auto">
-              <Table className="min-w-[960px]">
+              <Table className="min-w-[1020px]">
                 <TableHeader>
                   <TableRow className="bg-gray-50">
+                    <TableHead className="w-[90px] min-w-[80px]">Loại</TableHead>
                     <TableHead className="w-[180px] min-w-[140px]">Thể loại</TableHead>
                     <TableHead className="w-[220px] min-w-[160px]">Tiêu đề</TableHead>
                     <TableHead className="min-w-[280px]">Nội dung Prompt</TableHead>
@@ -344,7 +535,12 @@ export default function AdminPromptManagerTab() {
                   {filteredItems.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
-                        <Badge>{item.category}</Badge>
+                        <Badge variant={item.kind === "image" ? "default" : "secondary"}>
+                          {item.kind === "image" ? "Ảnh" : "Text"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{item.category}</Badge>
                       </TableCell>
                       <TableCell>
                         <p className="text-sm text-gray-800 font-medium line-clamp-2">

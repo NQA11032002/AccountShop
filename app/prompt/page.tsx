@@ -5,11 +5,29 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Lightbulb, Sparkles, Target, Wand2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Copy,
+  Lightbulb,
+  Sparkles,
+  Target,
+  Wand2,
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
+  ZoomIn,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { fetchPromptTemplates } from "@/lib/api";
+import { fetchPromptTemplates, resolveApiAssetUrl } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import type { PromptTemplateItem } from "@/types/prompt.interface";
 
 type PromptEntry = {
   id: number | null;
@@ -31,6 +49,52 @@ function copyTextForPrompt(title: string | null | undefined, content: string): s
   const t = title?.trim();
   return t ? `${t}\n\n${content}` : content;
 }
+
+type ImagePromptSample = {
+  id: string;
+  /** Dùng cho tiêu đề modal & alt ảnh */
+  title: string;
+  /** Dòng tag trên card (tùy chọn) */
+  tag?: string;
+  /** Đường dẫn trong `public/` hoặc URL ảnh mẫu */
+  imageSrc: string;
+  prompt: string;
+};
+
+const imagePromptSamples: ImagePromptSample[] = [
+  {
+    id: "img-1",
+    title: "Poster sản phẩm tối giản",
+    tag: "Commercial — Midjourney",
+    imageSrc: "https://picsum.photos/seed/promptimg1/640/400",
+    prompt:
+      "Minimal product poster, soft daylight, marble surface, single cosmetic bottle, subtle shadow, clean typography space at top, ultra realistic, 4k, commercial photography style.",
+  },
+  {
+    id: "img-2",
+    title: "Minh họa workspace tech",
+    tag: "Illustration — DALL·E",
+    imageSrc: "https://picsum.photos/seed/promptimg2/640/400",
+    prompt:
+      "Isometric illustration of a developer workspace, navy and cyan palette, floating UI cards, subtle grid background, modern SaaS aesthetic, vector-like clarity, no text in image.",
+  },
+  {
+    id: "img-3",
+    title: "Hoàng hôn bên biển",
+    tag: "Scene — Stable Diffusion",
+    imageSrc: "https://picsum.photos/seed/promptimg3/640/400",
+    prompt:
+      "Serene coastal sunset, gentle waves, pastel sky, lone silhouette on beach, cinematic wide shot, film grain, emotional mood, high detail.",
+  },
+  {
+    id: "img-4",
+    title: "Logo khối trừu tượng",
+    tag: "Brand — Ideogram",
+    imageSrc: "https://picsum.photos/seed/promptimg4/640/400",
+    prompt:
+      "Abstract geometric logo mark, overlapping translucent shapes, gradient from violet to teal, white background, centered, scalable vector style, no letters.",
+  },
+];
 
 const guideSteps = [
   {
@@ -103,6 +167,13 @@ export default function PromptPage() {
   const [loadingPrompts, setLoadingPrompts] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const promptsPerPage = 6;
+  const [imagePromptModalOpen, setImagePromptModalOpen] = useState(false);
+  const [activeImagePrompt, setActiveImagePrompt] = useState<ImagePromptSample | null>(null);
+  const [imageZoomOpen, setImageZoomOpen] = useState(false);
+  const [zoomImageSample, setZoomImageSample] = useState<ImagePromptSample | null>(null);
+  const [imagePromptList, setImagePromptList] = useState<ImagePromptSample[]>(imagePromptSamples);
+  /** true khi tab Hình ảnh đang dùng dữ liệu từ API (có ít nhất một prompt kind=image). */
+  const [imageCardsFromApi, setImageCardsFromApi] = useState(false);
 
   useEffect(() => {
     const loadPrompts = async () => {
@@ -110,7 +181,8 @@ export default function PromptPage() {
       try {
         const res = await fetchPromptTemplates();
         const grouped = new Map<string, PromptEntry[]>();
-        res.data.forEach((p) => {
+        res.data.forEach((p: PromptTemplateItem) => {
+          if (p.kind === "image") return;
           const category = (p.category || "Khác").trim();
           if (!grouped.has(category)) grouped.set(category, []);
           const title = p.title?.trim() ? p.title.trim() : null;
@@ -120,6 +192,20 @@ export default function PromptPage() {
             content: p.content,
           });
         });
+
+        const apiImageCards: ImagePromptSample[] = res.data
+          .filter((p) => p.kind === "image" && (p.image_url || "").trim() !== "")
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          .map((p) => ({
+            id: String(p.id),
+            title: p.title?.trim() || "Prompt ảnh",
+            tag: p.tag?.trim() || undefined,
+            imageSrc: (p.image_url || "").trim(),
+            prompt: p.content,
+          }));
+
+        setImageCardsFromApi(apiImageCards.length > 0);
+        setImagePromptList(apiImageCards.length > 0 ? apiImageCards : imagePromptSamples);
 
         if (grouped.size > 0) {
           const dynamicCategories: PromptCategory[] = [
@@ -136,6 +222,8 @@ export default function PromptPage() {
         }
       } catch (e: any) {
         setPromptCategories(fallbackPromptCategories);
+        setImageCardsFromApi(false);
+        setImagePromptList(imagePromptSamples);
         toast({
           title: "Không tải được Prompt từ hệ thống",
           description: e?.message || "Đang dùng mẫu Prompt mặc định.",
@@ -224,14 +312,27 @@ export default function PromptPage() {
 
         <section className="relative z-10 container-max section-padding pb-16">
           <Tabs defaultValue="guide" className="w-full">
-            <TabsList className="grid grid-cols-2 w-full max-w-xl mx-auto bg-white/10 border border-white/20 shadow-xl">
-              <TabsTrigger value="guide" className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900">
-                <Lightbulb className="w-4 h-4 mr-2" />
-                Hướng dẫn nhanh
+            <TabsList className="grid h-auto w-full max-w-3xl mx-auto grid-cols-1 gap-2 bg-white/10 border border-white/20 shadow-xl p-2 sm:grid-cols-3 sm:gap-0">
+              <TabsTrigger
+                value="guide"
+                className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900 gap-2 py-2.5"
+              >
+                <Lightbulb className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Hướng dẫn nhanh</span>
               </TabsTrigger>
-              <TabsTrigger value="library" className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900">
-                <Wand2 className="w-4 h-4 mr-2" />
-                Thư viện prompt
+              <TabsTrigger
+                value="library"
+                className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900 gap-2 py-2.5"
+              >
+                <Wand2 className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Thư viện prompt</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="images"
+                className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900 gap-2 py-2.5"
+              >
+                <ImageIcon className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Hình ảnh</span>
               </TabsTrigger>
             </TabsList>
 
@@ -380,6 +481,144 @@ export default function PromptPage() {
                   </Card>
                 </>
               )}
+            </TabsContent>
+
+            <TabsContent value="images" className="mt-8">
+              <p className="mb-6 text-center text-sm text-slate-300 max-w-2xl mx-auto">
+                Dùng <span className="font-medium text-slate-200">Phóng to ảnh</span> để xem rõ ảnh mẫu;{" "}
+                <span className="font-medium text-slate-200">Xem Prompt</span> để đọc và sao chép prompt.
+                {imageCardsFromApi ? (
+                  <span className="block mt-1 text-slate-400 text-xs">
+                    Nội dung do cửa hàng cập nhật từ trang quản trị.
+                  </span>
+                ) : null}
+              </p>
+              <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+                {imagePromptList.map((sample, idx) => (
+                  <Card
+                    key={sample.id}
+                    className="flex flex-col overflow-hidden rounded-2xl border border-violet-200/60 bg-[#ebe8f4] shadow-md shadow-violet-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-950/15 animate-fade-in"
+                    style={{ animationDelay: `${idx * 60}ms` }}
+                  >
+                    <CardContent className="flex flex-1 flex-col gap-3 p-3.5 sm:p-4">
+                      <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
+                        <div className="overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-100/80">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- ảnh mẫu từ host bên ngoài */}
+                          <img
+                            src={resolveApiAssetUrl(sample.imageSrc)}
+                            alt={sample.title}
+                            className="aspect-[3/4] w-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-11 w-full rounded-lg border-slate-200/90 bg-white text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 hover:text-slate-900"
+                        onClick={() => {
+                          setZoomImageSample(sample);
+                          setImageZoomOpen(true);
+                        }}
+                      >
+                        <ZoomIn className="w-4 h-4 mr-2 shrink-0" />
+                        Phóng to ảnh
+                      </Button>
+
+                      <Button
+                        type="button"
+                        className="mt-auto h-11 w-full rounded-xl border-0 bg-[#ddd6f3] text-sm font-semibold text-violet-950 shadow-none transition-colors hover:bg-[#cfc3ee]"
+                        onClick={() => {
+                          setActiveImagePrompt(sample);
+                          setImagePromptModalOpen(true);
+                        }}
+                      >
+                        Xem Prompt
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Dialog
+                open={imagePromptModalOpen}
+                onOpenChange={(open) => {
+                  setImagePromptModalOpen(open);
+                  if (!open) setActiveImagePrompt(null);
+                }}
+              >
+                <DialogContent className="max-h-[min(85vh,720px)] overflow-y-auto border-white/20 bg-slate-900 text-white sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle className="text-white pr-8">
+                      {activeImagePrompt?.title ?? "Prompt"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="rounded-lg border border-white/15 bg-slate-950/80 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-2">Nội dung prompt</p>
+                    <pre className="text-sm text-slate-100 whitespace-pre-wrap font-sans leading-relaxed">
+                      {activeImagePrompt?.prompt}
+                    </pre>
+                  </div>
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-white/30 bg-transparent text-white hover:bg-white/10"
+                      onClick={() => setImagePromptModalOpen(false)}
+                    >
+                      Đóng
+                    </Button>
+                    <Button
+                      type="button"
+                      className="bg-white text-slate-900 hover:bg-white/90"
+                      disabled={!activeImagePrompt}
+                      onClick={() => activeImagePrompt && copyPrompt(activeImagePrompt.prompt)}
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      {activeImagePrompt && copiedPrompt === activeImagePrompt.prompt ? "Đã sao chép" : "Sao chép prompt"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog
+                open={imageZoomOpen}
+                onOpenChange={(open) => {
+                  setImageZoomOpen(open);
+                  if (!open) setZoomImageSample(null);
+                }}
+              >
+                <DialogContent className="max-h-[92vh] w-[min(96vw,960px)] max-w-[min(96vw,960px)] overflow-hidden border-white/20 bg-slate-900 p-0 text-white gap-0 sm:rounded-xl">
+                  <DialogHeader className="space-y-1 border-b border-white/10 px-4 pb-3 pt-4 sm:px-6">
+                    <DialogTitle className="text-left text-white pr-8 text-base leading-snug">
+                      {zoomImageSample?.title ?? "Ảnh mẫu"}
+                    </DialogTitle>
+                    {zoomImageSample?.tag?.trim() ? (
+                      <p className="text-left text-sm text-slate-400">{zoomImageSample.tag.trim()}</p>
+                    ) : null}
+                  </DialogHeader>
+                  <div className="flex max-h-[min(78vh,calc(100vh-10rem))] items-center justify-center overflow-auto bg-black/50 px-3 py-4 sm:px-6">
+                    {zoomImageSample ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={resolveApiAssetUrl(zoomImageSample.imageSrc)}
+                        alt={zoomImageSample.title}
+                        className="max-h-[min(72vh,calc(100vh-12rem))] w-auto max-w-full rounded-md object-contain shadow-xl"
+                      />
+                    ) : null}
+                  </div>
+                  <DialogFooter className="border-t border-white/10 px-4 py-3 sm:px-6">
+                    <Button
+                      type="button"
+                      className="bg-white text-slate-900 hover:bg-white/90"
+                      onClick={() => setImageZoomOpen(false)}
+                    >
+                      Đóng
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </TabsContent>
           </Tabs>
         </section>

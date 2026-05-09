@@ -69,18 +69,26 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    /* Prevent accidental horizontal overflow from sliders/negative margins/vw widths */
-    overflow-x: clip;
-  }
-
   html {
     scroll-behavior: smooth;
     overflow-x: clip;
-    /* Keep layout stable when scrollbar appears/disappears */
+    /* Dành sẵn “rãnh” thanh cuộn — tránh nhảy layout khi mở Dialog (Radix) */
     scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: clip;
+  }
+}
+
+/* Radix Dialog dùng react-remove-scroll-bar: thêm padding/margin phải để bù thanh cuộn biến mất.
+   Khi html đã có scrollbar-gutter: stable, bù đó là thừa → lệch chiều ngang / lộ khoảng trắng bên phải. */
+@supports (scrollbar-gutter: stable) {
+  body[data-scroll-locked] {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
   }
 }
 
@@ -158,14 +166,4 @@
 /* Hide Next.js badge and error messages */
 body>nextjs-portal {
   display: none;
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
 }
