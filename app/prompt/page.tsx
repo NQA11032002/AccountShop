@@ -589,8 +589,8 @@ export default function PromptPage() {
                   if (!open) setZoomImageSample(null);
                 }}
               >
-                <DialogContent className="max-h-[92vh] w-[min(96vw,960px)] max-w-[min(96vw,960px)] overflow-hidden border-white/20 bg-slate-900 p-0 text-white gap-0 sm:rounded-xl">
-                  <DialogHeader className="space-y-1 border-b border-white/10 px-4 pb-3 pt-4 sm:px-6">
+                <DialogContent className="flex h-[min(92vh,calc(100dvh-2rem))] max-h-[min(92vh,calc(100dvh-2rem))] w-[min(96vw,960px)] max-w-[min(96vw,960px)] flex-col overflow-hidden border-white/20 bg-slate-900 p-0 text-white gap-0 sm:rounded-xl">
+                  <DialogHeader className="shrink-0 space-y-1 border-b border-white/10 px-4 pb-3 pt-4 sm:px-6">
                     <DialogTitle className="text-left text-white pr-8 text-base leading-snug">
                       {zoomImageSample?.title ?? "Ảnh mẫu"}
                     </DialogTitle>
@@ -598,17 +598,17 @@ export default function PromptPage() {
                       <p className="text-left text-sm text-slate-400">{zoomImageSample.tag.trim()}</p>
                     ) : null}
                   </DialogHeader>
-                  <div className="flex max-h-[min(78vh,calc(100vh-10rem))] items-center justify-center overflow-auto bg-black/50 px-3 py-4 sm:px-6">
+                  <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-black/50 px-3 py-4 sm:px-6">
                     {zoomImageSample ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={resolveApiAssetUrl(zoomImageSample.imageSrc)}
                         alt={zoomImageSample.title}
-                        className="max-h-[min(72vh,calc(100vh-12rem))] w-auto max-w-full rounded-md object-contain shadow-xl"
+                        className="h-auto max-h-full w-auto max-w-full rounded-md object-contain shadow-xl"
                       />
                     ) : null}
                   </div>
-                  <DialogFooter className="border-t border-white/10 px-4 py-3 sm:px-6">
+                  <DialogFooter className="shrink-0 border-t border-white/10 px-4 py-3 sm:px-6">
                     <Button
                       type="button"
                       className="bg-white text-slate-900 hover:bg-white/90"

@@ -13,44 +13,44 @@ export default function FAQ() {
 
   const faqs = [
     {
-      question: 'Dịch vụ có ổn định không?',
-      answer: 'Tất cả gói dịch vụ đều được kiểm tra kỹ trước khi bàn giao và có bảo hành. Nếu gặp vấn đề, chúng tôi sẽ hỗ trợ xử lý theo chính sách hoặc hoàn tiền 100%.'
+      question: 'Dịch vụ có chất lượng và ổn định không?',
+      answer: 'Tất cả các gói (thiết kế Website, hỗ trợ AI, làm Video AI, khóa học AI) đều được kiểm duyệt nội dung và quy trình kỹ trước khi bàn giao. Nếu phát sinh vấn đề trong thời hạn bảo hành, chúng tôi sẽ hỗ trợ xử lý theo chính sách hoặc hoàn phí theo cam kết.'
     },
     {
-      question: 'Làm sao để nhận thông tin sử dụng sau khi thanh toán?',
-      answer: 'Sau khi hoàn tất thanh toán, hệ thống sẽ gửi hướng dẫn và thông tin truy cập qua email hoặc Telegram/Zalo (thường trong vòng 1–5 phút). Nếu quá thời gian này bạn chưa nhận được, hãy liên hệ hỗ trợ để được xử lý.'
+      question: 'Sau khi thanh toán, tôi nhận tài liệu/khóa học/dịch vụ như thế nào?',
+      answer: 'Sau khi hoàn tất thanh toán, hệ thống sẽ gửi link tài liệu, khóa học hoặc lịch triển khai dịch vụ qua email/Zalo/Telegram (thường trong vòng 1–5 phút). Nếu quá thời gian này bạn chưa nhận được, vui lòng liên hệ kênh hỗ trợ để được xử lý ngay.'
     },
     {
       question: 'Có những hình thức thanh toán nào?',
-      answer: 'Chúng tôi chấp nhận thanh toán qua Momo, chuyển khoản ngân hàng (Vietcombank, Techcombank, BIDV), thẻ cào điện thoại và các ví điện tử khác.'
+      answer: 'Chúng tôi nhận thanh toán qua chuyển khoản ngân hàng và các ví điện tử phổ biến (Momo, ZaloPay…). Thông tin tài khoản và mã đơn sẽ được gửi trực tiếp cho bạn khi đặt dịch vụ, kèm xác nhận giao dịch qua Zalo/Telegram.'
     },
     {
-      question: 'Có cần thay đổi thông tin đăng nhập không?',
-      answer: 'Bạn sẽ nhận được hướng dẫn/thông tin cần thiết để sử dụng ngay. Để đảm bảo ổn định, vui lòng làm theo hướng dẫn kèm theo (nếu có).'
+      question: 'Tôi không rành công nghệ thì có dùng được không?',
+      answer: 'Có. Mỗi gói đều đi kèm hướng dẫn chi tiết, dễ làm theo cho cả người mới bắt đầu. Riêng gói thiết kế Website và làm Video AI sẽ được đội ngũ hỗ trợ triển khai trực tiếp theo yêu cầu của bạn.'
     },
     {
-      question: 'Có được sử dụng đồng thời trên nhiều thiết bị?',
-      answer: 'Tùy từng gói dịch vụ sẽ có giới hạn thiết bị khác nhau. Chi tiết sẽ được ghi rõ trong mô tả sản phẩm.'
+      question: 'Thời gian triển khai mất bao lâu?',
+      answer: 'Khóa học AI và tài liệu hỗ trợ AI được bàn giao ngay sau khi thanh toán. Với gói thiết kế Website và làm Video AI, thời gian triển khai sẽ được thống nhất theo phạm vi công việc – thường từ 1–7 ngày tùy mức độ.'
     },
     {
       question: 'Chính sách bảo hành như thế nào?',
-      answer: 'Tất cả gói dịch vụ đều có bảo hành theo thời hạn gói mua. Nếu phát sinh sự cố, chúng tôi sẽ hỗ trợ xử lý hoặc hoàn tiền trong vòng 24h theo chính sách.'
+      answer: 'Mỗi gói có thời hạn bảo hành riêng được ghi rõ trong mô tả. Trong thời hạn này, nếu phát sinh lỗi thuộc phạm vi cam kết, chúng tôi sẽ xử lý miễn phí hoặc hoàn phí theo chính sách trong vòng 24h.'
     },
     {
       question: 'Có cần cung cấp thông tin cá nhân không?',
-      answer: 'Chỉ cần email hoặc số điện thoại để nhận hướng dẫn/thông tin sử dụng. Chúng tôi cam kết bảo mật thông tin khách hàng tuyệt đối.'
+      answer: 'Chúng tôi chỉ cần email hoặc số điện thoại để bàn giao tài liệu, khóa học hoặc liên hệ trao đổi yêu cầu dịch vụ. Mọi thông tin khách hàng đều được bảo mật và không chia sẻ cho bên thứ ba.'
     },
     {
       question: 'Làm sao liên hệ hỗ trợ khi cần?',
-      answer: 'Bạn có thể liên hệ qua Telegram: @qaistore hoặc Zalo: 038.966.0305. Đội ngũ hỗ trợ làm việc 24/7, phản hồi trong vòng 5 phút.'
+      answer: 'Bạn có thể liên hệ qua Telegram: @qaistore hoặc Zalo: 038.966.0305. Đội ngũ hỗ trợ làm việc 24/7, phản hồi trung bình trong vòng 5 phút.'
     },
     {
-      question: 'Có được đổi trả nếu không hài lòng?',
-      answer: 'Trong vòng 24h đầu, nếu dịch vụ không hoạt động hoặc không đúng mô tả, chúng tôi sẽ hỗ trợ xử lý hoặc hoàn tiền 100%.'
+      question: 'Có được hoàn phí nếu không hài lòng?',
+      answer: 'Trong vòng 24h đầu, nếu dịch vụ chưa được triển khai hoặc không đúng mô tả công khai, chúng tôi sẵn sàng hỗ trợ điều chỉnh hoặc hoàn phí theo chính sách đã công bố.'
     },
     {
-      question: 'Vì sao giá có thể tối ưu hơn?',
-      answer: 'Chúng tôi tối ưu quy trình vận hành và chi phí triển khai nên có thể đưa ra mức giá tốt hơn, đồng thời vẫn đảm bảo nội dung và quyền lợi đúng theo mô tả.'
+      question: 'Vì sao mức giá có thể tối ưu hơn?',
+      answer: 'Chúng tôi tối ưu quy trình vận hành, công cụ AI và quy mô triển khai nên có thể đưa ra mức giá hợp lý hơn, đồng thời vẫn đảm bảo chất lượng và quyền lợi đúng như mô tả.'
     }
   ];
 

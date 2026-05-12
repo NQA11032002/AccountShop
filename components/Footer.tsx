@@ -24,12 +24,10 @@ export default function Footer() {
   ];
 
   const categories = [
-    { name: 'Gói AI', href: '#categories' },
-    { name: 'Gói Giải trí', href: '#categories' },
-    { name: 'Gói Thiết kế', href: '#categories' },
-    { name: 'Gói Công cụ', href: '#categories' },
-    { name: 'Gói Học tập', href: '#categories' },
-    { name: 'Gói Bảo mật', href: '#categories' },
+    { name: 'Gói thiết kế Website', href: '#categories' },
+    { name: 'Gói hỗ trợ AI', href: '#categories' },
+    { name: 'Gói làm Video AI', href: '#categories' },
+    { name: 'Gói khóa học AI', href: '#categories' },
   ];
 
   const policies = [
@@ -211,8 +209,8 @@ export default function Footer() {
               <h5 className="font-medium mb-3">Phương thức thanh toán</h5>
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-gray-800 rounded p-2 text-center text-xs">MoMo</div>
+                <div className="bg-gray-800 rounded p-2 text-center text-xs">ZaloPay</div>
                 <div className="bg-gray-800 rounded p-2 text-center text-xs">Banking</div>
-                <div className="bg-gray-800 rounded p-2 text-center text-xs">Thẻ cào</div>
               </div>
             </div>
           </div>

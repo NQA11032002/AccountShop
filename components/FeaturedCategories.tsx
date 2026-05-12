@@ -1,61 +1,43 @@
 "use client";
 
-import { ArrowRight, Bot, Sparkles, Music2, Palette, ShieldCheck, GraduationCap } from 'lucide-react';
+import { ArrowRight, Bot, Globe, Video, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function FeaturedCategories() {
   const cards = [
     {
+      icon: Globe,
+      title: 'Gói thiết kế Website',
+      desc: 'Thiết kế website chuyên nghiệp – chuẩn SEO, tối ưu trải nghiệm, phù hợp mọi mục đích kinh doanh.',
+      gradient: 'from-sky-500/15 via-blue-500/10 to-indigo-500/10',
+      ring: 'ring-sky-500/20',
+      iconBg: 'bg-sky-500/10',
+      iconColor: 'text-sky-700',
+    },
+    {
       icon: Bot,
-      title: 'Gói AI',
-      desc: 'Tăng tốc học tập & công việc với trợ lý AI, tối ưu quy trình và tiết kiệm thời gian.',
-      gradient: 'from-emerald-500/15 via-sky-500/10 to-violet-500/10',
+      title: 'Gói hỗ trợ AI',
+      desc: 'Trợ lý AI tăng tốc học tập & công việc – tối ưu quy trình, tiết kiệm thời gian mỗi ngày.',
+      gradient: 'from-emerald-500/15 via-teal-500/10 to-violet-500/10',
       ring: 'ring-emerald-500/20',
       iconBg: 'bg-emerald-500/10',
       iconColor: 'text-emerald-700',
     },
     {
-      icon: Music2,
-      title: 'Gói Giải trí',
-      desc: 'Trải nghiệm nội dung mượt mà, phù hợp học tập – giải trí – thư giãn mỗi ngày.',
-      gradient: 'from-green-500/15 via-teal-500/10 to-blue-500/10',
-      ring: 'ring-green-500/20',
-      iconBg: 'bg-green-500/10',
-      iconColor: 'text-green-700',
-    },
-    {
-      icon: Palette,
-      title: 'Gói Thiết kế',
-      desc: 'Dành cho sáng tạo: template, tài nguyên và công cụ giúp làm nhanh – làm đẹp – làm chuẩn.',
-      gradient: 'from-pink-500/15 via-fuchsia-500/10 to-indigo-500/10',
-      ring: 'ring-pink-500/20',
-      iconBg: 'bg-pink-500/10',
-      iconColor: 'text-pink-700',
-    },
-    {
-      icon: Sparkles,
-      title: 'Gói Công cụ',
-      desc: 'Nâng trải nghiệm sử dụng, tối ưu thao tác hằng ngày với các công cụ tiện lợi.',
-      gradient: 'from-amber-500/15 via-orange-500/10 to-rose-500/10',
-      ring: 'ring-amber-500/20',
-      iconBg: 'bg-amber-500/10',
-      iconColor: 'text-amber-700',
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Gói Bảo mật',
-      desc: 'Ưu tiên an toàn & riêng tư. Phù hợp nhu cầu bảo vệ thiết bị và dữ liệu cá nhân.',
-      gradient: 'from-slate-500/15 via-blue-500/10 to-cyan-500/10',
-      ring: 'ring-slate-500/20',
-      iconBg: 'bg-slate-500/10',
-      iconColor: 'text-slate-700',
+      icon: Video,
+      title: 'Gói làm Video AI',
+      desc: 'Tạo video chuyên nghiệp nhanh chóng với AI – từ kịch bản tới hậu kỳ chỉ trong vài phút.',
+      gradient: 'from-rose-500/15 via-fuchsia-500/10 to-orange-500/10',
+      ring: 'ring-rose-500/20',
+      iconBg: 'bg-rose-500/10',
+      iconColor: 'text-rose-700',
     },
     {
       icon: GraduationCap,
-      title: 'Gói Học tập',
-      desc: 'Học tập hiệu quả hơn với tài liệu, công cụ hỗ trợ và nội dung phù hợp nhiều cấp độ.',
-      gradient: 'from-indigo-500/15 via-sky-500/10 to-emerald-500/10',
+      title: 'Gói khóa học AI',
+      desc: 'Khóa học AI từ cơ bản đến nâng cao – tài liệu rõ ràng, lộ trình bài bản, học là hiểu ngay.',
+      gradient: 'from-indigo-500/15 via-violet-500/10 to-purple-500/10',
       ring: 'ring-indigo-500/20',
       iconBg: 'bg-indigo-500/10',
       iconColor: 'text-indigo-700',
@@ -80,7 +62,7 @@ export default function FeaturedCategories() {
         </div>
 
         {/* Pretty category cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10 sm:mb-12">
           {cards.map((c, idx) => (
             <div
               key={c.title}

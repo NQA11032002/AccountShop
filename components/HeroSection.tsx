@@ -111,7 +111,7 @@ export default function HeroSection() {
                   <div className="relative w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg flex items-center justify-center shrink-0 shadow-sm">
                     <span className="text-red-600 font-bold text-xs sm:text-sm">C</span>
                   </div>
-                  <h3 className="relative font-bold text-sm sm:text-lg">Gói Công cụ</h3>
+                  <h3 className="relative font-bold text-sm sm:text-lg">Gói thiết kế Website</h3>
                   <p className="relative text-white/85 text-xs sm:text-sm">Tối ưu trải nghiệm</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-lg sm:text-2xl font-bold">&nbsp;</span>
@@ -127,7 +127,7 @@ export default function HeroSection() {
                   <div className="relative w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm">
                     <span className="text-emerald-600 font-bold text-xs sm:text-sm">♪</span>
                   </div>
-                  <h3 className="relative font-bold text-sm sm:text-lg">Gói Giải trí</h3>
+                  <h3 className="relative font-bold text-sm sm:text-lg">Gói hỗ trợ AI</h3>
                   <p className="relative text-white/85 text-xs sm:text-sm">Mượt mà, tiện lợi</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-lg sm:text-2xl font-bold">&nbsp;</span>
@@ -143,7 +143,7 @@ export default function HeroSection() {
                   <div className="relative w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg flex items-center justify-center shrink-0 shadow-sm">
                     <span className="text-violet-600 font-bold text-xs sm:text-sm">AI</span>
                   </div>
-                  <h3 className="relative font-bold text-sm sm:text-lg">Gói AI</h3>
+                  <h3 className="relative font-bold text-sm sm:text-lg">Gói làm Video AI</h3>
                   <p className="relative text-white/85 text-xs sm:text-sm">Tăng năng suất</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-lg sm:text-2xl font-bold">&nbsp;</span>
@@ -159,7 +159,7 @@ export default function HeroSection() {
                   <div className="relative w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg flex items-center justify-center shrink-0 shadow-sm">
                     <span className="text-rose-600 font-bold text-xs sm:text-sm">▶</span>
                   </div>
-                  <h3 className="relative font-bold text-sm sm:text-lg">Gói Video</h3>
+                  <h3 className="relative font-bold text-sm sm:text-lg">Gói khóa học AI</h3>
                   <p className="relative text-white/85 text-xs sm:text-sm">Xem & học tập</p>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-lg sm:text-2xl font-bold">&nbsp;</span>
