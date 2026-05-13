@@ -508,11 +508,11 @@ export default function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  align="start"
-                  portalled={false}
+                  align="end"
+                  side="bottom"
                   sideOffset={10}
-                  alignOffset={0}
-                  className="z-[1100] w-64 bg-white/95 backdrop-blur-md border-white/20 text-gray-800 rounded-xl shadow-[0_18px_60px_rgba(0,0,0,0.35)] ring-1 ring-black/5"
+                  collisionPadding={12}
+                  className="z-[1100] w-[min(16rem,calc(100vw-1.5rem))] bg-white/95 backdrop-blur-md border-white/20 text-gray-800 rounded-xl shadow-[0_18px_60px_rgba(0,0,0,0.35)] ring-1 ring-black/5"
                 >
                   {user.role === "admin" && (
                     <DropdownMenuItem asChild>

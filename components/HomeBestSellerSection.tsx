@@ -31,10 +31,10 @@ export default function HomeBestSellerSection() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 text-xs sm:text-sm">
-                    Chính chủ, bảo hành
+                    Minh bạch theo gói
                   </p>
                   <p className="text-[11px] sm:text-xs text-gray-600">
-                    Dịch vụ an toàn, hỗ trợ tận tâm trong suốt thời gian sử dụng.
+                    Quyền lợi, thời hạn và kênh hỗ trợ được mô tả rõ trước khi mua.
                   </p>
                 </div>
               </div>
@@ -44,10 +44,10 @@ export default function HomeBestSellerSection() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 text-xs sm:text-sm">
-                    Kích hoạt siêu nhanh
+                    Kích hoạt nhanh
                   </p>
                   <p className="text-[11px] sm:text-xs text-gray-600">
-                    Tự động hoặc hỗ trợ nâng cấp trong vài phút, không phải chờ lâu.
+                    Nhiều gói giao ngay hoặc hỗ trợ trong thời gian ngắn, tùy loại sản phẩm.
                   </p>
                 </div>
               </div>
@@ -101,22 +101,28 @@ export default function HomeBestSellerSection() {
 
                 <div className="mt-2 grid grid-cols-3 gap-3 text-center text-xs sm:text-sm">
                   <div className="rounded-2xl bg-white/10 p-3 border border-white/15">
-                    <p className="text-[10px] sm:text-xs text-emerald-100">
-                      Thời gian hoạt động
+                    <p className="text-[10px] sm:text-xs text-emerald-100 leading-tight">
+                      Độ ổn định
                     </p>
-                    <p className="mt-1 text-sm sm:text-base font-semibold">99.9%</p>
+                    <p className="mt-1 text-xs sm:text-sm font-semibold leading-snug">
+                      Theo gói & nhà cung cấp
+                    </p>
                   </div>
                   <div className="rounded-2xl bg-white/10 p-3 border border-white/15">
-                    <p className="text-[10px] sm:text-xs text-emerald-100">
-                      Khách hàng hài lòng
+                    <p className="text-[10px] sm:text-xs text-emerald-100 leading-tight">
+                      Phản hồi
                     </p>
-                    <p className="mt-1 text-sm sm:text-base font-semibold">5,000+</p>
+                    <p className="mt-1 text-xs sm:text-sm font-semibold leading-snug">
+                      Theo từng sản phẩm
+                    </p>
                   </div>
                   <div className="rounded-2xl bg-white/10 p-3 border border-white/15">
-                    <p className="text-[10px] sm:text-xs text-emerald-100">
-                      Hỗ trợ nhanh
+                    <p className="text-[10px] sm:text-xs text-emerald-100 leading-tight">
+                      Hỗ trợ
                     </p>
-                    <p className="mt-1 text-sm sm:text-base font-semibold">24/7</p>
+                    <p className="mt-1 text-xs sm:text-sm font-semibold leading-snug">
+                      Theo chính sách cửa hàng
+                    </p>
                   </div>
                 </div>
               </div>

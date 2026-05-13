@@ -5,40 +5,38 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 export default function WhyChooseUs() {
-  console.log("WhyChooseUs component rendered");
-
   const features = [
     {
       icon: Clock,
-      title: 'Giao hàng tự động 24/7',
-      description: 'Nhận thông tin sử dụng ngay sau khi thanh toán thành công, không cần chờ đợi.',
-      highlight: 'Tức thì',
+      title: 'Nhận gói theo quy trình',
+      description: 'Nhiều gói được xử lý tự động sau khi thanh toán thành công; gói cần xác minh sẽ có hướng dẫn rõ ràng.',
+      highlight: 'Rõ ràng',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200'
     },
     {
       icon: Shield,
-      title: 'Cam kết hỗ trợ',
-      description: 'Cam kết bảo hành và hỗ trợ đổi/hoàn theo chính sách nếu phát sinh vấn đề trong thời gian sử dụng.',
-      highlight: 'Bảo hành',
+      title: 'Hỗ trợ theo chính sách',
+      description: 'Bảo hành, đổi hoặc hoàn tiền (nếu có) được mô tả theo từng sản phẩm và điều khoản đăng ký.',
+      highlight: 'Minh bạch',
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200'
     },
     {
       icon: Headphones,
-      title: 'Hỗ trợ nhanh chóng',
-      description: 'Đội ngũ hỗ trợ khách hàng trực tuyến qua Telegram và Zalo, phản hồi trong 5 phút.',
-      highlight: '5 phút',
+      title: 'Kênh liên hệ chính thức',
+      description: 'Thông tin liên hệ và khung giờ phản hồi được công bố trên website; thời gian xử lý phụ thuộc loại yêu cầu.',
+      highlight: 'Tận tâm',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200'
     },
     {
       icon: CreditCard,
-      title: 'Đa dạng thanh toán',
-      description: 'Chấp nhận nhiều hình thức thanh toán: Momo, chuyển khoản ngân hàng, thẻ cào.',
+      title: 'Thanh toán linh hoạt',
+      description: 'Hỗ trợ các phương thức phổ biến (ví điện tử, chuyển khoản, thẻ…) tùy từng gói; chi tiết hiển thị trước khi thanh toán.',
       highlight: 'Tiện lợi',
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
@@ -46,18 +44,18 @@ export default function WhyChooseUs() {
     },
     {
       icon: Users,
-      title: 'Cộng đồng tin cậy',
-      description: 'Được tin tướng bởi hơn 5,000+ khách hàng với hàng nghìn đánh giá tích cực.',
-      highlight: '5,000+',
+      title: 'Cộng đồng đồng hành',
+      description: 'Khách hàng quay lại và góp ý giúp chúng tôi cải thiện; đánh giá (nếu có) hiển thị công khai theo từng sản phẩm.',
+      highlight: 'Tích cực',
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50',
       borderColor: 'border-indigo-200'
     },
     {
       icon: Zap,
-      title: 'Giá cả cạnh tranh',
-      description: 'Cam kết mang đến giá tốt nhất thị trường với chất lượng dịch vụ vượt trội.',
-      highlight: 'Tốt nhất',
+      title: 'Bảng giá công khai',
+      description: 'Giá niêm yết theo gói và thời hạn; ưu đãi (nếu có) được ghi rõ điều kiện áp dụng.',
+      highlight: 'Công bằng',
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
       borderColor: 'border-yellow-200'
@@ -65,10 +63,10 @@ export default function WhyChooseUs() {
   ];
 
   const stats = [
-    { number: '10,000+', label: 'Đơn hàng đã xử lý', icon: Award },
-    { number: '5,000+', label: 'Khách hàng hài lòng', icon: Users },
-    { number: '98%', label: 'Đánh giá tích cực', icon: RefreshCw },
-    { number: '24/7', label: 'Hỗ trợ không ngừng', icon: Clock }
+    { number: 'Đa dạng', label: 'Danh mục & gói', icon: Award },
+    { number: 'Rõ ràng', label: 'Quy trình mua', icon: Users },
+    { number: 'Tận tâm', label: 'Ưu tiên hỗ trợ', icon: RefreshCw },
+    { number: 'Từng bước', label: 'Hướng dẫn chi tiết', icon: Clock }
   ];
 
   return (
@@ -84,7 +82,7 @@ export default function WhyChooseUs() {
             <span className="gradient-text"> tin tưởng chúng tôi</span>
           </h2>
           <p className="text-base sm:text-lg text-gray-600 text-balance px-2">
-            Chúng tôi cam kết mang đến trải nghiệm mua sắm tốt nhất với quy trình rõ ràng và hỗ trợ tận tâm
+            Chúng tôi ưu tiên trải nghiệm rõ ràng: quy trình, chính sách và hỗ trợ được mô tả trước khi bạn quyết định mua.
           </p>
         </div>
 
@@ -126,10 +124,10 @@ export default function WhyChooseUs() {
         <div className="bg-gradient-brand rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 animate-fade-in animation-delay-600">
           <div className="text-center mb-6 sm:mb-8">
             <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2">
-              Những con số ấn tượng
+              Giá trị chúng tôi hướng tới
             </h3>
             <p className="text-sm sm:text-base text-white/85">
-              Minh chứng cho chất lượng dịch vụ của chúng tôi
+              Định hướng phục vụ: minh bạch, có thể kiểm chứng trên từng sản phẩm.
             </p>
           </div>
 
@@ -162,25 +160,25 @@ export default function WhyChooseUs() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-gray-700">Bảo mật tuyệt đối</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Ưu tiên bảo mật thông tin</p>
             </div>
             <div className="space-y-1.5 sm:space-y-2">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
                 <Award className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-gray-700">Chất lượng đảm bảo</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Theo mô tả từng gói</p>
             </div>
             <div className="space-y-1.5 sm:space-y-2">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
                 <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-gray-700">Hoàn tiền 100%</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Đổi hoàn theo chính sách</p>
             </div>
             <div className="space-y-1.5 sm:space-y-2">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
                 <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-gray-700">Giao hàng tức thì</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Giao nhận theo từng loại gói</p>
             </div>
           </div>
         </div>

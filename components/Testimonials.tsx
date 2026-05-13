@@ -30,70 +30,76 @@ export default function Testimonials() {
   const testimonials = [
     {
       id: 1,
-      name: 'Nguyễn Văn An',
+      name: 'Khách A',
       role: 'Sinh viên',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Mình đã mua gói dịch vụ ở QAI Store được 3 tháng rồi, dùng ổn định. Giá hợp lý và có bảo hành rõ ràng. Rất uy tín!',
+      comment:
+        'Mình đã dùng gói dịch vụ được một thời gian, thấy ổn định trong nhu cầu của mình. Giá và điều kiện được ghi rõ trước khi mua.',
       product: 'Gói dịch vụ',
       date: '2 ngày trước',
-      verified: true
+      verified: false,
     },
     {
       id: 2,
-      name: 'Trần Thị Bình',
+      name: 'Khách B',
       role: 'Nhân viên văn phòng',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Mua ở đây rất OK. Xử lý tự động ngay sau khi chuyển khoản, không phải chờ đợi. Hướng dẫn rõ ràng, hỗ trợ nhanh.',
+      comment:
+        'Thanh toán và nhận hướng dẫn theo đúng mô tả trên trang. Có chỗ cần hỗ trợ thì được trả lời trong khung giờ shop công bố.',
       product: 'Gói giải trí',
       date: '1 tuần trước',
-      verified: true
+      verified: false,
     },
     {
       id: 3,
-      name: 'Lê Minh Cường',
+      name: 'Khách C',
       role: 'Freelancer',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Gói AI ở QAI Store giá tốt. Mình dùng để làm việc hằng ngày, phản hồi nhanh và ổn định. Hỗ trợ qua Telegram rất nhanh, có vấn đề là xử lý liền.',
+      comment:
+        'Gói AI phù hợp công việc hằng ngày của mình. Khi có thắc mắc, liên hệ qua kênh hỗ trợ chính thức là được hướng dẫn cụ thể.',
       product: 'Gói AI',
       date: '3 ngày trước',
-      verified: true
+      verified: false,
     },
     {
       id: 4,
-      name: 'Phạm Thu Hương',
+      name: 'Khách D',
       role: 'Content Creator',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Gói thiết kế mua ở đây rất tiện, có nhiều tài nguyên và hướng dẫn dễ hiểu. Giá hợp lý. Đã mua lần 2 rồi, sẽ tiếp tục ủng hộ shop.',
+      comment:
+        'Gói thiết kế có tài nguyên và hướng dẫn dễ theo. Mình đã quay lại mua thêm gói khác vì thấy phù hợp nhu cầu.',
       product: 'Gói thiết kế',
       date: '5 ngày trước',
-      verified: true
+      verified: false,
     },
     {
       id: 5,
-      name: 'Hoàng Đức Nam',
+      name: 'Khách E',
       role: 'Designer',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Gói công cụ rất ổn định, dùng mượt và đáp ứng công việc. Chưa gặp vấn đề gì. Sẽ giới thiệu cho bạn bè cùng nghề.',
+      comment:
+        'Gói công cụ dùng mượt trong phạm vi mình cần. Chưa gặp sự cố; nếu có sẽ làm theo chính sách đã công bố.',
       product: 'Gói công cụ',
       date: '1 ngày trước',
-      verified: true
+      verified: false,
     },
     {
       id: 6,
-      name: 'Vũ Thị Mai',
+      name: 'Khách F',
       role: 'Học sinh',
       avatar: '/api/placeholder/60/60',
       rating: 5,
-      comment: 'Mình dùng gói giải trí để học tập và xem nội dung không bị gián đoạn. Shop hỗ trợ nhanh, giá hợp lý.',
+      comment:
+        'Gói giải trí phù hợp học tập theo nhu cầu cá nhân. Giá và phạm vi sử dụng được nêu rõ; hỗ trợ theo kênh chính thức.',
       product: 'Gói giải trí',
       date: '4 ngày trước',
-      verified: true
-    }
+      verified: false,
+    },
   ];
 
   const totalSlides = Math.max(1, Math.ceil(testimonials.length / itemsPerSlide));
@@ -137,11 +143,11 @@ export default function Testimonials() {
             Khách hàng nói gì?
           </Badge>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-charcoal mb-3 sm:mb-4 px-2">
-            Đánh giá từ 
-            <span className="gradient-text"> khách hàng thực</span>
+            Phản hồi từ
+            <span className="gradient-text"> khách hàng</span>
           </h2>
           <p className="text-base sm:text-lg text-gray-600 text-balance px-2">
-            Hàng nghìn khách hàng đã tin tưởng và hài lòng với dịch vụ của chúng tôi
+            Một số chia sẻ được ẩn danh và chỉnh sửa nhẹ nhằm minh họa; đánh giá thực tế (nếu có) hiển thị trên từng sản phẩm.
           </p>
         </div>
 
@@ -243,12 +249,12 @@ export default function Testimonials() {
           </div>
         </div>
 
-        {/* Trust Stats */}
+        {/* Trust Stats — định tính, tránh con số chưa có căn cứ */}
         <div className="mt-10 sm:mt-14 lg:mt-16 bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 animate-fade-in animation-delay-400">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 text-center">
             <div>
-              <div className="text-2xl sm:text-3xl font-bold text-brand-blue mb-0.5 sm:mb-1">4.9</div>
-              <div className="text-xs sm:text-sm text-gray-600">Đánh giá trung bình</div>
+              <div className="text-lg sm:text-xl font-bold text-brand-blue mb-0.5 sm:mb-1">Ưu tiên</div>
+              <div className="text-xs sm:text-sm text-gray-600">Rõ ràng & minh bạch</div>
               <div className="flex justify-center mt-1 sm:mt-2">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />
@@ -256,16 +262,16 @@ export default function Testimonials() {
               </div>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl font-bold text-brand-blue mb-0.5 sm:mb-1">2,450</div>
-              <div className="text-xs sm:text-sm text-gray-600">Đánh giá tổng</div>
+              <div className="text-lg sm:text-xl font-bold text-brand-blue mb-0.5 sm:mb-1">Đánh giá</div>
+              <div className="text-xs sm:text-sm text-gray-600">Theo từng sản phẩm</div>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl font-bold text-brand-blue mb-0.5 sm:mb-1">98%</div>
-              <div className="text-xs sm:text-sm text-gray-600">Khách hàng hài lòng</div>
+              <div className="text-lg sm:text-xl font-bold text-brand-blue mb-0.5 sm:mb-1">Phản hồi</div>
+              <div className="text-xs sm:text-sm text-gray-600">Trong khung giờ công bố</div>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl font-bold text-brand-blue mb-0.5 sm:mb-1">5,000+</div>
-              <div className="text-xs sm:text-sm text-gray-600">Khách hàng tin tưởng</div>
+              <div className="text-lg sm:text-xl font-bold text-brand-blue mb-0.5 sm:mb-1">Đồng hành</div>
+              <div className="text-xs sm:text-sm text-gray-600">Cải thiện liên tục</div>
             </div>
           </div>
         </div>
