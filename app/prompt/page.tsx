@@ -134,6 +134,118 @@ function parseVideoPlayback(url: string):
   return { kind: "external", href: trimmed };
 }
 
+function extractYoutubeVideoId(urlString: string): string | null {
+  const trimmed = urlString.trim();
+  try {
+    const u = new URL(trimmed);
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    if (host === "youtube.com" || host === "m.youtube.com" || host === "music.youtube.com") {
+      let vid = u.searchParams.get("v");
+      if (!vid && u.pathname.startsWith("/embed/")) {
+        vid = u.pathname.slice("/embed/".length).split("/")[0] || null;
+      }
+      if (!vid && u.pathname.startsWith("/shorts/")) {
+        vid = u.pathname.slice("/shorts/".length).split("/")[0] || null;
+      }
+      if (vid && /^[\w-]{6,}$/.test(vid)) return vid;
+    }
+    if (host === "youtu.be") {
+      const vid = u.pathname.replace(/^\//, "").split("/")[0];
+      if (vid && /^[\w-]{6,}$/.test(vid)) return vid;
+    }
+  } catch {
+    /* invalid URL */
+  }
+  return null;
+}
+
+function extractVimeoVideoId(urlString: string): string | null {
+  const trimmed = urlString.trim();
+  try {
+    const u = new URL(trimmed);
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    if (host === "vimeo.com") {
+      const parts = u.pathname.split("/").filter(Boolean);
+      const id = parts[0];
+      if (id && /^\d+$/.test(id)) return id;
+    }
+    if (host === "player.vimeo.com" && u.pathname.startsWith("/video/")) {
+      const id = u.pathname.slice("/video/".length).split("/")[0];
+      if (id && /^\d+$/.test(id)) return id;
+    }
+  } catch {
+    /* invalid URL */
+  }
+  return null;
+}
+
+/** Ảnh nền thẻ: frame đầu (YouTube/Vimeo qua thumbnail CDN; mp4/webm qua #t=0.001). */
+function resolveVideoCardPreviewFromUrl(videoUrl: string):
+  | { kind: "image"; src: string }
+  | { kind: "nativeVideo"; src: string }
+  | null {
+  const yt = extractYoutubeVideoId(videoUrl);
+  if (yt) {
+    return { kind: "image", src: `https://img.youtube.com/vi/${encodeURIComponent(yt)}/hqdefault.jpg` };
+  }
+  const vm = extractVimeoVideoId(videoUrl);
+  if (vm) {
+    return { kind: "image", src: `https://vumbnail.com/${encodeURIComponent(vm)}.jpg` };
+  }
+  const parsed = parseVideoPlayback(videoUrl.trim());
+  if (parsed.kind === "direct") {
+    const base = resolveApiAssetUrl(parsed.src.trim());
+    if (!base) return null;
+    const src = base.includes("#") ? base : `${base}#t=0.001`;
+    return { kind: "nativeVideo", src };
+  }
+  return null;
+}
+
+function VideoCardPosterArea({ sample }: { sample: VideoPromptSample }) {
+  const poster = sample.posterSrc?.trim();
+  if (poster) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- poster từ API / public
+      <img
+        src={resolveApiAssetUrl(poster)}
+        alt={sample.title}
+        className="h-full w-full object-cover"
+        loading="lazy"
+      />
+    );
+  }
+  const preview = resolveVideoCardPreviewFromUrl(sample.videoUrl);
+  if (preview?.kind === "image") {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- thumbnail từ YouTube / Vimeo
+      <img
+        src={preview.src}
+        alt={sample.title}
+        className="h-full w-full object-cover"
+        loading="lazy"
+      />
+    );
+  }
+  if (preview?.kind === "nativeVideo") {
+    return (
+      <video
+        src={preview.src}
+        muted
+        playsInline
+        preload="metadata"
+        className="pointer-events-none h-full w-full object-cover"
+        aria-hidden
+      />
+    );
+  }
+  return (
+    <div className="flex h-full w-full min-h-0 items-center justify-center bg-gradient-to-br from-slate-800 via-indigo-950 to-slate-900">
+      <Video className="h-12 w-12 text-white/35" aria-hidden />
+    </div>
+  );
+}
+
 const imagePromptSamples: ImagePromptSample[] = [
   {
     id: "img-1",
@@ -762,33 +874,14 @@ export default function PromptPage() {
                   >
                     <CardContent className="flex flex-1 flex-col gap-3 p-3.5 sm:p-4">
                       <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
-                        <div className="relative aspect-video overflow-hidden rounded-xl bg-slate-900 ring-1 ring-slate-100/80">
-                          {sample.posterSrc ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={resolveApiAssetUrl(sample.posterSrc)}
-                              alt={sample.title}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="flex h-full min-h-[140px] w-full items-center justify-center bg-gradient-to-br from-slate-800 via-indigo-950 to-slate-900">
-                              <Video className="h-12 w-12 text-white/35" aria-hidden />
-                            </div>
-                          )}
+                        <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-900 ring-1 ring-slate-100/80">
+                          <VideoCardPosterArea sample={sample} />
                           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
                             <span className="rounded-full bg-white/90 p-3 shadow-lg ring-1 ring-black/5">
                               <Play className="h-6 w-6 text-cyan-900" fill="currentColor" aria-hidden />
                             </span>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="min-h-[2.5rem] space-y-0.5">
-                        <p className="text-sm font-semibold text-slate-900 leading-snug line-clamp-2">{sample.title}</p>
-                        {sample.tag?.trim() ? (
-                          <p className="text-xs text-slate-500 line-clamp-1">{sample.tag.trim()}</p>
-                        ) : null}
                       </div>
 
                       <Button
