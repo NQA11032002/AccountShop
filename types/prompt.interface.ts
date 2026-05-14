@@ -3,12 +3,14 @@ export interface PromptTemplateItem {
   category: string;
   /** Tiêu đề hiển thị (tùy chọn); nội dung prompt vẫn là `content`. */
   title?: string | null;
-  /** `image`: prompt kèm ảnh mẫu — hiển thị tab Hình ảnh, không vào thư viện văn bản. */
-  kind?: 'text' | 'image';
+  /** `image` / `video`: tab riêng trên trang Prompt, không vào thư viện văn bản. */
+  kind?: 'text' | 'image' | 'video';
   content: string;
-  /** URL ảnh mẫu khi `kind === 'image'` */
+  /** Ảnh mẫu (`image`) hoặc poster tuỳ chọn (`video`) */
   image_url?: string | null;
-  /** Dòng tag (vd. Commercial — Midjourney) khi `kind === 'image'` */
+  /** Link video khi `kind === 'video'` */
+  video_url?: string | null;
+  /** Tag / ghi chú (ảnh hoặc video) */
   tag?: string | null;
   sort_order: number;
   is_active?: boolean;

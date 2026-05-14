@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Image as ImageIcon,
   ZoomIn,
+  Video,
+  Play,
 } from "lucide-react";
 import {
   Dialog,
@@ -61,6 +63,77 @@ type ImagePromptSample = {
   prompt: string;
 };
 
+type VideoPromptSample = {
+  id: string;
+  title: string;
+  tag?: string;
+  posterSrc?: string;
+  videoUrl: string;
+  prompt: string;
+};
+
+function parseVideoPlayback(url: string):
+  | { kind: "youtube"; embedSrc: string }
+  | { kind: "vimeo"; embedSrc: string }
+  | { kind: "direct"; src: string }
+  | { kind: "external"; href: string } {
+  const trimmed = url.trim();
+  try {
+    const u = new URL(trimmed);
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+
+    if (host === "youtube.com" || host === "m.youtube.com" || host === "music.youtube.com") {
+      let vid = u.searchParams.get("v");
+      if (!vid && u.pathname.startsWith("/embed/")) {
+        vid = u.pathname.slice("/embed/".length).split("/")[0] || null;
+      }
+      if (!vid && u.pathname.startsWith("/shorts/")) {
+        vid = u.pathname.slice("/shorts/".length).split("/")[0] || null;
+      }
+      if (vid && /^[\w-]{6,}$/.test(vid)) {
+        return {
+          kind: "youtube",
+          embedSrc: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(vid)}?rel=0`,
+        };
+      }
+    }
+
+    if (host === "youtu.be") {
+      const vid = u.pathname.replace(/^\//, "").split("/")[0];
+      if (vid && /^[\w-]{6,}$/.test(vid)) {
+        return {
+          kind: "youtube",
+          embedSrc: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(vid)}?rel=0`,
+        };
+      }
+    }
+
+    if (host === "vimeo.com") {
+      const parts = u.pathname.split("/").filter(Boolean);
+      const id = parts[0];
+      if (id && /^\d+$/.test(id)) {
+        return { kind: "vimeo", embedSrc: `https://player.vimeo.com/video/${id}` };
+      }
+    }
+
+    if (host === "player.vimeo.com" && u.pathname.startsWith("/video/")) {
+      return { kind: "vimeo", embedSrc: trimmed };
+    }
+
+    if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(u.pathname)) {
+      return { kind: "direct", src: trimmed };
+    }
+  } catch {
+    /* invalid URL */
+  }
+
+  if (/^https?:\/\//i.test(trimmed) && /\.(mp4|webm|ogg)(\?|$)/i.test(trimmed)) {
+    return { kind: "direct", src: trimmed };
+  }
+
+  return { kind: "external", href: trimmed };
+}
+
 const imagePromptSamples: ImagePromptSample[] = [
   {
     id: "img-1",
@@ -93,6 +166,25 @@ const imagePromptSamples: ImagePromptSample[] = [
     imageSrc: "https://picsum.photos/seed/promptimg4/640/400",
     prompt:
       "Abstract geometric logo mark, overlapping translucent shapes, gradient from violet to teal, white background, centered, scalable vector style, no letters.",
+  },
+];
+
+const videoPromptSamples: VideoPromptSample[] = [
+  {
+    id: "vid-1",
+    title: "Quảng cáo sản phẩm tối giản",
+    tag: "Commercial — text-to-video",
+    videoUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+    prompt:
+      "15-second minimalist product commercial: single hero bottle on marble, soft daylight, slow dolly-in, shallow depth of field, subtle reflections, premium aesthetic, no on-screen text, 4k cinematic.",
+  },
+  {
+    id: "vid-2",
+    title: "Flycam thành phố đêm",
+    tag: "Cinematic — drone look",
+    videoUrl: "https://vimeo.com/1084537",
+    prompt:
+      "Aerial night city fly-through: neon reflections on wet streets, gentle parallax between buildings, slow forward motion, moody teal-orange grade, anamorphic lens flares, ultra detailed, 24fps film motion.",
   },
 ];
 
@@ -174,6 +266,12 @@ export default function PromptPage() {
   const [imagePromptList, setImagePromptList] = useState<ImagePromptSample[]>(imagePromptSamples);
   /** true khi tab Hình ảnh đang dùng dữ liệu từ API (có ít nhất một prompt kind=image). */
   const [imageCardsFromApi, setImageCardsFromApi] = useState(false);
+  const [videoPromptList, setVideoPromptList] = useState<VideoPromptSample[]>(videoPromptSamples);
+  const [videoCardsFromApi, setVideoCardsFromApi] = useState(false);
+  const [videoPromptModalOpen, setVideoPromptModalOpen] = useState(false);
+  const [activeVideoPrompt, setActiveVideoPrompt] = useState<VideoPromptSample | null>(null);
+  const [videoPlayerOpen, setVideoPlayerOpen] = useState(false);
+  const [activeVideoPlayer, setActiveVideoPlayer] = useState<VideoPromptSample | null>(null);
 
   useEffect(() => {
     const loadPrompts = async () => {
@@ -182,7 +280,7 @@ export default function PromptPage() {
         const res = await fetchPromptTemplates();
         const grouped = new Map<string, PromptEntry[]>();
         res.data.forEach((p: PromptTemplateItem) => {
-          if (p.kind === "image") return;
+          if (p.kind === "image" || p.kind === "video") return;
           const category = (p.category || "Khác").trim();
           if (!grouped.has(category)) grouped.set(category, []);
           const title = p.title?.trim() ? p.title.trim() : null;
@@ -204,6 +302,21 @@ export default function PromptPage() {
             prompt: p.content,
           }));
 
+        const apiVideoCards: VideoPromptSample[] = res.data
+          .filter((p) => p.kind === "video" && (p.video_url || "").trim() !== "")
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          .map((p) => ({
+            id: String(p.id),
+            title: p.title?.trim() || "Prompt video",
+            tag: p.tag?.trim() || undefined,
+            posterSrc: (p.image_url || "").trim() || undefined,
+            videoUrl: (p.video_url || "").trim(),
+            prompt: p.content,
+          }));
+
+        setVideoCardsFromApi(apiVideoCards.length > 0);
+        setVideoPromptList(apiVideoCards.length > 0 ? apiVideoCards : videoPromptSamples);
+
         setImageCardsFromApi(apiImageCards.length > 0);
         setImagePromptList(apiImageCards.length > 0 ? apiImageCards : imagePromptSamples);
 
@@ -223,6 +336,8 @@ export default function PromptPage() {
       } catch (e: any) {
         setPromptCategories(fallbackPromptCategories);
         setImageCardsFromApi(false);
+        setVideoCardsFromApi(false);
+        setVideoPromptList(videoPromptSamples);
         setImagePromptList(imagePromptSamples);
         toast({
           title: "Không tải được Prompt từ hệ thống",
@@ -312,7 +427,7 @@ export default function PromptPage() {
 
         <section className="relative z-10 container-max section-padding pb-16">
           <Tabs defaultValue="guide" className="w-full">
-            <TabsList className="grid h-auto w-full max-w-3xl mx-auto grid-cols-1 gap-2 bg-white/10 border border-white/20 shadow-xl p-2 sm:grid-cols-3 sm:gap-0">
+            <TabsList className="grid h-auto w-full max-w-5xl mx-auto grid-cols-2 gap-2 bg-white/10 border border-white/20 shadow-xl p-2 sm:grid-cols-4 sm:gap-0">
               <TabsTrigger
                 value="guide"
                 className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900 gap-2 py-2.5"
@@ -333,6 +448,13 @@ export default function PromptPage() {
               >
                 <ImageIcon className="w-4 h-4 shrink-0" />
                 <span className="text-sm">Hình ảnh</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="videos"
+                className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900 gap-2 py-2.5"
+              >
+                <Video className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Prompt video</span>
               </TabsTrigger>
             </TabsList>
 
@@ -613,6 +735,198 @@ export default function PromptPage() {
                       type="button"
                       className="bg-white text-slate-900 hover:bg-white/90"
                       onClick={() => setImageZoomOpen(false)}
+                    >
+                      Đóng
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </TabsContent>
+
+            <TabsContent value="videos" className="mt-8">
+              <p className="mb-6 text-center text-sm text-slate-300 max-w-2xl mx-auto">
+                Dùng <span className="font-medium text-slate-200">Xem clip</span> để phát video mẫu;{" "}
+                <span className="font-medium text-slate-200">Xem Prompt</span> để đọc và sao chép prompt tạo video.
+                {videoCardsFromApi ? (
+                  <span className="block mt-1 text-slate-400 text-xs">
+                    Nội dung do cửa hàng cập nhật từ trang quản trị.
+                  </span>
+                ) : null}
+              </p>
+              <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+                {videoPromptList.map((sample, idx) => (
+                  <Card
+                    key={sample.id}
+                    className="flex flex-col overflow-hidden rounded-2xl border border-cyan-200/50 bg-[#e6f7fa] shadow-md shadow-cyan-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-950/15 animate-fade-in"
+                    style={{ animationDelay: `${idx * 60}ms` }}
+                  >
+                    <CardContent className="flex flex-1 flex-col gap-3 p-3.5 sm:p-4">
+                      <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
+                        <div className="relative aspect-video overflow-hidden rounded-xl bg-slate-900 ring-1 ring-slate-100/80">
+                          {sample.posterSrc ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={resolveApiAssetUrl(sample.posterSrc)}
+                              alt={sample.title}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex h-full min-h-[140px] w-full items-center justify-center bg-gradient-to-br from-slate-800 via-indigo-950 to-slate-900">
+                              <Video className="h-12 w-12 text-white/35" aria-hidden />
+                            </div>
+                          )}
+                          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
+                            <span className="rounded-full bg-white/90 p-3 shadow-lg ring-1 ring-black/5">
+                              <Play className="h-6 w-6 text-cyan-900" fill="currentColor" aria-hidden />
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="min-h-[2.5rem] space-y-0.5">
+                        <p className="text-sm font-semibold text-slate-900 leading-snug line-clamp-2">{sample.title}</p>
+                        {sample.tag?.trim() ? (
+                          <p className="text-xs text-slate-500 line-clamp-1">{sample.tag.trim()}</p>
+                        ) : null}
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-11 w-full rounded-lg border-slate-200/90 bg-white text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 hover:text-slate-900"
+                        onClick={() => {
+                          setActiveVideoPlayer(sample);
+                          setVideoPlayerOpen(true);
+                        }}
+                      >
+                        <Play className="w-4 h-4 mr-2 shrink-0" />
+                        Xem clip
+                      </Button>
+
+                      <Button
+                        type="button"
+                        className="mt-auto h-11 w-full rounded-xl border-0 bg-cyan-100 text-sm font-semibold text-cyan-950 shadow-none transition-colors hover:bg-cyan-200/90"
+                        onClick={() => {
+                          setActiveVideoPrompt(sample);
+                          setVideoPromptModalOpen(true);
+                        }}
+                      >
+                        Xem Prompt
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Dialog
+                open={videoPromptModalOpen}
+                onOpenChange={(open) => {
+                  setVideoPromptModalOpen(open);
+                  if (!open) setActiveVideoPrompt(null);
+                }}
+              >
+                <DialogContent className="max-h-[min(85vh,720px)] overflow-y-auto border-white/20 bg-slate-900 text-white sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle className="text-white pr-8">
+                      {activeVideoPrompt?.title ?? "Prompt video"}
+                    </DialogTitle>
+                    {activeVideoPrompt?.tag?.trim() ? (
+                      <p className="text-left text-sm text-slate-400 -mt-1">{activeVideoPrompt.tag.trim()}</p>
+                    ) : null}
+                  </DialogHeader>
+                  <div className="rounded-lg border border-white/15 bg-slate-950/80 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-2">Nội dung prompt</p>
+                    <pre className="text-sm text-slate-100 whitespace-pre-wrap font-sans leading-relaxed">
+                      {activeVideoPrompt?.prompt}
+                    </pre>
+                  </div>
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-white/30 bg-transparent text-white hover:bg-white/10"
+                      onClick={() => setVideoPromptModalOpen(false)}
+                    >
+                      Đóng
+                    </Button>
+                    <Button
+                      type="button"
+                      className="bg-white text-slate-900 hover:bg-white/90"
+                      disabled={!activeVideoPrompt}
+                      onClick={() => activeVideoPrompt && copyPrompt(activeVideoPrompt.prompt)}
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      {activeVideoPrompt && copiedPrompt === activeVideoPrompt.prompt ? "Đã sao chép" : "Sao chép prompt"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog
+                open={videoPlayerOpen}
+                onOpenChange={(open) => {
+                  setVideoPlayerOpen(open);
+                  if (!open) setActiveVideoPlayer(null);
+                }}
+              >
+                <DialogContent className="max-w-[min(96vw,920px)] border-white/20 bg-slate-900 p-0 text-white gap-0 overflow-hidden sm:rounded-xl">
+                  <DialogHeader className="space-y-1 border-b border-white/10 px-4 pb-3 pt-4 sm:px-6 shrink-0">
+                    <DialogTitle className="text-left text-white pr-8 text-base leading-snug">
+                      {activeVideoPlayer?.title ?? "Video mẫu"}
+                    </DialogTitle>
+                    {activeVideoPlayer?.tag?.trim() ? (
+                      <p className="text-left text-sm text-slate-400">{activeVideoPlayer.tag.trim()}</p>
+                    ) : null}
+                  </DialogHeader>
+                  <div className="bg-black px-3 py-4 sm:px-6">
+                    {activeVideoPlayer ? (
+                      (() => {
+                        const parsed = parseVideoPlayback(activeVideoPlayer.videoUrl);
+                        if (parsed.kind === "youtube" || parsed.kind === "vimeo") {
+                          return (
+                            <div className="aspect-video w-full overflow-hidden rounded-lg bg-black shadow-xl ring-1 ring-white/10">
+                              <iframe
+                                src={parsed.embedSrc}
+                                title={activeVideoPlayer.title}
+                                className="h-full w-full"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                                referrerPolicy="strict-origin-when-cross-origin"
+                              />
+                            </div>
+                          );
+                        }
+                        if (parsed.kind === "direct") {
+                          return (
+                            <video
+                              src={parsed.src}
+                              controls
+                              playsInline
+                              className="mx-auto max-h-[min(70vh,560px)] w-full rounded-lg bg-black"
+                            >
+                              Trình duyệt không hỗ trợ phát video trực tiếp.
+                            </video>
+                          );
+                        }
+                        return (
+                          <div className="rounded-lg border border-white/15 bg-slate-950/80 p-6 text-center text-sm text-slate-200">
+                            <p className="mb-4">Không nhúng được trực tiếp định dạng này. Mở liên kết gốc để xem.</p>
+                            <Button asChild className="bg-white text-slate-900 hover:bg-white/90">
+                              <a href={parsed.href} target="_blank" rel="noopener noreferrer">
+                                Mở video trong tab mới
+                              </a>
+                            </Button>
+                          </div>
+                        );
+                      })()
+                    ) : null}
+                  </div>
+                  <DialogFooter className="border-t border-white/10 px-4 py-3 sm:px-6 shrink-0">
+                    <Button
+                      type="button"
+                      className="bg-white text-slate-900 hover:bg-white/90"
+                      onClick={() => setVideoPlayerOpen(false)}
                     >
                       Đóng
                     </Button>

@@ -28,7 +28,7 @@ import {
   resolveApiAssetUrl,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { Plus, Save, Trash2, BookText, Image as ImageIcon } from "lucide-react";
+import { Plus, Save, Trash2, BookText, Image as ImageIcon, Video } from "lucide-react";
 
 /** Số thứ tự tiếp theo trong thể loại (max + 1). `excludeId` bỏ qua bản ghi đang sửa khi đổi thể loại. */
 function nextSortOrderForCategory(
@@ -50,8 +50,9 @@ type PromptFormState = {
   title: string;
   content: string;
   is_active: boolean;
-  kind: "text" | "image";
+  kind: "text" | "image" | "video";
   image_url: string;
+  video_url: string;
   tag: string;
 };
 
@@ -62,6 +63,7 @@ const emptyForm: PromptFormState = {
   is_active: true,
   kind: "text",
   image_url: "",
+  video_url: "",
   tag: "",
 };
 
@@ -75,7 +77,7 @@ export default function AdminPromptManagerTab() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [kindFilter, setKindFilter] = useState<"all" | "text" | "image">("all");
+  const [kindFilter, setKindFilter] = useState<"all" | "text" | "image" | "video">("all");
   const [imageUploading, setImageUploading] = useState(false);
   const promptImageInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,9 +116,11 @@ export default function AdminPromptManagerTab() {
   const filteredItems = useMemo(() => {
     let list = items;
     if (kindFilter === "text") {
-      list = list.filter((i) => (i.kind ?? "text") !== "image");
+      list = list.filter((i) => (i.kind ?? "text") === "text");
     } else if (kindFilter === "image") {
       list = list.filter((i) => i.kind === "image");
+    } else if (kindFilter === "video") {
+      list = list.filter((i) => i.kind === "video");
     }
     if (categoryFilter !== "all") {
       list = list.filter((i) => i.category === categoryFilter);
@@ -151,8 +155,9 @@ export default function AdminPromptManagerTab() {
       title: item.title ?? "",
       content: item.content,
       is_active: Boolean(item.is_active),
-      kind: item.kind === "image" ? "image" : "text",
+      kind: item.kind === "image" ? "image" : item.kind === "video" ? "video" : "text",
       image_url: item.image_url ?? "",
+      video_url: item.video_url ?? "",
       tag: item.tag ?? "",
     });
   };
@@ -180,6 +185,15 @@ export default function AdminPromptManagerTab() {
       }
     }
 
+    if (form.kind === "video" && !form.video_url.trim()) {
+      toast({
+        title: "Thiếu link video",
+        description: "Vui lòng nhập URL video (YouTube, Vimeo hoặc file .mp4/.webm).",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const cat = form.category.trim();
@@ -202,8 +216,14 @@ export default function AdminPromptManagerTab() {
         sort_order,
         is_active: form.is_active,
         kind: form.kind,
-        image_url: form.kind === "image" ? form.image_url.trim() : null,
-        tag: form.kind === "image" ? form.tag.trim() || null : null,
+        image_url:
+          form.kind === "image"
+            ? form.image_url.trim()
+            : form.kind === "video"
+              ? form.image_url.trim() || null
+              : null,
+        video_url: form.kind === "video" ? form.video_url.trim() : null,
+        tag: form.kind === "image" || form.kind === "video" ? form.tag.trim() || null : null,
       };
 
       if (editingId) {
@@ -279,7 +299,8 @@ export default function AdminPromptManagerTab() {
             Quản lý Prompt
           </CardTitle>
           <p className="text-sm text-gray-500 pt-1">
-            Loại <span className="font-medium">Hình ảnh</span>: tải ảnh mẫu lên server + nhập nội dung prompt để khách sao chép (hiển thị tab Hình ảnh).
+            <span className="font-medium">Hình ảnh</span>: ảnh mẫu + prompt (tab Hình ảnh).{" "}
+            <span className="font-medium">Video</span>: link YouTube/Vimeo/mp4 + poster tuỳ chọn (tab Prompt video).
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -289,15 +310,17 @@ export default function AdminPromptManagerTab() {
               <select
                 className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 value={form.kind}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const v = e.target.value;
                   setForm((s) => ({
                     ...s,
-                    kind: e.target.value === "image" ? "image" : "text",
-                  }))
-                }
+                    kind: v === "image" ? "image" : v === "video" ? "video" : "text",
+                  }));
+                }}
               >
                 <option value="text">Văn bản (thư viện prompt)</option>
                 <option value="image">Hình ảnh (card ảnh + Xem prompt)</option>
+                <option value="video">Video (xem clip + sao chép prompt)</option>
               </select>
             </div>
             <div className="space-y-1">
@@ -305,7 +328,13 @@ export default function AdminPromptManagerTab() {
               <Input
                 value={form.category}
                 onChange={(e) => setForm((s) => ({ ...s, category: e.target.value }))}
-                placeholder={form.kind === "image" ? "Ví dụ: Ảnh AI" : "Ví dụ: Kinh doanh & Marketing"}
+                placeholder={
+                  form.kind === "image"
+                    ? "Ví dụ: Ảnh AI"
+                    : form.kind === "video"
+                      ? "Ví dụ: Video AI"
+                      : "Ví dụ: Kinh doanh & Marketing"
+                }
               />
             </div>
             <div className="space-y-1">
@@ -338,13 +367,17 @@ export default function AdminPromptManagerTab() {
                 placeholder={
                   form.kind === "image"
                     ? "Hiển thị trong modal và alt ảnh (vd: Poster sản phẩm tối giản)"
-                    : "Ví dụ: 1. Giao vai rõ ràng ngay từ đầu"
+                    : form.kind === "video"
+                      ? "Tiêu đề card và modal (vd: Kịch bản 15 giây)"
+                      : "Ví dụ: 1. Giao vai rõ ràng ngay từ đầu"
                 }
               />
               <p className="text-xs text-gray-500">
                 {form.kind === "image"
                   ? "Tiêu đề modal khi khách xem prompt; ảnh tải lên bên dưới."
-                  : "Tách riêng với nội dung prompt; hiển thị trên trang khách và trong cột Tiêu đề bảng dưới."}
+                  : form.kind === "video"
+                    ? "Tiêu đề trên card và trong cửa sổ xem prompt."
+                    : "Tách riêng với nội dung prompt; hiển thị trên trang khách và trong cột Tiêu đề bảng dưới."}
               </p>
             </div>
           </div>
@@ -417,15 +450,100 @@ export default function AdminPromptManagerTab() {
             </div>
           )}
 
+          {form.kind === "video" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-lg border border-cyan-100 bg-cyan-50/50 p-4">
+              <div className="space-y-1 md:col-span-2">
+                <Label className="flex items-center gap-2">
+                  <Video className="w-4 h-4" />
+                  Link video (bắt buộc)
+                </Label>
+                <Input
+                  value={form.video_url}
+                  onChange={(e) => setForm((s) => ({ ...s, video_url: e.target.value }))}
+                  placeholder="https://www.youtube.com/watch?v=... hoặc https://vimeo.com/... hoặc .mp4"
+                  className="font-mono text-xs"
+                />
+                <p className="text-xs text-gray-500">YouTube, Vimeo hoặc URL file .mp4 / .webm.</p>
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4" />
+                  Ảnh poster (tuỳ chọn)
+                </Label>
+                <div className="flex flex-wrap items-center gap-3">
+                  <input
+                    ref={promptImageInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif,image/avif,.jpg,.jpeg,.png,.webp,.gif,.avif"
+                    className="hidden"
+                    disabled={imageUploading || !sessionId}
+                    onChange={onPickPromptImage}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={imageUploading || !sessionId}
+                    onClick={() => promptImageInputRef.current?.click()}
+                  >
+                    {imageUploading ? "Đang tải lên..." : "Chọn ảnh poster"}
+                  </Button>
+                  {form.image_url.trim() ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600"
+                      onClick={() => setForm((s) => ({ ...s, image_url: "" }))}
+                    >
+                      Gỡ poster
+                    </Button>
+                  ) : null}
+                </div>
+                {form.image_url.trim() ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={resolveApiAssetUrl(form.image_url)}
+                    alt=""
+                    className="mt-2 max-h-40 w-auto max-w-full rounded-lg border border-gray-200 bg-white object-contain"
+                  />
+                ) : (
+                  <p className="text-xs text-gray-500">Không bắt buộc — để trống thì dùng nền mặc định trên trang khách.</p>
+                )}
+                <details className="mt-2 text-sm">
+                  <summary className="cursor-pointer text-gray-600 hover:text-gray-900">Hoặc nhập URL poster thủ công</summary>
+                  <Input
+                    value={form.image_url}
+                    onChange={(ev) => setForm((s) => ({ ...s, image_url: ev.target.value }))}
+                    placeholder="https://... hoặc /images/prompts/tên-file.webp"
+                    className="mt-2 font-mono text-xs"
+                  />
+                </details>
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <Label>Tag (tùy chọn)</Label>
+                <Input
+                  value={form.tag}
+                  onChange={(e) => setForm((s) => ({ ...s, tag: e.target.value }))}
+                  placeholder="Ví dụ: Runway — text-to-video"
+                />
+                <p className="text-xs text-gray-500">Hiển thị dưới tiêu đề trong popup xem video.</p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1">
-            <Label>{form.kind === "image" ? "Nội dung prompt (sao chép)" : "Nội dung Prompt"}</Label>
+            <Label>
+              {form.kind === "image" || form.kind === "video" ? "Nội dung prompt (sao chép)" : "Nội dung Prompt"}
+            </Label>
             <Textarea
               value={form.content}
               onChange={(e) => setForm((s) => ({ ...s, content: e.target.value }))}
               placeholder={
                 form.kind === "image"
                   ? "Toàn bộ prompt tạo ảnh (tiếng Anh hoặc theo công cụ)..."
-                  : "Nhập nội dung prompt..."
+                  : form.kind === "video"
+                    ? "Prompt / kịch bản tạo video..."
+                    : "Nhập nội dung prompt..."
               }
               className="min-h-[110px]"
             />
@@ -470,6 +588,7 @@ export default function AdminPromptManagerTab() {
                       { v: "all" as const, label: "Tất cả" },
                       { v: "text" as const, label: "Văn bản" },
                       { v: "image" as const, label: "Ảnh" },
+                      { v: "video" as const, label: "Video" },
                     ] satisfies { v: typeof kindFilter; label: string }[]
                   ).map(({ v, label }) => (
                     <button
@@ -535,8 +654,11 @@ export default function AdminPromptManagerTab() {
                   {filteredItems.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
-                        <Badge variant={item.kind === "image" ? "default" : "secondary"}>
-                          {item.kind === "image" ? "Ảnh" : "Text"}
+                        <Badge
+                          variant={item.kind === "text" || !item.kind ? "secondary" : "default"}
+                          className={cn(item.kind === "video" && "bg-cyan-700 hover:bg-cyan-700")}
+                        >
+                          {item.kind === "image" ? "Ảnh" : item.kind === "video" ? "Video" : "Text"}
                         </Badge>
                       </TableCell>
                       <TableCell>

@@ -745,8 +745,9 @@ export const createAdminPrompt = async (
     payload: Pick<PromptTemplateItem, 'category' | 'content' | 'sort_order'> & {
         title?: string | null;
         is_active?: boolean;
-        kind?: 'text' | 'image';
+        kind?: 'text' | 'image' | 'video';
         image_url?: string | null;
+        video_url?: string | null;
         tag?: string | null;
     }
 ): Promise<{ success: boolean; data: PromptTemplateItem }> => {
@@ -770,7 +771,7 @@ export const updateAdminPrompt = async (
     sessionId: string,
     id: number,
     payload: Partial<
-        Pick<PromptTemplateItem, 'category' | 'title' | 'content' | 'sort_order' | 'is_active' | 'kind' | 'image_url' | 'tag'>
+        Pick<PromptTemplateItem, 'category' | 'title' | 'content' | 'sort_order' | 'is_active' | 'kind' | 'image_url' | 'video_url' | 'tag'>
     >
 ): Promise<{ success: boolean; data: PromptTemplateItem }> => {
     const res = await fetch(`${API_URL}/admin/prompts/${id}`, {
