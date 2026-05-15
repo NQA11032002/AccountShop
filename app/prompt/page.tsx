@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Copy,
   Lightbulb,
   Sparkles,
@@ -390,13 +397,14 @@ export default function PromptPage() {
       setLoadingPrompts(true);
       try {
         const res = await fetchPromptTemplates();
-        const grouped = new Map<string, PromptEntry[]>();
+        const grouped = new Map<string, { display: string; entries: PromptEntry[] }>();
         res.data.forEach((p: PromptTemplateItem) => {
           if (p.kind === "image" || p.kind === "video") return;
-          const category = (p.category || "Khác").trim();
-          if (!grouped.has(category)) grouped.set(category, []);
+          const display = (p.category || "Khác").trim();
+          const key = display.toLowerCase();
+          if (!grouped.has(key)) grouped.set(key, { display, entries: [] });
           const title = p.title?.trim() ? p.title.trim() : null;
-          grouped.get(category)!.push({
+          grouped.get(key)!.entries.push({
             id: p.id,
             title,
             content: p.content,
@@ -435,9 +443,9 @@ export default function PromptPage() {
         if (grouped.size > 0) {
           const dynamicCategories: PromptCategory[] = [
             { id: "all", genre: "Tất cả", entries: [] },
-            ...Array.from(grouped.entries()).map(([genre, entries]) => ({
-              id: genre.toLowerCase().replace(/\s+/g, "-"),
-              genre,
+            ...Array.from(grouped.entries()).map(([key, { display, entries }]) => ({
+              id: key.replace(/\s+/g, "-"),
+              genre: display,
               entries,
             })),
           ];
@@ -482,6 +490,18 @@ export default function PromptPage() {
       }))
     );
   }, [filteredCategories]);
+
+  const promptCountByCategoryId = useMemo(() => {
+    const counts = new Map<string, number>();
+    let total = 0;
+    for (const cat of promptCategories) {
+      if (cat.id === "all") continue;
+      counts.set(cat.id, cat.entries.length);
+      total += cat.entries.length;
+    }
+    counts.set("all", total);
+    return counts;
+  }, [promptCategories]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPromptItems.length / promptsPerPage));
   const paginatedPromptItems = useMemo(() => {
@@ -603,25 +623,33 @@ export default function PromptPage() {
             </TabsContent>
 
             <TabsContent value="library" className="mt-8 space-y-5">
-              <Card className="bg-white/10 border-white/20 backdrop-blur shadow-xl animate-fade-in">
-                <CardContent className="p-4 flex flex-wrap gap-2">
-                  {promptCategories.map((cat) => (
-                    <Button
-                      key={cat.id}
-                      size="sm"
-                      variant={selectedCategory === cat.id ? "default" : "outline"}
-                      onClick={() => setSelectedCategory(cat.id)}
-                      className={`transition-all duration-200 ${
-                        selectedCategory === cat.id
-                          ? "bg-white text-slate-900 hover:bg-white/90"
-                          : "bg-transparent border-white/30 text-white hover:bg-white/15 hover:border-white/60"
-                      }`}
-                    >
-                      {cat.genre}
-                    </Button>
-                  ))}
-                </CardContent>
-              </Card>
+              <div className="flex flex-col gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 backdrop-blur sm:flex-row sm:items-center sm:gap-3">
+                <label htmlFor="prompt-category-filter" className="shrink-0 text-xs font-medium text-slate-300">
+                  Thể loại
+                </label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger
+                    id="prompt-category-filter"
+                    className="h-9 w-full min-w-0 border-white/30 bg-white/10 text-sm text-white focus:ring-white/25 sm:max-w-xs [&>span]:text-white"
+                  >
+                    <SelectValue placeholder="Chọn thể loại" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[min(280px,50vh)]">
+                    {promptCategories.map((cat) => {
+                      const count = promptCountByCategoryId.get(cat.id) ?? 0;
+                      return (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.genre}
+                          {count > 0 ? ` (${count})` : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                <p className="shrink-0 text-xs text-slate-400 sm:ml-auto">
+                  {filteredPromptItems.length} prompt
+                </p>
+              </div>
 
               {loadingPrompts && (
                 <Card className="bg-white/95 border-white/30 shadow-xl">
