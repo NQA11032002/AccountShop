@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, LogOut, Heart, Home, Info, Package, FileText, Newspaper, Mail, Code, Gift } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, LogOut, Home, Info, Package, FileText, Newspaper, Mail, Code, Gift } from 'lucide-react';
 import DataSyncHelper from '@/lib/syncHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useTheme } from 'next-themes';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useFavorites } from '@/contexts/FavoritesContext';
 import { useWallet } from '@/contexts/WalletContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -42,7 +41,6 @@ export default function Header() {
   const { theme, setTheme } = useTheme();
   const { itemsCount } = useCart();
   const [realtimeCartCount, setRealtimeCartCount] = useState(itemsCount);
-  const { favorites } = useFavorites();
   const { balance, formatCoins } = useWallet();
   const { user, logout, setRole, setSessionId } = useAuth();
   const { toast } = useToast();
@@ -531,15 +529,6 @@ export default function Header() {
                     </DropdownMenuItem>
                   )}
                   {(user.role === "admin" || user.role === "collaborator") && <DropdownMenuSeparator className="bg-gray-100" />}
-                  {user.role !== "collaborator" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/favorites" className="flex items-center px-4 py-3 hover:bg-pink-50 rounded-lg">
-                        <Heart className="mr-3 h-4 w-4 text-purple-600" />
-                        <span>Yêu thích</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator className="bg-gray-100" />
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="flex items-center px-4 py-3 border-t hover:bg-red-100 text-red-600"
