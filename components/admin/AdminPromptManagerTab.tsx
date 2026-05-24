@@ -32,6 +32,13 @@ import { cn } from "@/lib/utils";
 import { Plus, Save, Trash2, BookText, Image as ImageIcon, Video, Download, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+const MEIGEN_LIMIT_MIN = 1;
+
+function normalizeMeigenLimit(value: number): number {
+  if (!Number.isFinite(value)) return 100;
+  return Math.max(MEIGEN_LIMIT_MIN, Math.trunc(value));
+}
+
 /** Số thứ tự tiếp theo trong thể loại (max + 1). `excludeId` bỏ qua bản ghi đang sửa khi đổi thể loại. */
 function nextSortOrderForCategory(
   all: PromptTemplateItem[],
@@ -294,12 +301,17 @@ export default function AdminPromptManagerTab() {
 
   const onSyncMeigen = async () => {
     if (!sessionId || meigenImporting) return;
+    const offset = Math.max(0, meigenOffset);
+    const limit = normalizeMeigenLimit(meigenLimit);
+    if (offset !== meigenOffset) setMeigenOffset(offset);
+    if (limit !== meigenLimit) setMeigenLimit(limit);
+
     setMeigenImporting(true);
     setMeigenSyncMessage(null);
     try {
       const res = await importMeigenImagePrompts(sessionId, {
-        offset: meigenOffset,
-        limit: meigenLimit,
+        offset,
+        limit,
       });
       await loadPrompts({ silent: true });
       setKindFilter("image");
@@ -378,10 +390,12 @@ export default function AdminPromptManagerTab() {
             <Input
               id="meigen-limit"
               type="number"
-              min={1}
-              max={100}
+              min={MEIGEN_LIMIT_MIN}
+              step={1}
               value={meigenLimit}
-              onChange={(e) => setMeigenLimit(Math.min(100, Math.max(1, Number(e.target.value) || 100)))}
+              onChange={(e) => setMeigenLimit(normalizeMeigenLimit(Number(e.target.value)))}
+              onBlur={() => setMeigenLimit((v) => normalizeMeigenLimit(v))}
+              onWheel={(e) => e.currentTarget.blur()}
             />
           </div>
           <Button
