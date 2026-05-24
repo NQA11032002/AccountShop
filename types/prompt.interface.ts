@@ -3,7 +3,9 @@ export interface PromptTemplateItem {
   category: string;
   /** Tiêu đề hiển thị (tùy chọn); nội dung prompt vẫn là `content`. */
   title?: string | null;
-  /** `image` / `video`: tab riêng trên trang Prompt, không vào thư viện văn bản. */
+  /** ID gốc từ Meigen.ai — dùng chống trùng khi đồng bộ */
+  id_mei?: string | null;
+  /** `image` / `video`: tab riêng trên trang Prompt */
   kind?: 'text' | 'image' | 'video';
   content: string;
   /** Ảnh mẫu (`image`) hoặc poster tuỳ chọn (`video`) */

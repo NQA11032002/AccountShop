@@ -738,6 +738,58 @@ export const fetchAdminPrompts = async (sessionId: string): Promise<PromptTempla
 };
 
 /**
+ * POST /admin/prompts/sync-meigen — đồng bộ prompt ảnh từ Meigen.ai
+ */
+export const importMeigenImagePrompts = async (
+    sessionId: string,
+    payload?: {
+        offset?: number;
+        limit?: number;
+        category?: string;
+    }
+): Promise<{
+    success: boolean;
+    message?: string;
+    data: {
+        imported: number;
+        skipped: number;
+        failed: number;
+        total_fetched: number;
+        has_more: boolean;
+        offset: number;
+        limit: number;
+        category: string;
+        errors: string[];
+    };
+}> => {
+    const res = await fetch(`${API_URL}/admin/prompts/sync-meigen`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload ?? {}),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể đồng bộ Meigen.ai');
+    return data as {
+        success: boolean;
+        message?: string;
+        data: {
+            imported: number;
+            skipped: number;
+            failed: number;
+            total_fetched: number;
+            has_more: boolean;
+            offset: number;
+            limit: number;
+            category: string;
+            errors: string[];
+        };
+    };
+};
+
+/**
  * POST /admin/prompts - tạo prompt mới
  */
 export const createAdminPrompt = async (

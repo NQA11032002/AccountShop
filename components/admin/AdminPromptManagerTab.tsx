@@ -23,12 +23,14 @@ import {
   createAdminPrompt,
   deleteAdminPrompt,
   fetchAdminPrompts,
+  importMeigenImagePrompts,
   updateAdminPrompt,
   uploadPromptSampleImage,
   resolveApiAssetUrl,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { Plus, Save, Trash2, BookText, Image as ImageIcon, Video } from "lucide-react";
+import { Plus, Save, Trash2, BookText, Image as ImageIcon, Video, Download, CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 /** Số thứ tự tiếp theo trong thể loại (max + 1). `excludeId` bỏ qua bản ghi đang sửa khi đổi thể loại. */
 function nextSortOrderForCategory(
@@ -79,6 +81,10 @@ export default function AdminPromptManagerTab() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [kindFilter, setKindFilter] = useState<"all" | "text" | "image" | "video">("all");
   const [imageUploading, setImageUploading] = useState(false);
+  const [meigenImporting, setMeigenImporting] = useState(false);
+  const [meigenOffset, setMeigenOffset] = useState(0);
+  const [meigenLimit, setMeigenLimit] = useState(100);
+  const [meigenSyncMessage, setMeigenSyncMessage] = useState<string | null>(null);
   const promptImageInputRef = useRef<HTMLInputElement>(null);
 
   /** `silent`: cập nhật danh sách sau thêm/sửa/xóa mà không ẩn bảng (tránh nhảy scroll / cảm giác reload trang). */
@@ -286,6 +292,45 @@ export default function AdminPromptManagerTab() {
     }
   };
 
+  const onSyncMeigen = async () => {
+    if (!sessionId || meigenImporting) return;
+    setMeigenImporting(true);
+    setMeigenSyncMessage(null);
+    try {
+      const res = await importMeigenImagePrompts(sessionId, {
+        offset: meigenOffset,
+        limit: meigenLimit,
+      });
+      await loadPrompts({ silent: true });
+      setKindFilter("image");
+      setCategoryFilter("Meigen AI");
+
+      const { imported, skipped, total_fetched } = res.data;
+      const successText =
+        imported > 0
+          ? `Thêm thành công ${imported} prompt vào database.`
+          : "Không có prompt mới được thêm (có thể trùng IDmei hoặc thiếu dữ liệu).";
+
+      setMeigenSyncMessage(
+        `${successText} Bỏ qua ${skipped} · Lấy ${total_fetched} mục từ API (offset ${res.data.offset}, limit ${res.data.limit}).`
+      );
+
+      toast({
+        title: imported > 0 ? `Thêm thành công ${imported} prompt` : "Đồng bộ xong",
+        description: res.message ?? successText,
+      });
+    } catch (err: any) {
+      setMeigenSyncMessage(null);
+      toast({
+        title: "Đồng bộ thất bại",
+        description: err?.message || "Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    } finally {
+      setMeigenImporting(false);
+    }
+  };
+
   if (!user || user.role !== "admin") {
     return <div className="text-gray-600">Bạn không có quyền truy cập.</div>;
   }
@@ -302,6 +347,68 @@ export default function AdminPromptManagerTab() {
             <span className="font-medium">Hình ảnh</span>: ảnh mẫu + prompt (tab Hình ảnh).{" "}
             <span className="font-medium">Video</span>: link YouTube/Vimeo/mp4 + poster tuỳ chọn (tab Prompt video).
           </p>
+        </CardHeader>
+      </Card>
+
+      <Card className="border-violet-100 bg-violet-50/40">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Download className="w-4 h-4 text-violet-600" />
+            Đồng bộ Meigen.ai
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Gọi Meigen.ai theo <strong>offset</strong> / <strong>limit</strong> bạn chọn. Lưu{" "}
+            <strong>IDmei</strong>, image, title, prompt — bỏ qua nếu <strong>IDmei</strong> đã có trong database.
+          </p>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="space-y-1 w-28">
+            <Label htmlFor="meigen-offset">Offset</Label>
+            <Input
+              id="meigen-offset"
+              type="number"
+              min={0}
+              value={meigenOffset}
+              onChange={(e) => setMeigenOffset(Math.max(0, Number(e.target.value) || 0))}
+            />
+          </div>
+          <div className="space-y-1 w-28">
+            <Label htmlFor="meigen-limit">Limit</Label>
+            <Input
+              id="meigen-limit"
+              type="number"
+              min={1}
+              max={100}
+              value={meigenLimit}
+              onChange={(e) => setMeigenLimit(Math.min(100, Math.max(1, Number(e.target.value) || 100)))}
+            />
+          </div>
+          <Button
+            type="button"
+            className="page-btn-primary shrink-0"
+            disabled={meigenImporting || !sessionId}
+            onClick={onSyncMeigen}
+          >
+            {meigenImporting ? "Đang đồng bộ..." : "Đồng bộ Meigen.ai"}
+          </Button>
+          </div>
+          {meigenSyncMessage && (
+            <Alert className="w-full border-emerald-200 bg-emerald-50 text-emerald-900">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <AlertTitle>Kết quả đồng bộ</AlertTitle>
+              <AlertDescription>{meigenSyncMessage}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookText className="w-5 h-5 text-indigo-600" />
+            Thêm / sửa Prompt
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -638,11 +745,12 @@ export default function AdminPromptManagerTab() {
             <div className="text-gray-500">Chưa có prompt nào.</div>
           ) : (
             <div className="rounded-xl border border-gray-200 overflow-x-auto">
-              <Table className="min-w-[1020px]">
+              <Table className="min-w-[1160px]">
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead className="w-[90px] min-w-[80px]">Loại</TableHead>
                     <TableHead className="w-[180px] min-w-[140px]">Thể loại</TableHead>
+                    <TableHead className="w-[140px] min-w-[120px]">IDmei</TableHead>
                     <TableHead className="w-[220px] min-w-[160px]">Tiêu đề</TableHead>
                     <TableHead className="min-w-[280px]">Nội dung Prompt</TableHead>
                     <TableHead className="w-[100px] text-center">Thứ tự</TableHead>
@@ -663,6 +771,11 @@ export default function AdminPromptManagerTab() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{item.category}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-xs text-gray-600 font-mono truncate max-w-[140px]" title={item.id_mei ?? undefined}>
+                          {item.id_mei?.trim() ? item.id_mei : "—"}
+                        </p>
                       </TableCell>
                       <TableCell>
                         <p className="text-sm text-gray-800 font-medium line-clamp-2">
