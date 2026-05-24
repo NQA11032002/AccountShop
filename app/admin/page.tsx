@@ -236,8 +236,29 @@ import { copyFile } from 'fs';
 import AdminGiftCampaignTab from "@/components/admin/AdminGiftCampaignTab";
 import AdminPromptManagerTab from "@/components/admin/AdminPromptManagerTab";
 
+/** Tạm ẩn tab admin — xóa id khỏi set để hiện lại */
+const HIDDEN_ADMIN_TABS = new Set([
+  'overview',
+  'users',
+  'inventory-accounts',
+  'account-warehouse',
+  'orders',
+  'discount-codes',
+  'product-discounts',
+  'customer-vouchers',
+  'rank-rewards',
+  'exchange-rewards',
+  'deposits',
+]);
+
+const DEFAULT_VISIBLE_ADMIN_TAB = '2fa';
+
+function isAdminTabVisible(tab: string) {
+  return !HIDDEN_ADMIN_TABS.has(tab);
+}
+
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(DEFAULT_VISIBLE_ADMIN_TAB);
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [chatgpts, setChatgpts] = useState<ChatgptPayload[]>([]);
@@ -890,6 +911,12 @@ QAI Store - Tài khoản cao cấp uy tín #1
       toast({ title: "Lỗi", description: e?.message || "Không thể xóa", variant: "destructive" });
     }
   };
+
+  useEffect(() => {
+    if (HIDDEN_ADMIN_TABS.has(activeTab)) {
+      setActiveTab(DEFAULT_VISIBLE_ADMIN_TAB);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab === 'customer-vouchers' && sessionId) loadCustomerVouchers();
@@ -3127,7 +3154,8 @@ QAI Store - Tài khoản cao cấp uy tín #1
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Modern Floating Navigation */}
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 p-2">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 bg-transparent gap-2 h-auto p-0">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 bg-transparent gap-2 h-auto p-0">
+              {isAdminTabVisible('overview') && (
               <TabsTrigger
                 value="overview"
                 disabled={role != "admin"}
@@ -3138,7 +3166,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Tổng quan
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('users') && (
               <TabsTrigger
                 value="users"
                 disabled={role != "admin"}
@@ -3149,7 +3179,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Người dùng
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('inventory-accounts') && (
               <TabsTrigger
                 value="inventory-accounts"
                 disabled={role != "admin"}
@@ -3160,7 +3192,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Kho &amp; Tài khoản
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('account-warehouse') && (
               <TabsTrigger
                 value="account-warehouse"
                 disabled={role != "admin"}
@@ -3171,7 +3205,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Kho tài khoản
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('orders') && (
               <TabsTrigger
                 value="orders"
                 disabled={role != "admin"}
@@ -3182,7 +3218,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Đơn hàng &amp; Gửi TK
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('discount-codes') && (
               <TabsTrigger
                 value="discount-codes"
                 disabled={role != "admin"}
@@ -3193,7 +3231,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Mã giảm giá
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('product-discounts') && (
               <TabsTrigger
                 value="product-discounts"
                 disabled={role != "admin"}
@@ -3204,7 +3244,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Giảm giá SP
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('customer-vouchers') && (
               <TabsTrigger
                 value="customer-vouchers"
                 disabled={role != "admin"}
@@ -3215,7 +3257,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Kho voucher
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('rank-rewards') && (
               <TabsTrigger
                 value="rank-rewards"
                 disabled={role != "admin"}
@@ -3226,7 +3270,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Phần thưởng hạng
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('exchange-rewards') && (
               <TabsTrigger
                 value="exchange-rewards"
                 disabled={role != "admin"}
@@ -3237,7 +3283,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Đổi điểm
                 </span>
               </TabsTrigger>
+              )}
 
+              {isAdminTabVisible('deposits') && (
               <TabsTrigger
                 value="deposits"
                 disabled={role != "admin"}
@@ -3248,6 +3296,7 @@ QAI Store - Tài khoản cao cấp uy tín #1
                   Nạp tiền
                 </span>
               </TabsTrigger>
+              )}
 
               <TabsTrigger
                 value="2fa"
