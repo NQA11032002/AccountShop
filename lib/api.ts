@@ -225,6 +225,34 @@ export function resolveApiAssetUrl(imageUrlOrPath: string): string {
     return `${base}/${t.replace(/^\/*/, "")}`;
 }
 
+/**
+ * URL hiển thị ảnh mẫu prompt:
+ * - Link ngoài (Meigen, CDN…): giữ nguyên https://...
+ * - Ảnh upload: /images/prompts/... hoặc URL đầy đủ trên site
+ */
+export function resolvePromptImageUrl(imageUrlOrPath: string): string {
+    const t = (imageUrlOrPath || "").trim();
+    if (!t) return "";
+    if (t.startsWith("//")) return `https:${t}`;
+    return resolveApiAssetUrl(t);
+}
+
+/** Link ngoài (vd. Meigen) cần no-referrer — nếu không CDN trả 403. */
+export function promptImageReferrerPolicy(resolvedUrl: string): "no-referrer" | undefined {
+    if (!resolvedUrl) return undefined;
+    try {
+        const apiBase = API_URL.replace(/\/api\/?$/i, "");
+        const baseForUrl = apiBase.startsWith("http")
+            ? apiBase
+            : `https://${apiBase.replace(/^\/+/, "")}`;
+        const siteHost = new URL(baseForUrl).hostname.replace(/^www\./, "").toLowerCase();
+        const imgHost = new URL(resolvedUrl).hostname.replace(/^www\./, "").toLowerCase();
+        return imgHost !== siteHost ? "no-referrer" : undefined;
+    } catch {
+        return "no-referrer";
+    }
+}
+
 /** Helper: từ tên file trong DB -> URL để hiển thị ảnh */
 export function imageFilenameToUrl(filename?: string | null): string {
     if (!filename) return '';

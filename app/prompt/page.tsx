@@ -35,6 +35,7 @@ import {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchPromptTemplates, resolveApiAssetUrl } from "@/lib/api";
+import PromptSampleImage from "@/components/PromptSampleImage";
 import { useToast } from "@/hooks/use-toast";
 import type { PromptTemplateItem } from "@/types/prompt.interface";
 
@@ -213,12 +214,10 @@ function VideoCardPosterArea({ sample }: { sample: VideoPromptSample }) {
   const poster = sample.posterSrc?.trim();
   if (poster) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- poster từ API / public
-      <img
-        src={resolveApiAssetUrl(poster)}
+      <PromptSampleImage
+        src={poster}
         alt={sample.title}
         className="h-full w-full object-cover"
-        loading="lazy"
       />
     );
   }
@@ -765,12 +764,10 @@ export default function PromptPage() {
                     <CardContent className="flex flex-1 flex-col gap-3 p-3.5 sm:p-4">
                       <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
                         <div className="overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-100/80">
-                          {/* eslint-disable-next-line @next/next/no-img-element -- ảnh mẫu từ host bên ngoài */}
-                          <img
-                            src={resolveApiAssetUrl(sample.imageSrc)}
+                          <PromptSampleImage
+                            src={sample.imageSrc}
                             alt={sample.title}
                             className="aspect-[3/4] w-full object-cover"
-                            loading="lazy"
                           />
                         </div>
                       </div>
@@ -862,11 +859,11 @@ export default function PromptPage() {
                   </DialogHeader>
                   <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-black/50 px-3 py-4 sm:px-6">
                     {zoomImageSample ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={resolveApiAssetUrl(zoomImageSample.imageSrc)}
+                      <PromptSampleImage
+                        src={zoomImageSample.imageSrc}
                         alt={zoomImageSample.title}
                         className="h-auto max-h-full w-auto max-w-full rounded-md object-contain shadow-xl"
+                        loading="eager"
                       />
                     ) : null}
                   </div>

@@ -26,8 +26,8 @@ import {
   importMeigenImagePrompts,
   updateAdminPrompt,
   uploadPromptSampleImage,
-  resolveApiAssetUrl,
 } from "@/lib/api";
+import PromptSampleImage from "@/components/PromptSampleImage";
 import { cn } from "@/lib/utils";
 import { Plus, Save, Trash2, BookText, Image as ImageIcon, Video, Download, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -526,10 +526,9 @@ export default function AdminPromptManagerTab() {
                   ) : null}
                 </div>
                 {form.image_url.trim() ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- URL từ backend / upload
-                  <img
-                    src={resolveApiAssetUrl(form.image_url)}
-                    alt=""
+                  <PromptSampleImage
+                    src={form.image_url}
+                    alt="Ảnh mẫu prompt"
                     className="mt-2 max-h-40 w-auto max-w-full rounded-lg border border-gray-200 bg-white object-contain"
                   />
                 ) : (
@@ -607,10 +606,9 @@ export default function AdminPromptManagerTab() {
                   ) : null}
                 </div>
                 {form.image_url.trim() ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={resolveApiAssetUrl(form.image_url)}
-                    alt=""
+                  <PromptSampleImage
+                    src={form.image_url}
+                    alt="Poster video"
                     className="mt-2 max-h-40 w-auto max-w-full rounded-lg border border-gray-200 bg-white object-contain"
                   />
                 ) : (
