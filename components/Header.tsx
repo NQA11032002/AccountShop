@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, LogOut, Home, Info, Package, FileText, Mail, Code, Gift } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, User, MapPin, Phone, Wallet, Shield, LogOut, Home, Info, Package, FileText, Mail, Code, Gift, Bot } from 'lucide-react';
 import DataSyncHelper from '@/lib/syncHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,7 @@ const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'Hướng dẫn': FileText,
   'Liên hệ': Mail,
   'Câu lệnh': Code,
+  'Công cụ AI': Bot,
   'Nhận mã': Gift,
   'Quà tặng': Gift,
 };
@@ -108,6 +109,7 @@ export default function Header() {
     { name: 'Hướng dẫn', href: '/how-to-buy' },
     { name: 'Liên hệ', href: '/contact' },
     { name: 'Quà tặng', href: '/qua-tang' },
+    { name: 'Công cụ AI', href: '/cong-cu-ai' },
     { name: 'Câu lệnh', href: '/prompt' },
     { name: 'Nhận mã', href: '/onetimecode' },
   ];
