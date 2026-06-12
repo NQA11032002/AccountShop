@@ -23,12 +23,12 @@ export default function AiToolLogo({ tool, className, imgClassName }: AiToolLogo
     return (
       <div
         className={cn(
-          "flex items-center justify-center rounded-xl bg-white ring-1 ring-violet-200/80 shadow-sm",
+          "flex items-center justify-center rounded-xl bg-white ring-1 ring-violet-200/60 shadow-sm",
           className
         )}
         aria-hidden
       >
-        <Bot className="h-6 w-6 text-violet-400" />
+        <Bot className="h-6 w-6 text-brand-blue/60" />
       </div>
     );
   }
@@ -36,7 +36,7 @@ export default function AiToolLogo({ tool, className, imgClassName }: AiToolLogo
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 ring-1 ring-violet-200/80 shadow-sm",
+        "flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 ring-1 ring-violet-200/60 shadow-sm",
         className
       )}
     >
