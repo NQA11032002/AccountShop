@@ -80,11 +80,6 @@ export default function AboutPage() {
     }
   ];
 
-  const handleContactClick = () => {
-    console.log("Contact button clicked");
-    window.location.href = '/contact';
-  };
-
   const handleProductsClick = () => {
     console.log("Products button clicked");
     window.location.href = '/products';
@@ -119,14 +114,6 @@ export default function AboutPage() {
                 className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-4"
               >
                 Khám phá sản phẩm
-              </Button>
-              <Button
-                onClick={handleContactClick}
-                variant="outline"
-                size="lg"
-                className="border-white text-black hover:bg-white hover:text-blue-600 font-semibold px-8 py-4"
-              >
-                Liên hệ ngay
               </Button>
             </div>
           </div>

@@ -36,6 +36,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchPromptTemplates, resolveApiAssetUrl } from "@/lib/api";
 import PromptSampleImage from "@/components/PromptSampleImage";
+import SectionReveal from "@/components/SectionReveal";
 import { useToast } from "@/hooks/use-toast";
 import type { PromptTemplateItem } from "@/types/prompt.interface";
 
@@ -530,59 +531,66 @@ export default function PromptPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="relative min-h-screen overflow-hidden bg-slate-100/90">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 -left-20 h-72 w-72 rounded-full bg-brand-blue/15 blur-3xl animate-float"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-72 -right-20 h-80 w-80 rounded-full bg-brand-emerald/15 blur-3xl [animation-duration:4s] animate-float"
+      />
+
       <Header />
 
-      <main className="relative overflow-hidden bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950">
-        <div className="absolute -top-24 -left-16 h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl animate-float" />
-        <div className="absolute top-48 -right-20 h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl [animation-duration:4s] animate-float" />
-
-        <section className="relative z-10 container-max section-padding py-16 sm:py-20">
-          <div className="mx-auto max-w-4xl text-center animate-fade-in">
-            <Badge className="mb-4 bg-white/15 text-white border-white/20 shadow-lg">
-              <Sparkles className="w-3 h-3 mr-1" />
+      <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
+        <SectionReveal>
+          <section className="section-spacing-home container-max section-padding pb-0">
+            <div className="mx-auto max-w-4xl text-center">
+            <Badge className="mb-4 border-brand-blue/20 bg-brand-blue/10 text-brand-blue">
+              <Sparkles className="mr-1 h-3 w-3" />
               Thư viện Prompt cho khách hàng
             </Badge>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight">
+            <h1 className="text-3xl font-bold leading-snug tracking-tight text-brand-charcoal sm:text-4xl md:text-5xl">
               Hướng dẫn dùng Prompt AI
-              <span className="block bg-gradient-to-r from-cyan-300 to-fuchsia-300 bg-clip-text text-transparent mt-2">
-                nhanh, đúng, hiệu quả
-              </span>
+              <span className="mt-2 block pb-1.5 gradient-text">nhanh, đúng, hiệu quả</span>
             </h1>
-            <p className="mt-5 text-slate-200 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed">
+            <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-brand-gray/80 sm:text-lg">
               Tổng hợp mẫu prompt thực tế để khách hàng copy và dùng ngay cho học tập,
               công việc, marketing và sáng tạo nội dung.
             </p>
           </div>
         </section>
+        </SectionReveal>
 
-        <section className="relative z-10 container-max section-padding pb-16">
-          <Tabs defaultValue="guide" className="w-full">
-            <TabsList className="grid h-auto w-full max-w-5xl mx-auto grid-cols-2 gap-2 bg-white/10 border border-white/20 shadow-xl p-2 sm:grid-cols-4 sm:gap-0">
+        <section className="section-spacing-home container-max section-padding pb-16 pt-6">
+          <SectionReveal delayMs={60}>
+            <Tabs defaultValue="guide" className="w-full">
+            <TabsList className="mx-auto grid h-auto w-full max-w-5xl grid-cols-2 gap-2 rounded-2xl bg-white/70 p-2 shadow-sm ring-1 ring-violet-200/70 backdrop-blur-sm sm:grid-cols-4 sm:gap-1">
               <TabsTrigger
                 value="guide"
-                className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900 gap-2 py-2.5"
+                className="gap-2 rounded-xl py-2.5 text-violet-950 data-[state=active]:bg-brand-blue data-[state=active]:text-white data-[state=inactive]:bg-violet-50/90 data-[state=inactive]:shadow-sm"
               >
                 <Lightbulb className="w-4 h-4 shrink-0" />
                 <span className="text-sm">Hướng dẫn nhanh</span>
               </TabsTrigger>
               <TabsTrigger
                 value="library"
-                className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900 gap-2 py-2.5"
+                className="gap-2 rounded-xl py-2.5 text-violet-950 data-[state=active]:bg-brand-blue data-[state=active]:text-white data-[state=inactive]:bg-violet-50/90 data-[state=inactive]:shadow-sm"
               >
                 <Wand2 className="w-4 h-4 shrink-0" />
                 <span className="text-sm">Thư viện prompt</span>
               </TabsTrigger>
               <TabsTrigger
                 value="images"
-                className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900 gap-2 py-2.5"
+                className="gap-2 rounded-xl py-2.5 text-violet-950 data-[state=active]:bg-brand-blue data-[state=active]:text-white data-[state=inactive]:bg-violet-50/90 data-[state=inactive]:shadow-sm"
               >
                 <ImageIcon className="w-4 h-4 shrink-0" />
                 <span className="text-sm">Hình ảnh</span>
               </TabsTrigger>
               <TabsTrigger
                 value="videos"
-                className="text-white data-[state=active]:bg-white data-[state=active]:text-slate-900 gap-2 py-2.5"
+                className="gap-2 rounded-xl py-2.5 text-violet-950 data-[state=active]:bg-brand-blue data-[state=active]:text-white data-[state=inactive]:bg-violet-50/90 data-[state=inactive]:shadow-sm"
               >
                 <Video className="w-4 h-4 shrink-0" />
                 <span className="text-sm">Prompt video</span>
@@ -592,44 +600,51 @@ export default function PromptPage() {
             <TabsContent value="guide" className="mt-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {guideSteps.map((step, idx) => (
-                  <Card key={step.title} className="border-white/20 bg-white/10 backdrop-blur text-white transition-all duration-300 hover:bg-white/15 hover:shadow-2xl hover:-translate-y-1">
+                  <SectionReveal key={step.title} delayMs={Math.min(idx * 60, 240)}>
+                    <Card
+                      className="h-full border-0 bg-white shadow-[0_4px_20px_-4px_rgba(79,70,229,0.12)] ring-1 ring-violet-200/90 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_-8px_rgba(79,70,229,0.22)]"
+                    >
                     <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center rounded-full bg-white/20 w-7 h-7 text-sm font-bold">
+                      <CardTitle className="flex items-center gap-2 text-lg text-brand-charcoal">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-brand-blue/10 text-sm font-bold text-brand-blue">
                           {idx + 1}
                         </span>
                         {step.title}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="text-sm text-slate-200">
+                    <CardContent className="text-sm text-brand-gray/80">
                       {step.desc}
                     </CardContent>
-                  </Card>
+                    </Card>
+                  </SectionReveal>
                 ))}
               </div>
 
-              <Card className="mt-6 border-emerald-300/30 bg-emerald-500/10 backdrop-blur text-white animate-fade-in">
+              <SectionReveal delayMs={120}>
+              <Card className="mt-6 border-emerald-200/80 bg-emerald-50/90 shadow-sm ring-1 ring-emerald-200/60">
                 <CardContent className="p-5 text-sm sm:text-base">
-                  <p className="font-semibold flex items-center gap-2 mb-1">
-                    <Target className="w-4 h-4" />
+                  <p className="mb-1 flex items-center gap-2 font-semibold text-emerald-900">
+                    <Target className="h-4 w-4" />
                     Mẹo quan trọng
                   </p>
-                  <p className="text-emerald-100">
+                  <p className="text-emerald-800/90">
                     Prompt càng cụ thể thì kết quả càng đúng ý. Hãy thêm: vai trò AI + mục tiêu + đối tượng + định dạng đầu ra.
                   </p>
                 </CardContent>
               </Card>
+              </SectionReveal>
             </TabsContent>
 
             <TabsContent value="library" className="mt-8 space-y-5">
-              <div className="flex flex-col gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 backdrop-blur sm:flex-row sm:items-center sm:gap-3">
-                <label htmlFor="prompt-category-filter" className="shrink-0 text-xs font-medium text-slate-300">
+              <SectionReveal delayMs={40}>
+              <div className="flex flex-col gap-2 rounded-2xl border-0 bg-white/70 px-3 py-2.5 shadow-sm ring-1 ring-violet-200/70 backdrop-blur-sm sm:flex-row sm:items-center sm:gap-3">
+                <label htmlFor="prompt-category-filter" className="shrink-0 text-xs font-medium text-brand-gray/80">
                   Thể loại
                 </label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger
                     id="prompt-category-filter"
-                    className="h-9 w-full min-w-0 border-white/30 bg-white/10 text-sm text-white focus:ring-white/25 sm:max-w-xs [&>span]:text-white"
+                    className="h-9 w-full min-w-0 border-violet-200/80 bg-white text-sm text-brand-charcoal focus:ring-brand-blue sm:max-w-xs"
                   >
                     <SelectValue placeholder="Chọn thể loại" />
                   </SelectTrigger>
@@ -645,23 +660,28 @@ export default function PromptPage() {
                     })}
                   </SelectContent>
                 </Select>
-                <p className="shrink-0 text-xs text-slate-400 sm:ml-auto">
+                <p className="shrink-0 text-xs text-brand-gray/70 sm:ml-auto">
                   {filteredPromptItems.length} prompt
                 </p>
               </div>
+              </SectionReveal>
 
               {loadingPrompts && (
-                <Card className="bg-white/95 border-white/30 shadow-xl">
+                <SectionReveal delayMs={60}>
+                <Card className="border-0 bg-white shadow-lg ring-1 ring-violet-200/80">
                   <CardContent className="p-6 text-slate-600">Đang tải thư viện prompt...</CardContent>
                 </Card>
+                </SectionReveal>
               )}
 
               {!loadingPrompts && filteredPromptItems.length === 0 && (
-                <Card className="bg-white/95 border-white/30 shadow-xl">
+                <SectionReveal delayMs={60}>
+                <Card className="border-0 bg-white shadow-lg ring-1 ring-violet-200/80">
                   <CardContent className="p-8 text-center text-slate-600">
                     Chưa có prompt trong thể loại này.
                   </CardContent>
                 </Card>
+                </SectionReveal>
               )}
 
               {!loadingPrompts && filteredPromptItems.length > 0 && (
@@ -670,10 +690,12 @@ export default function PromptPage() {
                     {paginatedPromptItems.map((item, idx) => {
                       const fullCopy = copyTextForPrompt(item.title, item.content);
                       return (
-                      <Card
+                      <SectionReveal
                         key={item.id != null ? `p-${item.id}` : `${item.categoryId}-${idx}-${item.content.slice(0, 20)}`}
-                        className="flex h-full min-h-0 flex-col bg-white/95 border-white/30 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 animate-fade-in"
-                        style={{ animationDelay: `${idx * 60}ms` }}
+                        delayMs={Math.min(idx * 55, 330)}
+                      >
+                      <Card
+                        className="flex h-full min-h-0 flex-col border-0 bg-white shadow-[0_4px_20px_-4px_rgba(79,70,229,0.12)] ring-1 ring-violet-200/90 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_-8px_rgba(79,70,229,0.22)]"
                       >
                         <CardContent className="flex flex-1 min-h-0 flex-col gap-4 p-5">
                           <div className="shrink-0 space-y-3 border-b border-slate-200 pb-3">
@@ -707,13 +729,15 @@ export default function PromptPage() {
                           </div>
                         </CardContent>
                       </Card>
+                      </SectionReveal>
                     );
                     })}
                   </div>
 
-                  <Card className="bg-white/10 border-white/20 backdrop-blur shadow-xl">
-                    <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                      <p className="text-sm text-slate-100">
+                  <SectionReveal delayMs={80}>
+                  <Card className="border-0 bg-white shadow-md ring-1 ring-violet-200/80">
+                    <CardContent className="flex flex-col items-center justify-between gap-3 p-4 sm:flex-row">
+                      <p className="text-sm text-brand-gray/80">
                         Trang <span className="font-semibold">{currentPage}</span> / {totalPages} - Hiển thị {paginatedPromptItems.length} / {filteredPromptItems.length} prompt
                       </p>
                       <div className="flex items-center gap-2">
@@ -722,7 +746,7 @@ export default function PromptPage() {
                           size="sm"
                           disabled={currentPage === 1}
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                          className="bg-transparent border-white/30 text-white hover:bg-white/15"
+                          className="border-violet-200 bg-white text-brand-charcoal hover:bg-violet-50"
                         >
                           <ChevronLeft className="w-4 h-4 mr-1" />
                           Trước
@@ -732,7 +756,7 @@ export default function PromptPage() {
                           size="sm"
                           disabled={currentPage === totalPages}
                           onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                          className="bg-transparent border-white/30 text-white hover:bg-white/15"
+                          className="border-violet-200 bg-white text-brand-charcoal hover:bg-violet-50"
                         >
                           Sau
                           <ChevronRight className="w-4 h-4 ml-1" />
@@ -740,26 +764,28 @@ export default function PromptPage() {
                       </div>
                     </CardContent>
                   </Card>
+                  </SectionReveal>
                 </>
               )}
             </TabsContent>
 
             <TabsContent value="images" className="mt-8">
-              <p className="mb-6 text-center text-sm text-slate-300 max-w-2xl mx-auto">
-                Dùng <span className="font-medium text-slate-200">Phóng to ảnh</span> để xem rõ ảnh mẫu;{" "}
-                <span className="font-medium text-slate-200">Xem Prompt</span> để đọc và sao chép prompt.
+              <SectionReveal delayMs={40}>
+              <p className="mx-auto mb-6 max-w-2xl text-center text-sm text-brand-gray/80">
+                Dùng <span className="font-medium text-brand-charcoal">Phóng to ảnh</span> để xem rõ ảnh mẫu;{" "}
+                <span className="font-medium text-brand-charcoal">Xem Prompt</span> để đọc và sao chép prompt.
                 {imageCardsFromApi ? (
-                  <span className="block mt-1 text-slate-400 text-xs">
+                  <span className="mt-1 block text-xs text-brand-gray/60">
                     Nội dung do cửa hàng cập nhật từ trang quản trị.
                   </span>
                 ) : null}
               </p>
+              </SectionReveal>
               <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
                 {imagePromptList.map((sample, idx) => (
+                  <SectionReveal key={sample.id} delayMs={Math.min(idx * 55, 330)}>
                   <Card
-                    key={sample.id}
-                    className="flex flex-col overflow-hidden rounded-2xl border border-violet-200/60 bg-[#ebe8f4] shadow-md shadow-violet-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-950/15 animate-fade-in"
-                    style={{ animationDelay: `${idx * 60}ms` }}
+                    className="flex h-full flex-col overflow-hidden rounded-2xl border border-violet-200/60 bg-[#ebe8f4] shadow-md shadow-violet-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-950/15"
                   >
                     <CardContent className="flex flex-1 flex-col gap-3 p-3.5 sm:p-4">
                       <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
@@ -797,6 +823,7 @@ export default function PromptPage() {
                       </Button>
                     </CardContent>
                   </Card>
+                  </SectionReveal>
                 ))}
               </div>
 
@@ -881,21 +908,22 @@ export default function PromptPage() {
             </TabsContent>
 
             <TabsContent value="videos" className="mt-8">
-              <p className="mb-6 text-center text-sm text-slate-300 max-w-2xl mx-auto">
-                Dùng <span className="font-medium text-slate-200">Xem clip</span> để phát video mẫu;{" "}
-                <span className="font-medium text-slate-200">Xem Prompt</span> để đọc và sao chép prompt tạo video.
+              <SectionReveal delayMs={40}>
+              <p className="mx-auto mb-6 max-w-2xl text-center text-sm text-brand-gray/80">
+                Dùng <span className="font-medium text-brand-charcoal">Xem clip</span> để phát video mẫu;{" "}
+                <span className="font-medium text-brand-charcoal">Xem Prompt</span> để đọc và sao chép prompt tạo video.
                 {videoCardsFromApi ? (
-                  <span className="block mt-1 text-slate-400 text-xs">
+                  <span className="mt-1 block text-xs text-brand-gray/60">
                     Nội dung do cửa hàng cập nhật từ trang quản trị.
                   </span>
                 ) : null}
               </p>
+              </SectionReveal>
               <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
                 {videoPromptList.map((sample, idx) => (
+                  <SectionReveal key={sample.id} delayMs={Math.min(idx * 55, 330)}>
                   <Card
-                    key={sample.id}
-                    className="flex flex-col overflow-hidden rounded-2xl border border-cyan-200/50 bg-[#e6f7fa] shadow-md shadow-cyan-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-950/15 animate-fade-in"
-                    style={{ animationDelay: `${idx * 60}ms` }}
+                    className="flex h-full flex-col overflow-hidden rounded-2xl border border-cyan-200/50 bg-[#e6f7fa] shadow-md shadow-cyan-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-950/15"
                   >
                     <CardContent className="flex flex-1 flex-col gap-3 p-3.5 sm:p-4">
                       <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
@@ -934,6 +962,7 @@ export default function PromptPage() {
                       </Button>
                     </CardContent>
                   </Card>
+                  </SectionReveal>
                 ))}
               </div>
 
@@ -1053,6 +1082,7 @@ export default function PromptPage() {
               </Dialog>
             </TabsContent>
           </Tabs>
+          </SectionReveal>
         </section>
       </main>
 

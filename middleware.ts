@@ -14,6 +14,7 @@ const DISABLED_USER_PATHS = [
   "/collaborator",
   "/orders",
   "/news",
+  "/contact",
 ];
 
 export function middleware(request: NextRequest) {
@@ -53,5 +54,7 @@ export const config = {
     "/orders/:path*",
     "/news",
     "/news/:path*",
+    "/contact",
+    "/contact/:path*",
   ],
 };

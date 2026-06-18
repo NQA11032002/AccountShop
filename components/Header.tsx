@@ -107,7 +107,6 @@ export default function Header() {
     { name: 'Trang chủ', href: '/' },
     { name: 'Giới thiệu', href: '/about' },
     { name: 'Hướng dẫn', href: '/how-to-buy' },
-    { name: 'Liên hệ', href: '/contact' },
     { name: 'Quà tặng', href: '/qua-tang' },
     { name: 'Công cụ AI', href: '/cong-cu-ai' },
     { name: 'Câu lệnh', href: '/prompt' },
