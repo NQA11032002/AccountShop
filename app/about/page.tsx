@@ -363,14 +363,6 @@ export default function AboutPage() {
               >
                 Xem danh sách gói
               </Button>
-              <Button
-                onClick={handleContactClick}
-                variant="outline"
-                size="lg"
-                className="border-white text-violet-500 hover:bg-white hover:text-blue-600 font-semibold px-8 py-4"
-              >
-                Tư vấn miễn phí
-              </Button>
             </div>
           </div>
         </div>
