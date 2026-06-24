@@ -55,7 +55,7 @@ export default function FAQ() {
   ];
 
   return (
-    <section className="section-spacing-home bg-white">
+    <section className="section-spacing-home">
       <div className="container-max section-padding">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-16 animate-fade-in">

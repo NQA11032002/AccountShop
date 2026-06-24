@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
+import PageShell from '@/components/PageShell';
 
 export default function CartPage() {
   const { items, itemsCount, totalAmount, totalSavings, updateQuantity, removeItem, clearAllCart } = useCart();
@@ -87,28 +88,27 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <PageShell>
       <Header />
 
-      <main className="pt-10 pb-16">
-        {/* Page Header */}
-        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between">
+      <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90 pb-16 pt-10">
+        <section className="section-spacing-home pb-0">
+          <div className="container-max section-padding">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                <h1 className="mb-2 text-3xl font-bold text-brand-charcoal md:text-4xl">
                   Giỏ hàng của bạn
                 </h1>
-                <p className="text-blue-100">
+                <p className="text-brand-gray/80">
                   {itemsCount} sản phẩm đang chờ thanh toán
                 </p>
               </div>
               <Button
                 variant="outline"
                 onClick={handleContinueShopping}
-                className="border-white text-indigo-500 hover:bg-white hover:text-brand-blue"
+                className="border-violet-200/90 bg-white text-violet-950 shadow-sm hover:bg-violet-50"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Tiếp tục mua sắm
               </Button>
             </div>
@@ -345,6 +345,6 @@ export default function CartPage() {
       </main>
 
       <Footer />
-    </div>
+    </PageShell>
   );
 }

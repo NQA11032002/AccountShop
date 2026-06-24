@@ -61,7 +61,7 @@ export default function FeaturedCategories() {
   ];
 
   return (
-    <section id="categories" className="section-spacing-home bg-gradient-to-b from-white via-slate-50/40 to-white">
+    <section id="categories" className="section-spacing-home">
       <div className="container-max section-padding">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 lg:mb-12 animate-fade-in">

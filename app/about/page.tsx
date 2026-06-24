@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SectionReveal from '@/components/SectionReveal';
+import PageShell from '@/components/PageShell';
+import PageHero from '@/components/PageHero';
 
 export default function AboutPage() {
   console.log("AboutPage rendered");
@@ -86,39 +88,21 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <PageShell>
       <Header />
 
-      {/* Hero Section */}
+      <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
       <SectionReveal>
-      <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
-        <div className="container-max section-padding">
-          <div className="text-center text-white">
-            <Badge className="bg-white/20 text-white border-white/30 mb-4">
-              Về chúng tôi
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+        <PageHero
+          badge="Về chúng tôi"
+          title={
+            <>
               QAI STORE - Nền tảng cung cấp giải pháp
-              <span className="block bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
-                Uy tín & minh bạch
-              </span>
-            </h1>
-            <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8">
-              Với hơn 5 năm kinh nghiệm vận hành,
-              chúng tôi tự hào được hàng chục nghìn khách hàng trên toàn quốc tin tưởng lựa chọn.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                onClick={handleProductsClick}
-                size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-4"
-              >
-                Khám phá sản phẩm
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+              <span className="gradient-text">Uy tín & minh bạch</span>
+            </>
+          }
+          description="Với hơn 5 năm kinh nghiệm vận hành, chúng tôi tự hào được hàng chục nghìn khách hàng trên toàn quốc tin tưởng lựa chọn."
+        />
       </SectionReveal>
 
       {/* Stats Section */}
@@ -370,6 +354,7 @@ export default function AboutPage() {
       </SectionReveal>
 
       <Footer />
-    </div>
+      </main>
+    </PageShell>
   );
 }

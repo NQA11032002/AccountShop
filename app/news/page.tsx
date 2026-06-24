@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Eye, Share2, Heart, MessageCircle } from 'lucide-react';
 import SectionReveal from '@/components/SectionReveal';
+import PageShell from '@/components/PageShell';
+import PageHero from '@/components/PageHero';
 
 export default function NewsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -106,35 +108,28 @@ export default function NewsPage() {
   const featuredArticles = newsArticles.filter(article => article.featured);
 
   return (
-    <div className="min-h-screen bg-white">
+    <PageShell>
       <Header />
 
-      <main className="bg-white">
-        {/* Hero Section */}
+      <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
         <SectionReveal>
-        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Tin Tức Công Nghệ
-              </h1>
-              <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-8">
-                Cập nhật những tin tức mới nhất về công nghệ, phần mềm, và các giải pháp
-              </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                <Badge className="bg-white/20 text-white text-lg px-4 py-2">
-                  🔥 Hot News
-                </Badge>
-                <Badge className="bg-white/20 text-white text-lg px-4 py-2">
-                  🚀 Tech Updates
-                </Badge>
-                <Badge className="bg-white/20 text-white text-lg px-4 py-2">
-                  💡 AI Trends
-                </Badge>
-              </div>
+          <PageHero
+            badge="Tin tức công nghệ"
+            title="Tin Tức Công Nghệ"
+            description="Cập nhật những tin tức mới nhất về công nghệ, phần mềm, và các giải pháp"
+          >
+            <div className="flex flex-wrap justify-center gap-3">
+              <Badge className="border-violet-200/90 bg-violet-50/90 px-4 py-2 text-violet-950">
+                Hot News
+              </Badge>
+              <Badge className="border-violet-200/90 bg-violet-50/90 px-4 py-2 text-violet-950">
+                Tech Updates
+              </Badge>
+              <Badge className="border-violet-200/90 bg-violet-50/90 px-4 py-2 text-violet-950">
+                AI Trends
+              </Badge>
             </div>
-          </div>
-        </section>
+          </PageHero>
         </SectionReveal>
 
         {/* Featured Articles */}
@@ -338,6 +333,6 @@ export default function NewsPage() {
       </main>
 
       <Footer />
-    </div>
+    </PageShell>
   );
 }

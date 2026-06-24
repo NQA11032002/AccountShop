@@ -4,13 +4,15 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Send, Copy } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getOnetimeCode } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import PageShell from '@/components/PageShell';
+import PageHero from '@/components/PageHero';
+import SectionReveal from '@/components/SectionReveal';
 
 export default function Prompt() {
     const [status, setStatus] = useState(false);
@@ -103,37 +105,31 @@ export default function Prompt() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <PageShell>
             <Header />
 
-            {/* Page Header */}
-            <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-14">
-                <div className="container-max section-padding">
-                    <div className="text-center text-white">
-                        <Badge className="bg-white/20 text-white border-white/30 mb-4 text-sm px-4 py-2">
-                            🌟 Mã xác thực đơn hàng
-                        </Badge>
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+            <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
+            <SectionReveal>
+                <PageHero
+                    badge="Mã xác thực đơn hàng"
+                    title={
+                        <>
                             Kích hoạt dịch vụ
-                            <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
-                                Nhanh chóng & An toàn
-                            </span>
-                        </h1>
-                        <p className="text-xl text-white/80 max-w-2xl mx-auto">
-                            Hệ thống tự động cấp mã xác thực dùng một lần, giúp Anh/Chị kích hoạt nhanh các dịch vụ đã đặt mua tại QAI STORE.
-                        </p>
-                    </div>
-                </div>
-            </section>
+                            <span className="gradient-text">Nhanh chóng & An toàn</span>
+                        </>
+                    }
+                    description="Hệ thống tự động cấp mã xác thực dùng một lần, giúp Anh/Chị kích hoạt nhanh các dịch vụ đã đặt mua tại QAI STORE."
+                />
+            </SectionReveal>
 
             {/* Main Content with Sidebar */}
             <section className="py-8">
                 <div className="container-max section-padding">
                     <div>
-                        <Card className="shadow-xl border-0 bg-white">
-                            <CardHeader className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white rounded-t-lg">
-                                <CardTitle className="text-2xl font-bold flex items-center">
-                                    <Send className="w-6 h-6 mr-2" />
+                        <Card className="border-0 bg-white shadow-xl ring-1 ring-violet-200/90">
+                            <CardHeader className="rounded-t-lg border-b border-violet-100 bg-white/90">
+                                <CardTitle className="flex items-center text-2xl font-bold text-brand-charcoal">
+                                    <Send className="mr-2 h-6 w-6 text-brand-blue" />
                                     Nhận mã xác thực tự động
                                 </CardTitle>
                             </CardHeader>
@@ -200,7 +196,7 @@ export default function Prompt() {
                                     <Button
                                         type="submit"
                                         disabled={expiresIn > 0}
-                                        className="w-full bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white hover:from-blue-700 hover:to-purple-700 t font-semibold py-3 text-lg"
+                                        className="w-full bg-brand-blue py-3 text-lg font-semibold text-white shadow-md shadow-brand-blue/25 hover:bg-brand-blue/90"
                                     >
                                         <Send className="w-5 h-5 mr-2" />
                                         {expiresIn > 0 ? `Vui lòng đợi ${expiresIn}s` : 'Nhận mã xác thực'}
@@ -221,6 +217,7 @@ export default function Prompt() {
             </section>
 
             <Footer />
-        </div>
+            </main>
+        </PageShell>
     );
 }

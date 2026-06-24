@@ -4,9 +4,10 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CheckCircle, CreditCard, Download, MessageCircle, Shield, Clock, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import SectionReveal from '@/components/SectionReveal';
+import PageShell from '@/components/PageShell';
+import PageHero from '@/components/PageHero';
 
 export default function HowToBuyPage() {
   const steps = [
@@ -65,29 +66,21 @@ export default function HowToBuyPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <PageShell>
       <Header />
 
-      {/* Hero Section */}
+      <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
       <SectionReveal>
-      <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
-        <div className="container-max section-padding">
-          <div className="text-center text-white">
-            <Badge className="bg-white/20 text-white border-white/30 mb-4">
-              Hướng dẫn mua hàng
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+        <PageHero
+          badge="Hướng dẫn mua hàng"
+          title={
+            <>
               Hướng dẫn
-              <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text p-1">
-                Đơn giản & Nhanh chóng
-              </span>
-            </h1>
-            <p className="text-xl text-white/80 max-w-2xl mx-auto">
-              Chỉ 4 bước đơn giản để bắt đầu sử dụng dịch vụ một cách nhanh chóng
-            </p>
-          </div>
-        </div>
-      </section>
+              <span className="gradient-text">Đơn giản & Nhanh chóng</span>
+            </>
+          }
+          description="Chỉ 4 bước đơn giản để bắt đầu sử dụng dịch vụ một cách nhanh chóng"
+        />
       </SectionReveal>
 
       {/* Steps Process */}
@@ -201,6 +194,7 @@ export default function HowToBuyPage() {
       </SectionReveal>
 
       <Footer />
-    </div>
+      </main>
+    </PageShell>
   );
 }

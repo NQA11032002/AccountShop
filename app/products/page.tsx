@@ -14,6 +14,9 @@ import { fetchProducts, fetchCategories, fetchProductsPaginated, type ProductsMe
 import { Category } from '@/types/category.interface';
 import DOMPurify from 'dompurify';
 import RandomPurchaseNotification from '@/components/RandomPurchaseNotification';
+import PageShell from '@/components/PageShell';
+import PageHero from '@/components/PageHero';
+import SectionReveal from '@/components/SectionReveal';
 
 const PER_PAGE = 12;
 
@@ -367,28 +370,22 @@ function ProductsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <PageShell>
       <Header />
 
-      {/* Page Header */}
-      <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
-        <div className="container-max section-padding">
-          <div className="text-center text-white">
-            <Badge className="bg-white/20 text-white border-white/30 mb-4 text-sm px-4 py-2">
-              🌟 Tất cả sản phẩm
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+      <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
+      <SectionReveal>
+        <PageHero
+          badge="Tất cả sản phẩm"
+          title={
+            <>
               Gói giải pháp
-              <span className="block gradient-text bg-gradient-to-r from-yellow-300 to-emerald-300 bg-clip-text text-transparent p-1">
-                Chất lượng cao
-              </span>
-            </h1>
-            <p className="text-xl text-white/80 max-w-2xl mx-auto">
-              Khám phá danh sách gói giải pháp với mô tả rõ ràng, hỗ trợ nhanh và chính sách minh bạch
-            </p>
-          </div>
-        </div>
-      </section>
+              <span className="gradient-text">Chất lượng cao</span>
+            </>
+          }
+          description="Khám phá danh sách gói giải pháp với mô tả rõ ràng, hỗ trợ nhanh và chính sách minh bạch"
+        />
+      </SectionReveal>
 
       {/* Main Content with Sidebar */}
       <section className="py-8">
@@ -614,7 +611,8 @@ function ProductsContent() {
 
       {/* Notify giả lập khách hàng thêm vào giỏ hàng ở trang sản phẩm */}
       <RandomPurchaseNotification products={products} />
-    </div>
+      </main>
+    </PageShell>
   );
 }
 

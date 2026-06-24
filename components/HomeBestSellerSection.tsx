@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export default function HomeBestSellerSection() {
   return (
-    <section className="py-10 sm:py-14 lg:py-16 bg-slate-50">
+    <section className="py-10 sm:py-14 lg:py-16">
       <div className="container-max section-padding">
         <div className="grid gap-10 lg:gap-12 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] items-center">
           {/* Left content */}

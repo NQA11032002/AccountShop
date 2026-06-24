@@ -13,7 +13,7 @@ import SectionReveal from '@/components/SectionReveal';
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white">
+    <div className="relative min-h-screen overflow-hidden bg-slate-100/90">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -top-24 -left-20 h-72 w-72 rounded-full bg-brand-blue/15 blur-3xl animate-float"
@@ -23,7 +23,7 @@ export default function Home() {
         className="pointer-events-none absolute top-72 -right-20 h-80 w-80 rounded-full bg-brand-emerald/15 blur-3xl [animation-duration:4s] animate-float"
       />
       <Header />
-      <main className="relative z-10 bg-white/90 backdrop-blur-[1px]">
+      <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
         <SectionReveal className="animate-fade-in">
           <HeroSection />
         </SectionReveal>

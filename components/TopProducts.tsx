@@ -45,7 +45,7 @@ export default function TopProducts() {
   return (
     <>
       {/* Khối 1: Giới thiệu website */}
-      <section className="section-spacing-home bg-white">
+      <section className="section-spacing-home">
         <div className="container-max section-padding">
           {/* Section Header */}
           <div className="text-center mb-8 sm:mb-12">
@@ -79,7 +79,7 @@ export default function TopProducts() {
       </section>
 
       {/* Khối 2: Quy trình sử dụng */}
-      <section className="section-spacing-home bg-gray-50">
+      <section className="section-spacing-home">
         <div className="container-max section-padding">
           <div className="text-center mb-8 sm:mb-12">
             <Badge className="bg-blue-50 text-blue-700 border border-blue-200 mb-3 sm:mb-4 text-xs sm:text-sm">

@@ -32,7 +32,7 @@ export default function DiscountedProductsSlider() {
   };
 
   return (
-    <section className="py-10 sm:py-12 bg-gradient-to-b from-white via-blue-50/40 to-white">
+    <section className="py-10 sm:py-12">
       <div className="container-max section-padding">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6 sm:mb-8">
