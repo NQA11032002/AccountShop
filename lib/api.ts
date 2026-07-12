@@ -6,6 +6,12 @@ import type { userOnetimecode, Onetimecode } from '@/types/Onetimecode';
 import type { ChatgptPayload } from '@/types/chatgpt.interface';
 import type { GiftStatusResponse, AdminGiftActiveResponse } from '@/types/gift.interface';
 import type { PromptTemplateItem, PromptTemplateListResponse } from '@/types/prompt.interface';
+import type {
+    AiCourseDetail,
+    AiCourseDetailResponse,
+    AiCourseLesson,
+    AiCourseListResponse,
+} from '@/types/course.interface';
 
 /** Base URL API (không có slash cuối). Ví dụ: http://localhost:8000/api */
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
@@ -879,6 +885,180 @@ export const deleteAdminPrompt = async (sessionId: string, id: number): Promise<
     if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể xóa prompt');
     return data as { success: boolean; message?: string };
 };
+
+/**
+ * GET /ai-courses — danh sách khóa học AI đang active
+ */
+export const fetchAiCourses = async (): Promise<AiCourseListResponse> => {
+    const res = await fetch(`${API_URL}/ai-courses`, { cache: 'no-store' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tải khóa học');
+    return data as AiCourseListResponse;
+};
+
+/**
+ * GET /ai-courses/{slug} — chi tiết khóa học + bài học
+ */
+export const fetchAiCourseBySlug = async (
+    slug: string,
+    sessionId?: string | null
+): Promise<AiCourseDetailResponse> => {
+    const headers: HeadersInit = {};
+    if (sessionId) {
+        headers.Authorization = `Bearer ${sessionId}`;
+    }
+    const res = await fetch(`${API_URL}/ai-courses/${encodeURIComponent(slug)}`, {
+        headers,
+        cache: 'no-store',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tải khóa học');
+    return data as AiCourseDetailResponse;
+};
+
+/**
+ * POST /ai-courses/{slug}/enroll — đăng ký học
+ */
+export const enrollAiCourse = async (
+    sessionId: string,
+    slug: string
+): Promise<{ success: boolean; message?: string; data?: { is_enrolled: boolean } }> => {
+    const res = await fetch(`${API_URL}/ai-courses/${encodeURIComponent(slug)}/enroll`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${sessionId}`,
+            'Content-Type': 'application/json',
+        },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể đăng ký khóa học');
+    return data as { success: boolean; message?: string; data?: { is_enrolled: boolean } };
+};
+
+/**
+ * GET /admin/ai-courses
+ */
+export const fetchAdminAiCourses = async (sessionId: string): Promise<AiCourseListResponse> => {
+    const res = await fetch(`${API_URL}/admin/ai-courses`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tải danh sách khóa học');
+    return data as AiCourseListResponse;
+};
+
+export type AiCourseUpsertPayload = {
+    slug?: string | null;
+    title: string;
+    description?: string | null;
+    cover_image?: string | null;
+    level?: string | null;
+    duration?: string | null;
+    content_outline?: string | null;
+    sort_order?: number;
+    is_active?: boolean;
+    lessons?: Array<
+        Partial<Pick<AiCourseLesson, 'id' | 'title' | 'content' | 'video_url' | 'sort_order' | 'is_active'>> & {
+            title: string;
+        }
+    >;
+};
+
+/**
+ * POST /admin/ai-courses
+ */
+export const createAdminAiCourse = async (
+    sessionId: string,
+    payload: AiCourseUpsertPayload
+): Promise<{ success: boolean; data: AiCourseDetail }> => {
+    const res = await fetch(`${API_URL}/admin/ai-courses`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tạo khóa học');
+    return data as { success: boolean; data: AiCourseDetail };
+};
+
+/**
+ * PUT /admin/ai-courses/{id}
+ */
+export const updateAdminAiCourse = async (
+    sessionId: string,
+    id: number,
+    payload: Partial<AiCourseUpsertPayload> & { title?: string }
+): Promise<{ success: boolean; data: AiCourseDetail }> => {
+    const res = await fetch(`${API_URL}/admin/ai-courses/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể cập nhật khóa học');
+    return data as { success: boolean; data: AiCourseDetail };
+};
+
+/**
+ * DELETE /admin/ai-courses/{id}
+ */
+export const deleteAdminAiCourse = async (
+    sessionId: string,
+    id: number
+): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch(`${API_URL}/admin/ai-courses/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${sessionId}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể xóa khóa học');
+    return data as { success: boolean; message?: string };
+};
+
+/**
+ * POST /admin/ai-courses/upload-image — key form "image"
+ */
+export async function uploadAiCourseCoverImage(
+    file: File,
+    sessionId: string,
+): Promise<UploadImageResult> {
+    const fd = new FormData();
+    fd.append('image', file, file.name);
+
+    const res = await fetch(`${API_URL}/admin/ai-courses/upload-image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${sessionId}` },
+        body: fd,
+        cache: 'no-store',
+    });
+
+    const raw = await res.text();
+    if (!res.ok) throw new Error(`Upload failed (${res.status}): ${raw.slice(0, 200)}`);
+
+    let data: any;
+    try {
+        data = extractJson(raw);
+    } catch (e: any) {
+        throw new Error(e?.message || 'Upload response is not JSON');
+    }
+
+    if (!data?.success || !data?.filename) {
+        const msg = data?.message || data?.errors?.image?.[0] || 'Upload ảnh bìa thất bại';
+        throw new Error(msg);
+    }
+
+    const filename = String(data.filename);
+    const url = data.url || resolveApiAssetUrl(`/images/ai-courses/${filename}`);
+
+    return { filename, url };
+}
 
 /**
  * GET /admin/gifts/active - Admin xem trạng thái hiện tại

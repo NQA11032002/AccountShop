@@ -47,6 +47,7 @@ import {
   UserPlus,
   MessageSquare,
   FileText,
+  GraduationCap,
   Zap,
   Tag,
   Ticket,
@@ -235,6 +236,7 @@ import { deleteAdminUser } from '@/lib/api'; // Import hàm xóa người dùng 
 import { copyFile } from 'fs';
 import AdminGiftCampaignTab from "@/components/admin/AdminGiftCampaignTab";
 import AdminPromptManagerTab from "@/components/admin/AdminPromptManagerTab";
+import AdminCourseManagerTab from "@/components/admin/AdminCourseManagerTab";
 
 /** Tạm ẩn tab admin — xóa id khỏi set để hiện lại */
 const HIDDEN_ADMIN_TABS = new Set([
@@ -3154,7 +3156,7 @@ QAI Store - Tài khoản cao cấp uy tín #1
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Modern Floating Navigation */}
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 p-2">
-            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 bg-transparent gap-2 h-auto p-0">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 bg-transparent gap-2 h-auto p-0 !flex-none">
               {isAdminTabVisible('overview') && (
               <TabsTrigger
                 value="overview"
@@ -3317,6 +3319,17 @@ QAI Store - Tài khoản cao cấp uy tín #1
                 <Gift className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
                 <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
                   Quà tặng
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="course-manager"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-sky-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Khóa học
                 </span>
               </TabsTrigger>
 
@@ -6729,6 +6742,10 @@ QAI Store - Tài khoản cao cấp uy tín #1
 
           <TabsContent value="prompt-manager" className="mt-6">
             <AdminPromptManagerTab />
+          </TabsContent>
+
+          <TabsContent value="course-manager" className="mt-6">
+            <AdminCourseManagerTab />
           </TabsContent>
 
         </Tabs>

@@ -109,6 +109,7 @@ export default function Header() {
     { name: 'Hướng dẫn', href: '/how-to-buy' },
     { name: 'Quà tặng', href: '/qua-tang' },
     { name: 'Công cụ AI', href: '/cong-cu-ai' },
+    { name: 'Khóa học', href: '/lo-trinh-ai' },
     { name: 'Câu lệnh', href: '/prompt' },
     { name: 'Nhận mã', href: '/onetimecode' },
   ];
