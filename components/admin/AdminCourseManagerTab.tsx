@@ -9,6 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -67,11 +74,12 @@ type CourseFormState = {
   cover_image: string;
   level: string;
   duration: string;
-  content_outline: string;
   sort_order: number;
   is_active: boolean;
   lessons: LessonForm[];
 };
+
+const COURSE_LEVELS = ["Cơ bản", "Nâng cao"] as const;
 
 const emptyLesson = (sort = 0): LessonForm => ({
   title: "",
@@ -86,13 +94,18 @@ const emptyForm: CourseFormState = {
   title: "",
   description: "",
   cover_image: "",
-  level: "",
+  level: "Cơ bản",
   duration: "",
-  content_outline: "",
   sort_order: 0,
   is_active: true,
   lessons: [emptyLesson(0)],
 };
+
+function normalizeCourseLevel(level?: string | null): string {
+  const raw = (level ?? "").trim();
+  if (raw === "Nâng cao") return "Nâng cao";
+  return "Cơ bản";
+}
 
 function courseToForm(c: AiCourseSummary): CourseFormState {
   const lessons = (c.lessons ?? []).map((l: AiCourseLesson, i) => ({
@@ -108,9 +121,8 @@ function courseToForm(c: AiCourseSummary): CourseFormState {
     title: c.title,
     description: c.description ?? "",
     cover_image: c.cover_image ?? "",
-    level: c.level ?? "",
+    level: normalizeCourseLevel(c.level),
     duration: c.duration ?? "",
-    content_outline: c.content_outline ?? "",
     sort_order: c.sort_order ?? 0,
     is_active: c.is_active !== false,
     lessons: lessons.length > 0 ? lessons : [emptyLesson(0)],
@@ -296,9 +308,8 @@ export default function AdminCourseManagerTab() {
       title,
       description: form.description.trim() || null,
       cover_image: form.cover_image.trim() || null,
-      level: form.level.trim() || null,
+      level: normalizeCourseLevel(form.level),
       duration: form.duration.trim() || null,
-      content_outline: form.content_outline.trim() || null,
       sort_order: nextSortOrder,
       is_active: form.is_active,
       lessons,
@@ -503,12 +514,21 @@ export default function AdminCourseManagerTab() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="course-level">Cấp độ</Label>
-                <Input
-                  id="course-level"
-                  value={form.level}
-                  onChange={(e) => setForm((p) => ({ ...p, level: e.target.value }))}
-                  placeholder="Cơ bản / Trung cấp / Nâng cao"
-                />
+                <Select
+                  value={normalizeCourseLevel(form.level)}
+                  onValueChange={(value) => setForm((p) => ({ ...p, level: value }))}
+                >
+                  <SelectTrigger id="course-level">
+                    <SelectValue placeholder="Chọn cấp độ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COURSE_LEVELS.map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {level}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="course-duration">Thời gian hoàn thành</Label>
@@ -586,20 +606,6 @@ export default function AdminCourseManagerTab() {
                   onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                   rows={2}
                   placeholder="Giới thiệu ngắn về khóa học"
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="course-content">Nội dung khóa học</Label>
-                <Textarea
-                  id="course-content"
-                  value={form.content_outline}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, content_outline: e.target.value }))
-                  }
-                  rows={4}
-                  placeholder={
-                    "Mỗi dòng một mục, ví dụ:\n- Giới thiệu ChatGPT\n- Viết prompt hiệu quả"
-                  }
                 />
               </div>
             </div>
