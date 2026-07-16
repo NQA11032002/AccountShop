@@ -112,7 +112,7 @@ export default function AiGuideDetailPage() {
                 AI bạn chọn chưa có trang hướng dẫn hoặc đường dẫn không đúng.
               </p>
               <Button asChild className="mt-6">
-                <Link href="/how-to-buy">Quay lại danh sách AI</Link>
+                <Link href="/huong-dan">Quay lại danh sách AI</Link>
               </Button>
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function AiGuideDetailPage() {
         <section className="pb-20 pt-8">
           <div className="container-max section-padding">
             <Button asChild variant="ghost" className="-ml-2 mb-6 gap-2 text-brand-gray">
-              <Link href="/how-to-buy">
+              <Link href="/huong-dan">
                 <ArrowLeft className="h-4 w-4" />
                 Tất cả hướng dẫn AI
               </Link>
@@ -328,7 +328,7 @@ export default function AiGuideDetailPage() {
                   const relatedTool = getAiGuideTool(item);
 
                   return (
-                    <Link key={item.slug} href={`/how-to-buy/${item.slug}`} className="group">
+                    <Link key={item.slug} href={`/huong-dan/${item.slug}`} className="group">
                       <Card className="h-full rounded-3xl border-slate-200/80 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand-blue/25 hover:shadow-lg">
                         <CardContent className="p-6">
                           <div className="flex items-center gap-3">

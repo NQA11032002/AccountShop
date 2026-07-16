@@ -107,7 +107,7 @@ export default function HeroSection() {
                 size="lg"
                 className="w-full border-violet-200/90 bg-white px-6 py-3 text-base font-semibold text-violet-950 shadow-sm hover:bg-violet-50 sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
               >
-                <a href="/how-to-buy" className="flex items-center justify-center">
+                <a href="/huong-dan" className="flex items-center justify-center">
                   <Play className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
                   Hướng dẫn
                 </a>

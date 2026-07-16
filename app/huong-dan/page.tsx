@@ -109,7 +109,7 @@ export default function HowToBuyPage() {
                     const tool = getAiGuideTool(guide);
 
                     return (
-                      <Link key={guide.slug} href={`/how-to-buy/${guide.slug}`} className="group flex h-full">
+                      <Link key={guide.slug} href={`/huong-dan/${guide.slug}`} className="group flex h-full">
                         <Card className="flex h-full w-full flex-col overflow-hidden rounded-3xl border-slate-200/80 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand-blue/25 hover:shadow-xl">
                           <CardContent className="flex flex-1 flex-col p-0">
                             <div className="relative overflow-hidden bg-gradient-to-br from-white via-sky-50 to-violet-100 p-6">

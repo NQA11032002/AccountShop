@@ -42,6 +42,20 @@ const nextConfig = {
     "*.macaly-app.com",
     "*.macaly-user-data.dev",
   ],
+  async redirects() {
+    return [
+      {
+        source: "/how-to-buy",
+        destination: "/huong-dan",
+        permanent: true,
+      },
+      {
+        source: "/how-to-buy/:slug",
+        destination: "/huong-dan/:slug",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
