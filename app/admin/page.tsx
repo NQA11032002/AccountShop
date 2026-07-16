@@ -48,6 +48,7 @@ import {
   MessageSquare,
   FileText,
   GraduationCap,
+  BookOpen,
   Zap,
   Tag,
   Ticket,
@@ -237,6 +238,7 @@ import { copyFile } from 'fs';
 import AdminGiftCampaignTab from "@/components/admin/AdminGiftCampaignTab";
 import AdminPromptManagerTab from "@/components/admin/AdminPromptManagerTab";
 import AdminCourseManagerTab from "@/components/admin/AdminCourseManagerTab";
+import AdminAiGuideManagerTab from "@/components/admin/AdminAiGuideManagerTab";
 
 /** Tạm ẩn tab admin — xóa id khỏi set để hiện lại */
 const HIDDEN_ADMIN_TABS = new Set([
@@ -3330,6 +3332,17 @@ QAI Store - Tài khoản cao cấp uy tín #1
                 <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
                 <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
                   Khóa học
+                </span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="ai-guide-manager"
+                disabled={role != "admin"}
+                className="group flex flex-col items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 sm:hover:scale-105 data-[state=active]:bg-gradient-to-br data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-2xl hover:bg-gray-50 border-0 disabled:opacity-50"
+              >
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-semibold text-xs sm:text-sm text-center leading-tight group-data-[state=active]:drop-shadow-lg">
+                  Hướng dẫn AI
                 </span>
               </TabsTrigger>
 
@@ -6746,6 +6759,10 @@ QAI Store - Tài khoản cao cấp uy tín #1
 
           <TabsContent value="course-manager" className="mt-6">
             <AdminCourseManagerTab />
+          </TabsContent>
+
+          <TabsContent value="ai-guide-manager" className="mt-6">
+            <AdminAiGuideManagerTab />
           </TabsContent>
 
         </Tabs>

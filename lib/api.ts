@@ -12,6 +12,12 @@ import type {
     AiCourseLesson,
     AiCourseListResponse,
 } from '@/types/course.interface';
+import type {
+    AiGuideDetailResponse,
+    AiGuideListResponse,
+    AiGuideSummary,
+    AiGuideUpsertPayload,
+} from '@/types/ai-guide.interface';
 
 /** Base URL API (không có slash cuối). Ví dụ: http://localhost:8000/api */
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
@@ -1056,6 +1062,140 @@ export async function uploadAiCourseCoverImage(
 
     const filename = String(data.filename);
     const url = data.url || resolveApiAssetUrl(`/images/ai-courses/${filename}`);
+
+    return { filename, url };
+}
+
+/**
+ * GET /ai-guides — danh sách hướng dẫn AI đang active
+ */
+export const fetchAiGuides = async (): Promise<AiGuideListResponse> => {
+    const res = await fetch(`${API_URL}/ai-guides`, { cache: 'no-store' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tải hướng dẫn AI');
+    return data as AiGuideListResponse;
+};
+
+/**
+ * GET /ai-guides/{slug} — chi tiết hướng dẫn AI
+ */
+export const fetchAiGuideBySlug = async (slug: string): Promise<AiGuideDetailResponse> => {
+    const res = await fetch(`${API_URL}/ai-guides/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tải hướng dẫn AI');
+    return data as AiGuideDetailResponse;
+};
+
+/**
+ * GET /admin/ai-guides
+ */
+export const fetchAdminAiGuides = async (sessionId: string): Promise<AiGuideListResponse> => {
+    const res = await fetch(`${API_URL}/admin/ai-guides`, {
+        headers: { Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tải danh sách hướng dẫn');
+    return data as AiGuideListResponse;
+};
+
+/**
+ * POST /admin/ai-guides
+ */
+export const createAdminAiGuide = async (
+    sessionId: string,
+    payload: AiGuideUpsertPayload
+): Promise<{ success: boolean; data: AiGuideSummary }> => {
+    const res = await fetch(`${API_URL}/admin/ai-guides`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể tạo hướng dẫn');
+    return data as { success: boolean; data: AiGuideSummary };
+};
+
+/**
+ * PUT /admin/ai-guides/{id}
+ */
+export const updateAdminAiGuide = async (
+    sessionId: string,
+    id: number,
+    payload: Partial<AiGuideUpsertPayload> & { name?: string; tool_id?: string }
+): Promise<{ success: boolean; data: AiGuideSummary }> => {
+    const res = await fetch(`${API_URL}/admin/ai-guides/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        const err = data as { message?: string; errors?: Record<string, string[]> };
+        const firstFieldError = err.errors
+            ? Object.values(err.errors).flat().find(Boolean)
+            : undefined;
+        throw new Error(firstFieldError || err.message || 'Không thể cập nhật hướng dẫn');
+    }
+    return data as { success: boolean; data: AiGuideSummary };
+};
+
+/**
+ * DELETE /admin/ai-guides/{id}
+ */
+export const deleteAdminAiGuide = async (
+    sessionId: string,
+    id: number
+): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch(`${API_URL}/admin/ai-guides/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${sessionId}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { message?: string })?.message || 'Không thể xóa hướng dẫn');
+    return data as { success: boolean; message?: string };
+};
+
+/**
+ * POST /admin/ai-guides/upload-image — key form "image"
+ */
+export async function uploadAiGuideFeatureImage(
+    file: File,
+    sessionId: string,
+): Promise<UploadImageResult> {
+    const fd = new FormData();
+    fd.append('image', file, file.name);
+
+    const res = await fetch(`${API_URL}/admin/ai-guides/upload-image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${sessionId}` },
+        body: fd,
+        cache: 'no-store',
+    });
+
+    const raw = await res.text();
+    if (!res.ok) throw new Error(`Upload failed (${res.status}): ${raw.slice(0, 200)}`);
+
+    let data: any;
+    try {
+        data = extractJson(raw);
+    } catch (e: any) {
+        throw new Error(e?.message || 'Upload response is not JSON');
+    }
+
+    if (!data?.success || !data?.filename) {
+        const msg = data?.message || data?.errors?.image?.[0] || 'Upload ảnh thất bại';
+        throw new Error(msg);
+    }
+
+    const filename = String(data.filename);
+    const url = data.url || resolveApiAssetUrl(`/images/ai-guides/${filename}`);
 
     return { filename, url };
 }
