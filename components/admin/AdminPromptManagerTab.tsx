@@ -24,6 +24,7 @@ import {
   deleteAdminPrompt,
   fetchAdminPrompts,
   importMeigenImagePrompts,
+  importMeigenVideoPrompts,
   updateAdminPrompt,
   uploadPromptSampleImage,
 } from "@/lib/api";
@@ -89,10 +90,12 @@ export default function AdminPromptManagerTab() {
   const [kindFilter, setKindFilter] = useState<"all" | "text" | "image" | "video">("all");
   const [imageUploading, setImageUploading] = useState(false);
   const [meigenImporting, setMeigenImporting] = useState(false);
+  const [meigenVideoImporting, setMeigenVideoImporting] = useState(false);
   const [meigenOffset, setMeigenOffset] = useState(0);
   const [meigenLimit, setMeigenLimit] = useState(100);
   const [meigenSyncMessage, setMeigenSyncMessage] = useState<string | null>(null);
   const promptImageInputRef = useRef<HTMLInputElement>(null);
+  const meigenVideoInputRef = useRef<HTMLInputElement>(null);
 
   /** `silent`: cập nhật danh sách sau thêm/sửa/xóa mà không ẩn bảng (tránh nhảy scroll / cảm giác reload trang). */
   const loadPrompts = async (options?: { silent?: boolean }) => {
@@ -344,6 +347,55 @@ export default function AdminPromptManagerTab() {
     }
   };
 
+  const onImportMeigenVideos = async (file?: File) => {
+    if (!file || !sessionId || meigenVideoImporting) return;
+
+    setMeigenVideoImporting(true);
+    setMeigenSyncMessage(null);
+    try {
+      if (file.size > 8 * 1024 * 1024) {
+        throw new Error("File JSON video không được vượt quá 8MB.");
+      }
+      const fileText = (await file.text()).replace(/^\uFEFF/, "").trim();
+      const parsed: unknown = JSON.parse(fileText);
+      let videos: Record<string, unknown>[] | null = null;
+      if (Array.isArray(parsed)) {
+        videos = parsed as Record<string, unknown>[];
+      } else if (parsed && typeof parsed === "object") {
+        const payload = parsed as { videos?: unknown; data?: unknown };
+        const candidate = Array.isArray(payload.videos) ? payload.videos : payload.data;
+        if (Array.isArray(candidate)) videos = candidate as Record<string, unknown>[];
+      }
+
+      if (!videos?.length) {
+        throw new Error("File không có danh sách video hợp lệ.");
+      }
+
+      const res = await importMeigenVideoPrompts(sessionId, videos);
+      await loadPrompts({ silent: true });
+      setKindFilter("video");
+      setCategoryFilter("Meigen Video");
+
+      const { imported, skipped, failed, total_received } = res.data;
+      const resultText = `Thêm ${imported} · Bỏ qua ${skipped} · Lỗi ${failed} · Nhận ${total_received} video.`;
+      setMeigenSyncMessage(resultText);
+      toast({
+        title: imported > 0 ? `Thêm thành công ${imported} prompt video` : "Nhập video xong",
+        description: res.message ?? resultText,
+      });
+    } catch (err: any) {
+      setMeigenSyncMessage(null);
+      toast({
+        title: "Nhập video thất bại",
+        description: err?.message || "File JSON không hợp lệ.",
+        variant: "destructive",
+      });
+    } finally {
+      setMeigenVideoImporting(false);
+      if (meigenVideoInputRef.current) meigenVideoInputRef.current.value = "";
+    }
+  };
+
   if (!user || user.role !== "admin") {
     return <div className="text-gray-600">Bạn không có quyền truy cập.</div>;
   }
@@ -370,8 +422,8 @@ export default function AdminPromptManagerTab() {
             Đồng bộ Meigen.ai
           </CardTitle>
           <p className="text-sm text-gray-600">
-            Đồng bộ từ bộ prompt công khai của Meigen.ai theo <strong>offset</strong> / <strong>limit</strong>. Lưu{" "}
-            <strong>IDmei</strong>, image, title, prompt — bỏ qua nếu <strong>IDmei</strong> đã có trong database. Dữ liệu: CC BY 4.0.
+            Ảnh: đồng bộ từ bộ prompt công khai theo <strong>offset</strong> / <strong>limit</strong>. Video: chọn file JSON
+            trả về từ API videos. Hệ thống lưu <strong>IDmei</strong>, prompt, video, poster và tự bỏ qua ID trùng.
           </p>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
@@ -405,7 +457,24 @@ export default function AdminPromptManagerTab() {
             disabled={meigenImporting || !sessionId}
             onClick={onSyncMeigen}
           >
-            {meigenImporting ? "Đang đồng bộ..." : "Đồng bộ Meigen.ai"}
+            {meigenImporting ? "Đang đồng bộ..." : "Đồng bộ prompt ảnh"}
+          </Button>
+          <input
+            ref={meigenVideoInputRef}
+            type="file"
+            accept=".json,.txt,application/json,text/plain"
+            className="hidden"
+            onChange={(event) => void onImportMeigenVideos(event.target.files?.[0])}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="shrink-0"
+            disabled={meigenVideoImporting || !sessionId}
+            onClick={() => meigenVideoInputRef.current?.click()}
+          >
+            <Video className="mr-2 h-4 w-4" />
+            {meigenVideoImporting ? "Đang nhập video..." : "Nhập JSON video"}
           </Button>
           </div>
           {meigenSyncMessage && (

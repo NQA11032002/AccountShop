@@ -833,6 +833,50 @@ export const importMeigenImagePrompts = async (
     };
 };
 
+/** Nhập batch JSON prompt video do Meigen.ai trả về. */
+export const importMeigenVideoPrompts = async (
+    sessionId: string,
+    videos: Record<string, unknown>[],
+    category: string = 'Meigen Video'
+): Promise<{
+    success: boolean;
+    message?: string;
+    data: {
+        imported: number;
+        skipped: number;
+        failed: number;
+        total_received: number;
+        category: string;
+        errors: string[];
+    };
+}> => {
+    const res = await fetch(`${API_URL}/admin/prompts/import-meigen-videos`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify({ videos, category }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error((data as { message?: string })?.message || 'Không thể nhập prompt video Meigen.ai');
+    }
+
+    return data as {
+        success: boolean;
+        message?: string;
+        data: {
+            imported: number;
+            skipped: number;
+            failed: number;
+            total_received: number;
+            category: string;
+            errors: string[];
+        };
+    };
+};
+
 /**
  * POST /admin/prompts - tạo prompt mới
  */
