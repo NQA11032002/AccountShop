@@ -6,9 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { userOnetimecode, Onetimecode } from '@/types/Onetimecode';
-import { updateOnetimecode, getListOnetimecodes, insertOnetimecode } from '@/lib/api'; // Import hàm updateUser
+import { getListOnetimecodes } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface EditCodeDialogProps {
@@ -42,26 +41,26 @@ export function EditCodeDialog({ code, open, onOpenChange, onSave }: EditCodeDia
 
     const [formData, setFormData] = useState<userOnetimecode>(code || defaultUserOnetimecode);
     const [onetimecodes, setOnetimecode] = useState<Onetimecode[]>([]);;
+    const [onetimecodeEmail, setOnetimecodeEmail] = useState('');
 
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
-
-    const [searchTerm, setSearchTerm] = useState("");
-    const [editingCode, setEditingCode] = useState<userOnetimecode | null>(null);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const { sessionId, role } = useAuth(); // ví dụ
+    const { sessionId } = useAuth();
 
 
     // Reset form data when user prop changes or dialog opens
     useEffect(() => {
         if (open) {
+            setError('');
             if (code) {
                 setFormData({
                     ...code,
                     status: code.status == '1' || code.status === '1' ? '1' : '0', // 👈 chuẩn hoá
                 } as userOnetimecode);
+                setOnetimecodeEmail(code.onetimecode?.email ?? '');
             } else {
                 setFormData(defaultUserOnetimecode);
+                setOnetimecodeEmail('');
             }
             loadOnetimecode();
         }
@@ -96,8 +95,29 @@ export function EditCodeDialog({ code, open, onOpenChange, onSave }: EditCodeDia
             return;
         }
 
+        const normalizedEmail = onetimecodeEmail.trim().toLowerCase();
+        const selectedOnetimecode = onetimecodes.find(
+            (item) => item.email.trim().toLowerCase() === normalizedEmail
+        );
+
+        if (!normalizedEmail) {
+            setError("Vui lòng nhập email One-time code.");
+            setLoading(false);
+            return;
+        }
+
+        if (!selectedOnetimecode) {
+            setError("Email One-time code không tồn tại trong danh sách 2FA.");
+            setLoading(false);
+            return;
+        }
+
         try {
-            onSave(formData);
+            onSave({
+                ...formData,
+                id_onetimecode: selectedOnetimecode.id,
+                onetimecode: selectedOnetimecode,
+            });
             onOpenChange(false);
         } catch (err: any) {
             setError(err.message);
@@ -149,37 +169,25 @@ export function EditCodeDialog({ code, open, onOpenChange, onSave }: EditCodeDia
                     </div>
 
 
-                    {/* Rank */}
-                    {/* One-time code (từ API) */}
+                    {/* Email One-time code */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">One-time code</Label>
-                        <Select
-                            value={formData.id_onetimecode ? String(formData.id_onetimecode) : ""}
-                            onValueChange={(value) => {
-                                const selected = onetimecodes.find((x) => String(x.id) === value);
-                                setFormData((prev) => ({
-                                    ...prev,
-                                    id_onetimecode: selected ? selected.id : 0,
-                                    onetimecode: selected ?? prev.onetimecode, // cập nhật object lồng bên trong
-                                }));
+                        <Label htmlFor="onetimecode-email" className="text-right">One-time code</Label>
+                        <Input
+                            id="onetimecode-email"
+                            type="email"
+                            value={onetimecodeEmail}
+                            onChange={(event) => {
+                                setOnetimecodeEmail(event.target.value);
+                                setError('');
                             }}
-                            disabled={loading || !!error}
-                        >
-                            <SelectTrigger className="col-span-3">
-                                <SelectValue
-                                    placeholder={
-                                        loading ? "Đang tải..." : (onetimecodes.length ? "Chọn onetimecode" : "Không có onetimecode")
-                                    }
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {onetimecodes.map((otc) => (
-                                    <SelectItem key={otc.id} value={String(otc.id)}>
-                                        {otc.email}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            disabled={loading}
+                            className="col-span-3"
+                            placeholder={loading ? "Đang tải..." : "Nhập email One-time code"}
+                            autoComplete="off"
+                        />
+                        {error && (
+                            <p className="col-start-2 col-span-3 text-sm text-red-600">{error}</p>
+                        )}
                     </div>
 
 
