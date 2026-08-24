@@ -317,14 +317,15 @@ export default function AdminPromptManagerTab() {
       setKindFilter("image");
       setCategoryFilter("Meigen AI");
 
-      const { imported, skipped, total_fetched } = res.data;
+      const { imported, skipped, total_fetched, total_available } = res.data;
+      const availableCount = total_available ?? total_fetched;
       const successText =
         imported > 0
           ? `Thêm thành công ${imported} prompt vào database.`
           : "Không có prompt mới được thêm (có thể trùng IDmei hoặc thiếu dữ liệu).";
 
       setMeigenSyncMessage(
-        `${successText} Bỏ qua ${skipped} · Lấy ${total_fetched} mục từ API (offset ${res.data.offset}, limit ${res.data.limit}).`
+        `${successText} Bỏ qua ${skipped} · Lấy ${total_fetched}/${availableCount} mục (offset ${res.data.offset}, limit ${res.data.limit}).`
       );
 
       toast({
@@ -369,8 +370,8 @@ export default function AdminPromptManagerTab() {
             Đồng bộ Meigen.ai
           </CardTitle>
           <p className="text-sm text-gray-600">
-            Gọi Meigen.ai theo <strong>offset</strong> / <strong>limit</strong> bạn chọn. Lưu{" "}
-            <strong>IDmei</strong>, image, title, prompt — bỏ qua nếu <strong>IDmei</strong> đã có trong database.
+            Đồng bộ từ bộ prompt công khai của Meigen.ai theo <strong>offset</strong> / <strong>limit</strong>. Lưu{" "}
+            <strong>IDmei</strong>, image, title, prompt — bỏ qua nếu <strong>IDmei</strong> đã có trong database. Dữ liệu: CC BY 4.0.
           </p>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
@@ -829,4 +830,3 @@ export default function AdminPromptManagerTab() {
     </div>
   );
 }
-

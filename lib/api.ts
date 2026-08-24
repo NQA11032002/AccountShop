@@ -795,10 +795,12 @@ export const importMeigenImagePrompts = async (
         skipped: number;
         failed: number;
         total_fetched: number;
+        total_available?: number;
         has_more: boolean;
         offset: number;
         limit: number;
         category: string;
+        source?: string;
         errors: string[];
     };
 }> => {
@@ -820,10 +822,12 @@ export const importMeigenImagePrompts = async (
             skipped: number;
             failed: number;
             total_fetched: number;
+            total_available?: number;
             has_more: boolean;
             offset: number;
             limit: number;
             category: string;
+            source?: string;
             errors: string[];
         };
     };

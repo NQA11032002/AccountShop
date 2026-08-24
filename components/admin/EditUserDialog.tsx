@@ -143,68 +143,6 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
             />
           </div>
 
-          {/* Points */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="points" className="text-right">Points</Label>
-            <Input
-              id="points"
-              type="number"
-              value={formData.points}
-              onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) })}
-              className="col-span-3"
-              placeholder="500"
-            />
-          </div>
-
-          {/* Coins */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="coins" className="text-right">Coins</Label>
-            <Input
-              id="coins"
-              type="number"
-              value={formData.coins}
-              onChange={(e) => setFormData({ ...formData, coins: parseInt(e.target.value) })}
-              className="col-span-3"
-              placeholder="500"
-            />
-          </div>
-
-          {/* Rank */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Rank</Label>
-            <Select
-              value={formData.rank}
-              onValueChange={(value: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Elite') =>
-                setFormData({ ...formData, rank: value })
-              }
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Bronze">Bronze</SelectItem>
-                <SelectItem value="Silver">Silver</SelectItem>
-                <SelectItem value="Gold">Gold</SelectItem>
-                <SelectItem value="Platinum">Platinum</SelectItem>
-                <SelectItem value="Diamond">Diamond</SelectItem>
-                <SelectItem value="Elite">Elite</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Phone */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="phone" className="text-right">Phone - Zalo</Label>
-            <Input
-              id="phone"
-              type="text"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="col-span-3"
-              placeholder="0389*******"
-            />
-          </div>
-
           {/* Status */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Trạng thái</Label>
@@ -245,27 +183,6 @@ export function EditUserDialog({ user, open, onOpenChange, onSave }: EditUserDia
             </Select>
           </div>
 
-          {/* Total Orders */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="totalOrders">Tổng đơn hàng</Label>
-              <Input
-                id="totalOrders"
-                type="number"
-                value={formData.totalOrders}
-                onChange={(e) => setFormData({ ...formData, totalOrders: parseInt(e.target.value) || 0 })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="totalSpent">Tổng chi tiêu (VNĐ)</Label>
-              <Input
-                id="totalSpent"
-                type="number"
-                value={formData.totalSpent}
-                onChange={(e) => setFormData({ ...formData, totalSpent: parseInt(e.target.value) || 0 })}
-              />
-            </div>
-          </div>
         </div>
 
         <DialogFooter>
