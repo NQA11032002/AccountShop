@@ -243,7 +243,6 @@ import AdminAiGuideManagerTab from "@/components/admin/AdminAiGuideManagerTab";
 /** Tạm ẩn tab admin — xóa id khỏi set để hiện lại */
 const HIDDEN_ADMIN_TABS = new Set([
   'overview',
-  'users',
   'inventory-accounts',
   'account-warehouse',
   'orders',
