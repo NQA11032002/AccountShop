@@ -128,7 +128,7 @@ export default function AiGuideDetailPage() {
     <PageShell>
       <Header />
 
-      <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
+      <main className="relative z-10 min-w-0 overflow-x-clip bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
         <section className="pb-20 pt-8">
           <div className="container-max section-padding">
             <Button asChild variant="ghost" className="-ml-2 mb-6 gap-2 text-brand-gray">
@@ -138,9 +138,9 @@ export default function AiGuideDetailPage() {
               </Link>
             </Button>
 
-            <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-              <SectionReveal delayMs={80}>
-                <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="grid min-w-0 max-w-full gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
+              <SectionReveal delayMs={80} className="min-w-0 max-w-full">
+                <aside className="min-w-0 max-w-full lg:sticky lg:top-24 lg:self-start">
                   <Card className="rounded-3xl border-slate-200/80 bg-white/90 shadow-sm">
                     <CardContent className="p-4">
                       <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-brand-charcoal">
@@ -157,7 +157,7 @@ export default function AiGuideDetailPage() {
                               type="button"
                               onClick={() => setActiveFeatureId(feature.id)}
                               className={cn(
-                                "w-full rounded-2xl border px-3 py-3 text-left transition-all",
+                                "w-full min-w-0 max-w-full rounded-2xl border px-3 py-3 text-left transition-all",
                                 active
                                   ? "border-brand-blue/20 bg-brand-blue/10 shadow-sm"
                                   : "border-slate-200 bg-white hover:border-brand-blue/20 hover:bg-slate-50"
@@ -175,8 +175,10 @@ export default function AiGuideDetailPage() {
                                   {index + 1}
                                 </span>
                                 <div className="min-w-0">
-                                  <p className="font-semibold text-brand-charcoal">{feature.title}</p>
-                                  <p className="mt-1 text-xs leading-relaxed text-brand-gray/70">
+                                  <p className="break-words font-semibold text-brand-charcoal [overflow-wrap:anywhere]">
+                                    {feature.title}
+                                  </p>
+                                  <p className="mt-1 break-words text-xs leading-relaxed text-brand-gray/70 [overflow-wrap:anywhere]">
                                     {feature.summary}
                                   </p>
                                 </div>
@@ -190,17 +192,17 @@ export default function AiGuideDetailPage() {
                 </aside>
               </SectionReveal>
 
-              <SectionReveal delayMs={120}>
-                <div className="min-w-0 space-y-6">
+              <SectionReveal delayMs={120} className="min-w-0 max-w-full">
+                <div className="min-w-0 max-w-full space-y-6">
                   {activeFeature ? (
                     <>
-                      <Card className="rounded-3xl border-slate-200/80 bg-white/95 shadow-sm">
+                      <Card className="min-w-0 max-w-full rounded-3xl border-slate-200/80 bg-white/95 shadow-sm">
                         <CardContent className="p-6 sm:p-8">
                           <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-brand-gray/50">
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             Chi tiết tính năng
                           </div>
-                          <h2 className="text-2xl font-bold text-brand-charcoal sm:text-3xl">
+                          <h2 className="break-words text-2xl font-bold text-brand-charcoal [overflow-wrap:anywhere] sm:text-3xl">
                             {activeFeature.title}
                           </h2>
                           <RichText
@@ -214,9 +216,11 @@ export default function AiGuideDetailPage() {
                             </p>
                             <ul className="space-y-3">
                               {activeFeature.bullets.map((item) => (
-                                <li key={item} className="flex gap-3 text-sm text-brand-gray/80">
-                                  <span className="mt-1 h-2 w-2 rounded-full bg-brand-emerald" />
-                                  <span>{item}</span>
+                                <li key={item} className="flex min-w-0 gap-3 text-sm text-brand-gray/80">
+                                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand-emerald" />
+                                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+                                    {item}
+                                  </span>
                                 </li>
                               ))}
                             </ul>
@@ -224,7 +228,7 @@ export default function AiGuideDetailPage() {
                         </CardContent>
                       </Card>
 
-                      <Card className="overflow-hidden rounded-3xl border-slate-200/80 bg-white/95 shadow-sm">
+                      <Card className="min-w-0 max-w-full overflow-hidden rounded-3xl border-slate-200/80 bg-white/95 shadow-sm">
                         <CardContent className="p-6 sm:p-8">
                           <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-brand-gray/50">
                             <ImageIcon className="h-3.5 w-3.5" />
@@ -232,11 +236,11 @@ export default function AiGuideDetailPage() {
                           </div>
 
                           {(activeFeature.imageUrls?.length ?? 0) > 0 ? (
-                            <div className="space-y-4">
+                            <div className="min-w-0 max-w-full space-y-4">
                               {(activeFeature.imageUrls ?? []).map((url, index) => (
                                 <div
                                   key={`${url}-${index}`}
-                                  className="overflow-hidden rounded-3xl border border-slate-200"
+                                  className="max-w-full overflow-hidden rounded-3xl border border-slate-200"
                                 >
                                   <img
                                     src={resolveApiAssetUrl(url)}
@@ -244,19 +248,19 @@ export default function AiGuideDetailPage() {
                                       activeFeature.imageTitle ||
                                       `${activeFeature.title} — ảnh ${index + 1}`
                                     }
-                                    className="max-h-[420px] w-full object-cover"
+                                    className="block h-auto max-h-[420px] w-full max-w-full object-cover"
                                   />
                                 </div>
                               ))}
                               {(activeFeature.imageTitle || activeFeature.imageCaption) && (
                                 <div className="rounded-2xl border border-slate-200 bg-white p-5">
                                   {activeFeature.imageTitle ? (
-                                    <h3 className="text-lg font-bold text-brand-charcoal">
+                                    <h3 className="break-words text-lg font-bold text-brand-charcoal [overflow-wrap:anywhere]">
                                       {activeFeature.imageTitle}
                                     </h3>
                                   ) : null}
                                   {activeFeature.imageCaption ? (
-                                    <p className="mt-2 text-sm leading-relaxed text-brand-gray/75">
+                                    <p className="mt-2 break-words text-sm leading-relaxed text-brand-gray/75 [overflow-wrap:anywhere]">
                                       {activeFeature.imageCaption}
                                     </p>
                                   ) : null}
@@ -274,11 +278,11 @@ export default function AiGuideDetailPage() {
                                   />
                                 </div>
 
-                                <div className="p-6 sm:p-8">
-                                  <h3 className="text-xl font-bold text-brand-charcoal">
+                                <div className="min-w-0 p-6 sm:p-8">
+                                  <h3 className="break-words text-xl font-bold text-brand-charcoal [overflow-wrap:anywhere]">
                                     {activeFeature.imageTitle}
                                   </h3>
-                                  <p className="mt-2 text-sm leading-relaxed text-brand-gray/75">
+                                  <p className="mt-2 break-words text-sm leading-relaxed text-brand-gray/75 [overflow-wrap:anywhere]">
                                     {activeFeature.imageCaption}
                                   </p>
 
@@ -286,12 +290,12 @@ export default function AiGuideDetailPage() {
                                     {activeFeature.bullets.map((item, index) => (
                                       <div
                                         key={item}
-                                        className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"
+                                        className="min-w-0 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"
                                       >
                                         <div className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-brand-blue text-xs font-bold text-white">
                                           {index + 1}
                                         </div>
-                                        <p className="text-sm leading-relaxed text-brand-gray/80">
+                                        <p className="break-words text-sm leading-relaxed text-brand-gray/80 [overflow-wrap:anywhere]">
                                           {item}
                                         </p>
                                       </div>

@@ -45,6 +45,13 @@ type RichTextProps = {
 
 export function RichText({ text, className, as: Tag = "p" }: RichTextProps) {
   return (
-    <Tag className={cn("whitespace-pre-line", className)}>{formatRichTextToNodes(text)}</Tag>
+    <Tag
+      className={cn(
+        "min-w-0 max-w-full whitespace-pre-line break-words [overflow-wrap:anywhere]",
+        className
+      )}
+    >
+      {formatRichTextToNodes(text)}
+    </Tag>
   );
 }
