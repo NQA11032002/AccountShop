@@ -169,6 +169,7 @@ import { Product } from '@/types/product.interface';
 import { deleteOrder } from '@/lib/api';
 import { sendOrderEmail, getOnetimecodes, getListAccounts, deleteAccount, sendCustomerAccountRenewalEmail, importCustomerAccounts } from '@/lib/api';
 import { Onetimecode, userOnetimecode } from '@/types/Onetimecode';
+import IpAccessLocations from '@/components/admin/IpAccessLocations';
 import * as XLSX from "xlsx";
 import { CustomerAccount } from '@/types/CustomerAccount';
 import { createAccount, updateAccount } from '@/lib/api';
@@ -6628,7 +6629,7 @@ QAI Store - Tài khoản cao cấp uy tín #1
                       <TableHead>Email GPT</TableHead>
                       <TableHead>EMail User</TableHead>
                       <TableHead>Tên người dùng </TableHead>
-                      <TableHead>IP Truy cập</TableHead>
+                      <TableHead>IP / Vị trí lấy code</TableHead>
                       <TableHead>Số lần lấy</TableHead>
                       <TableHead>Ngày</TableHead>
                       <TableHead>Trạng thái</TableHead>
@@ -6648,7 +6649,9 @@ QAI Store - Tài khoản cao cấp uy tín #1
                         <TableCell>{code.onetimecode?.email}</TableCell>
                         <TableCell>{code.email}</TableCell>
                         <TableCell>{code.name}</TableCell>
-                        <TableCell className="max-w-[150px] break-words">{code.ip}</TableCell>
+                        <TableCell className="align-top">
+                          <IpAccessLocations rawIp={code.ip} details={code.ip_details} />
+                        </TableCell>
                         <TableCell >{code.count_logined}</TableCell>
                         <TableCell >{code.date_logined}</TableCell>
                         <TableCell>

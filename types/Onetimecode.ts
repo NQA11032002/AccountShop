@@ -9,6 +9,16 @@ export interface userOnetimecode {
     current_date_login: string;
     status: string;
     onetimecode: Onetimecode;
+    ip_details?: IpLocation[];
+}
+
+export interface IpLocation {
+    ip: string;
+    city: string | null;
+    region: string | null;
+    country: string | null;
+    country_code: string | null;
+    location: string | null;
 }
 
 export interface Onetimecode {
