@@ -4552,48 +4552,26 @@ QAI Store - Tài khoản cao cấp uy tín #1
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
+                      <TableHead>STT</TableHead>
                       <TableHead>Người dùng</TableHead>
                       <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Hạng</TableHead>
                       <TableHead>Ngày tham gia</TableHead>
-                      <TableHead>Đơn hàng</TableHead>
-                      <TableHead>Tổng chi tiêu</TableHead>
-                      <TableHead>Points</TableHead>
-                      <TableHead className="text-center">
-                        <span className="font-semibold text-gray-700">Coins</span>
-                      </TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead>Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => (
+                    {users.map((user, index) => (
 
                       <TableRow key={user.id}>
-                        <TableCell>{user.id}</TableCell>
+                        <TableCell>{(currentPageMetaUser - 1) * perPageMetaUser + index + 1}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <span className="font-medium">{user.name}</span>
                           </div>
                         </TableCell>
                         <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.phone}</TableCell>
-                        <TableCell>{user.rank}</TableCell>
                         <TableCell>{user.joinDate}</TableCell>
-                        <TableCell>{(user.totalOrders ?? 0)}</TableCell>
-                        <TableCell>{(user.totalSpent ?? 0).toLocaleString('vi-VN')}đ</TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-semibold text-gray-800">
-                            {(user.points || 0)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-semibold text-gray-800">
-                            {(user.coins || 0).toLocaleString('vi-VN')}đ
-                          </span>
-                        </TableCell>
                         <TableCell>{getStatusBadge(user.status, 'user')}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
