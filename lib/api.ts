@@ -2064,7 +2064,8 @@ export async function getOnetimecodes(
     sessionId: string | number,
     page: number,
     perPage: number,
-    q?: string
+    q?: string,
+    status?: 'all' | '0' | '1'
 ) {
     const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/admin/onetimecodes`;
 
@@ -2075,6 +2076,7 @@ export async function getOnetimecodes(
 
     const keyword = q?.trim();
     if (keyword) params.set("q", keyword); // ✅ gửi q lên backend khi có search
+    if (status && status !== 'all') params.set("status", status);
 
     const res = await fetch(`${baseUrl}?${params.toString()}`, {
         method: "GET",

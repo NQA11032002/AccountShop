@@ -998,6 +998,7 @@ QAI Store - Tài khoản cao cấp uy tín #1
   const [perPageOnetimecode] = useState(10);
   const [metaOnetimecode, setMetaOnetimecode] = useState<any>(null);
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+  const [onetimecodeStatusFilter, setOnetimecodeStatusFilter] = useState<'all' | '1' | '0'>('all');
   const [loadingOnetimecode, setLoadingOnetimecode] = useState(false);
   const [errorOnetimecode, setErrorOnetimecode] = useState<string | null>(null);
 
@@ -1008,11 +1009,11 @@ QAI Store - Tài khoản cao cấp uy tín #1
 
   useEffect(() => {
     loadOnetimecode();
-  }, [sessionId, currentPageOnetimecode, perPageOnetimecode, debouncedSearch]);
+  }, [sessionId, currentPageOnetimecode, perPageOnetimecode, debouncedSearch, onetimecodeStatusFilter]);
 
   useEffect(() => {
     setCurrentPageOnetimecode(1);
-  }, [searchTerm]);
+  }, [searchTerm, onetimecodeStatusFilter]);
 
   const loadOnetimecode = async () => {
     if (!sessionId) return;
@@ -1021,7 +1022,8 @@ QAI Store - Tài khoản cao cấp uy tín #1
       sessionId,
       currentPageOnetimecode,
       perPageOnetimecode,
-      debouncedSearch
+      debouncedSearch,
+      onetimecodeStatusFilter
     );
 
     // backend trả { data: [...], meta: {...} }
@@ -6573,6 +6575,20 @@ QAI Store - Tài khoản cao cấp uy tín #1
                         className="w-full pl-10"
                       />
                     </div>
+
+                    <Select
+                      value={onetimecodeStatusFilter}
+                      onValueChange={(value: 'all' | '1' | '0') => setOnetimecodeStatusFilter(value)}
+                    >
+                      <SelectTrigger className="w-full lg:w-44">
+                        <SelectValue placeholder="Lọc trạng thái" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                        <SelectItem value="1">Hoạt động</SelectItem>
+                        <SelectItem value="0">Tạm dừng</SelectItem>
+                      </SelectContent>
+                    </Select>
 
                     {/* Buttons */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:flex lg:flex-wrap lg:gap-2">
