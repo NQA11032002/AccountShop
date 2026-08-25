@@ -17,17 +17,6 @@ export default function ZaloButton() {
                 <Image src="/images/contact/zalo.png" alt="Zalo" width={35} height={35} />
             </Link>
 
-            {/* Facebook */}
-            <Link
-                href="https://www.facebook.com/qaistorethegioiai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-12 w-12 items-center justify-center rounded-full z-[10000] bg-white shadow-lg 
-                  animate-bounce"
-            >
-                <Image src="/images/contact/facebook.png" alt="Facebook" width={35} height={35} />
-            </Link>
-
             <Link
                 href="https://wa.me/+84389660305" // số điện thoại VN: bỏ số 0, thêm +84
                 target="_blank"
@@ -36,22 +25,6 @@ export default function ZaloButton() {
                    animate-bounce"
             >
                 <Image src="/images/contact/whatapp.png" alt="WhatsApp" width={35} height={35} />
-            </Link>
-
-            {/* Telegram */}
-            <Link
-                href="https://t.me/storeqai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-12 w-12 items-center justify-center rounded-full z-[10000] bg-[#229ED9] shadow-lg
-             transition-transform hover:scale-110 hover:-rotate-6 animate-bounce"
-            >
-                <Image
-                    src="/images/contact/telegram.png"
-                    alt="Telegram"
-                    width={60}
-                    height={60}
-                />
             </Link>
 
         </div>

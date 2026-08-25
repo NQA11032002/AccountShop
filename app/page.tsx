@@ -3,10 +3,12 @@ import HeroSection from '@/components/HeroSection';
 import FeaturedCategories from '@/components/FeaturedCategories';
 import DiscountedProductsSlider from '@/components/DiscountedProductsSlider';
 import TopProducts from '@/components/TopProducts';
+import HomeAiToolsSection from '@/components/HomeAiToolsSection';
 import HomeBestSellerSection from '@/components/HomeBestSellerSection';
 import WhyChooseUs from '@/components/WhyChooseUs';
 import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
+import OtherWebsites from '@/components/OtherWebsites';
 import Footer from '@/components/Footer';
 import RandomPurchaseNotification from '@/components/RandomPurchaseNotification';
 import SectionReveal from '@/components/SectionReveal';
@@ -39,6 +41,9 @@ export default function Home() {
         <SectionReveal delayMs={200}>
           <TopProducts />
         </SectionReveal>
+        <SectionReveal delayMs={220}>
+          <HomeAiToolsSection />
+        </SectionReveal>
         <SectionReveal delayMs={240}>
           <WhyChooseUs />
         </SectionReveal>
@@ -47,6 +52,9 @@ export default function Home() {
         </SectionReveal>
         <SectionReveal delayMs={320}>
           <FAQ />
+        </SectionReveal>
+        <SectionReveal delayMs={360}>
+          <OtherWebsites />
         </SectionReveal>
       </main>
       {/* Notify giả lập khách hàng thêm vào giỏ hàng */}
