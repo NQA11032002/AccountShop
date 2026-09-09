@@ -1,0 +1,41 @@
+/* Homepage visuals stay scoped so other routes retain their existing design. */
+.home-page { color-scheme: light; }
+.home-page .home-soft-section { background: #f2f4fb; border-block: 1px solid #e9ecf5; }
+.home-page .home-eyebrow { color: #6d28d9; font-size: 11px; font-weight: 700; letter-spacing: .16em; }
+.home-hero { background: linear-gradient(120deg, #fafbff 15%, #f4f1ff 60%, #edf7ff); }
+.home-hero-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(#7264b708 1px, transparent 1px), linear-gradient(90deg, #7264b708 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(to right, transparent, black); }
+.home-glow { position: absolute; pointer-events: none; border-radius: 50%; filter: blur(55px); animation: home-drift 12s ease-in-out infinite alternate; }
+.home-glow-one { width: 350px; height: 350px; background: #c4b5fd55; right: 8%; top: 8%; }
+.home-glow-two { width: 220px; height: 220px; background: #93c5fd45; left: 25%; bottom: 0; animation-delay: -6s; }
+.home-gradient-text { background: linear-gradient(100deg, #6d28d9, #4f46e5 45%, #0284c7 75%, #6d28d9); background-size: 200% auto; background-clip: text; -webkit-background-clip: text; color: transparent; animation: home-gradient 9s ease-in-out infinite alternate; }
+.home-page .home-button-primary, .home-page .home-button-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 14px 21px; border-radius: 12px; font-size: 14px; font-weight: 600; transition: transform .25s, box-shadow .25s, background-color .25s; }
+.home-page .home-button-primary { color: white; background: #6d28d9; box-shadow: 0 8px 24px -7px #7c3aed66; }
+.home-page .home-button-primary:hover { background: #5b21b6; transform: translateY(-2px); box-shadow: 0 12px 28px -7px #7c3aed80; }
+.home-page .home-button-secondary { color: #334155; background: #ffffffc9; border: 1px solid #dfe3ed; }
+.home-page .home-button-secondary:hover { background: white; transform: translateY(-2px); }
+.home-page :is(a, button):focus-visible { outline: 3px solid #8b5cf6; outline-offset: 5px; }
+.home-orbit { position: absolute; width: 115%; aspect-ratio: 1; border: 1px dashed #a78bfa4d; border-radius: 50%; left: -7.5%; top: -5%; animation: home-orbit 65s linear infinite; pointer-events: none; }
+.home-orbit::before { content: ''; position: absolute; top: 13%; left: 13%; width: 12px; height: 12px; border-radius: 50%; background: #a78bfa; box-shadow: 0 0 0 7px #a78bfa1a; }
+.home-floating-badge { animation: home-float 6s ease-in-out infinite; }
+.home-floating-note { animation: home-float 7s ease-in-out -3s infinite; }
+.home-enter { animation: home-enter .75s cubic-bezier(.22,1,.36,1) both; }
+.home-preview-enter { animation: home-enter .35s ease-out both; }
+.home-preview-step { animation: home-enter .4s ease-out both; }
+.home-category-card { transition: transform .3s, box-shadow .3s, border-color .3s, background-color .3s; }
+.home-category-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px -20px #4c1d9538; }
+@keyframes home-enter { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes home-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes home-drift { from { transform: translate3d(0,0,0); } to { transform: translate3d(30px,-25px,0); } }
+@keyframes home-orbit { to { transform: rotate(360deg); } }
+@keyframes home-gradient { to { background-position: 100% center; } }
+@media (max-width: 639px) {
+  .home-glow { filter: blur(35px); opacity: .65; }
+  .home-orbit { display: none; }
+  .home-category-card:hover { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.home-page) { scroll-behavior: auto; }
+  .home-page *, .home-page *::before, .home-page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .home-page .home-category-card:hover, .home-page .home-tool-card:hover,
+  .home-page .home-button-primary:hover, .home-page .home-button-secondary:hover { transform: none; }
+}

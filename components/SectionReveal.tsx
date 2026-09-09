@@ -11,7 +11,7 @@ type SectionRevealProps = {
 
 export default function SectionReveal({ children, delayMs = 0, className = '' }: SectionRevealProps) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -33,7 +33,12 @@ export default function SectionReveal({ children, delayMs = 0, className = '' }:
     }
 
     const currentRef = ref.current;
-    if (!currentRef) return;
+    if (!currentRef || !('IntersectionObserver' in window)) return;
+    // Server-rendered content stays readable without JavaScript. Only hide
+    // off-screen sections after hydration, until their leading edge enters.
+    if (currentRef.getBoundingClientRect().top >= window.innerHeight) {
+      setIsVisible(false);
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -45,8 +50,8 @@ export default function SectionReveal({ children, delayMs = 0, className = '' }:
       },
       {
         root: null,
-        threshold: 0.18,
-        rootMargin: '-10% 0px -10% 0px',
+        threshold: 0,
+        rootMargin: '0px 0px -40px 0px',
       }
     );
 
@@ -58,7 +63,7 @@ export default function SectionReveal({ children, delayMs = 0, className = '' }:
   return (
     <div
       ref={ref}
-      className={`transform-gpu transition-all duration-700 ease-out will-change-transform ${className} ${
+      className={`min-w-0 transition-[opacity,transform] duration-700 ease-out motion-reduce:!transform-none motion-reduce:!opacity-100 motion-reduce:!transition-none ${className} ${
         isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
       }`}
       style={{ transitionDelay: `${delayMs}ms` }}
