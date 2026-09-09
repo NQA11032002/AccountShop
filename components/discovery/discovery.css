@@ -1,0 +1,43 @@
+.discovery-page { color-scheme: light; --discovery-accent: #6d28d9; overflow-x: clip; }
+.discovery-page .discovery-gradient { display: block; padding-bottom: .08em; color: transparent; background: linear-gradient(100deg,#6d28d9,#4f46e5 45%,#0284c7); background-clip: text; -webkit-background-clip: text; }
+.discovery-hero { border-bottom: 1px solid #e8e7f3; background: linear-gradient(120deg,#fafbff 10%,#f4f1ff 65%,#edf7ff); }
+.discovery-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(#7264b708 1px,transparent 1px),linear-gradient(90deg,#7264b708 1px,transparent 1px); background-size: 44px 44px; mask-image: linear-gradient(to right,transparent,black); }
+.discovery-glow { position: absolute; right: 10%; top: 15%; width: 320px; height: 320px; border-radius: 50%; background: #c4b5fd50; filter: blur(60px); pointer-events: none; animation: discovery-drift 12s ease-in-out infinite alternate; }
+.discovery-ring { position: absolute; inset: -25px; border: 1px dashed #c4b5fd80; border-radius: 50%; transform: rotate(-12deg); }
+.discovery-visual { animation-delay: 100ms; }
+.discovery-float { animation: discovery-float 6s ease-in-out infinite; }
+.discovery-enter { animation: discovery-enter .6s cubic-bezier(.22,1,.36,1) both; }
+.discovery-page .discovery-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .16em; color: #7c3aed; }
+.discovery-page .discovery-panel, .discovery-page .discovery-card { min-width: 0; border: 1px solid #e5e7ef; border-radius: 20px; background: white; color: #0f172a; box-shadow: 0 5px 20px -15px #4c1d9530; --tw-ring-color: transparent; }
+.discovery-page .discovery-card { transition: transform .28s,box-shadow .28s,border-color .28s; }
+.discovery-page .discovery-card:hover { transform: translateY(-5px); border-color: #c4b5fd; box-shadow: 0 18px 40px -24px #5b21b655; }
+.discovery-page .discovery-search { min-height: 52px; border: 1px solid #e2e4ef; border-radius: 14px; background: white; box-shadow: 0 6px 24px -16px #4c1d9544; color: #334155; }
+.discovery-page .discovery-primary, .discovery-page .discovery-secondary { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; padding: 11px 18px; font-size: 13px; font-weight: 600; transition: background-color .2s,transform .2s; }
+.discovery-page .discovery-primary { background: #6d28d9; color: white; border: 1px solid transparent; box-shadow: 0 7px 20px -10px #6d28d980; }
+.discovery-page .discovery-primary:hover { background: #5b21b6; }
+.discovery-page .discovery-secondary { background: white; color: #475569; border: 1px solid #e2e4ef; }
+.discovery-page .discovery-secondary:hover { background: #f5f3ff; border-color: #c4b5fd; }
+.discovery-page .discovery-pill { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; border-radius: 10px; border: 1px solid #e5e7eb; background: white; color: #64748b; padding: 8px 13px; font-size: 12px; font-weight: 600; transition: background-color .2s,color .2s,border-color .2s; }
+.discovery-page .discovery-pill:hover { border-color: #c4b5fd; background: #faf5ff; }
+.discovery-page .discovery-pill[aria-pressed="true"] { background: #6d28d9; border-color: #6d28d9; color: white; }
+.discovery-page .discovery-tabs { min-height: 54px; padding: 6px; border: 1px solid #e5e7ef; background: white; border-radius: 16px; box-shadow: 0 6px 20px -15px #4c1d9533; }
+.discovery-page .discovery-tabs [role="tab"] { min-height: 42px; border-radius: 11px; color: #64748b; background: transparent; box-shadow: none; }
+.discovery-page .discovery-tabs [role="tab"][data-state="active"] { background: #6d28d9; color: white; box-shadow: 0 4px 12px -6px #6d28d966; }
+.discovery-page [role="tabpanel"][data-state="active"] { animation: discovery-enter .3s ease-out; }
+.discovery-page .discovery-banner { position: relative; overflow: hidden; border: 1px solid #292345; border-radius: 24px; background: radial-gradient(ellipse at top right,#35215d,transparent 70%),#11132b; color: white; }
+.discovery-page .discovery-empty { border: 1px dashed #d8d5e8; border-radius: 20px; background: #ffffffa6; padding: 48px 24px; text-align: center; color: #64748b; }
+.discovery-page .discovery-skeleton { min-height: 250px; border: 1px solid #e8e8f1; border-radius: 20px; background: linear-gradient(110deg,#f0eff7 30%,#fafaff 50%,#f0eff7 70%); background-size: 250% 100%; animation: discovery-shimmer 2s ease-in-out infinite; }
+.discovery-page .discovery-lesson[aria-pressed="true"] { background: #f5f3ff; border-color: #c4b5fd; box-shadow: inset 3px 0 #7c3aed; }
+.discovery-page :is(a,button,input,select):focus-visible { outline: 3px solid #a78bfa; outline-offset: 3px; }
+.discovery-page button:disabled { cursor: not-allowed; }
+.discovery-page :is(h1,h2,h3,pre) { overflow-wrap: anywhere; }
+@keyframes discovery-enter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes discovery-float { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
+@keyframes discovery-drift { to { transform: translate3d(35px,-20px,0); } }
+@keyframes discovery-shimmer { to { background-position: -150% 0; } }
+@media (max-width: 639px) { .discovery-glow { filter: blur(35px); opacity: .5; } .discovery-page .discovery-card:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  html:has(.discovery-page) { scroll-behavior: auto; }
+  .discovery-page *, .discovery-page *::before, .discovery-page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .discovery-page .discovery-card:hover { transform: none; }
+}

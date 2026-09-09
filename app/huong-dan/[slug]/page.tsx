@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PageShell from "@/components/PageShell";
+import DiscoveryShell from "@/components/discovery/DiscoveryShell";
 import AiToolLogo from "@/components/AiToolLogo";
 import SectionReveal from "@/components/SectionReveal";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { AI_GUIDES, getAiGuideBySlug, getAiGuideTool } from "@/data/ai-guides";
 import { fetchAiGuideBySlug, fetchAiGuides, resolveApiAssetUrl } from "@/lib/api";
-import { mapApiGuideToUi, mapApiGuidesToUi } from "@/lib/ai-guide-mappers";
+import { mapApiGuideToUi, mapApiGuidesToUi, mapFallbackGuideToUi } from "@/lib/ai-guide-mappers";
 import type { AiGuide } from "@/types/ai-guide.interface";
 import { cn } from "@/lib/utils";
 import { RichText } from "@/lib/rich-text";
@@ -60,8 +60,8 @@ export default function AiGuideDetailPage() {
         if (cancelled) return;
         const fallback = getAiGuideBySlug(slug);
         if (fallback) {
-          setGuide(fallback);
-          setAllGuides(AI_GUIDES);
+          setGuide(mapFallbackGuideToUi(fallback));
+          setAllGuides(AI_GUIDES.map(mapFallbackGuideToUi));
           setActiveFeatureId(fallback.features[0]?.id ?? "");
         } else {
           setNotFound(true);
@@ -88,23 +88,23 @@ export default function AiGuideDetailPage() {
 
   if (loading) {
     return (
-      <PageShell>
+      <DiscoveryShell>
         <Header />
-        <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
+        <main className="relative z-10 ">
           <div className="container-max section-padding py-20">
             <p className="text-center text-sm text-brand-gray/70">Đang tải hướng dẫn…</p>
           </div>
           <Footer />
         </main>
-      </PageShell>
+      </DiscoveryShell>
     );
   }
 
   if (notFound || !guide) {
     return (
-      <PageShell>
+      <DiscoveryShell>
         <Header />
-        <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
+        <main className="relative z-10 ">
           <div className="container-max section-padding py-20">
             <div className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white/90 p-8 text-center shadow-sm">
               <h1 className="text-2xl font-bold text-brand-charcoal">Không tìm thấy hướng dẫn</h1>
@@ -118,17 +118,17 @@ export default function AiGuideDetailPage() {
           </div>
           <Footer />
         </main>
-      </PageShell>
+      </DiscoveryShell>
     );
   }
 
   const tool = getAiGuideTool(guide);
 
   return (
-    <PageShell>
+    <DiscoveryShell>
       <Header />
 
-      <main className="relative z-10 min-w-0 overflow-x-clip bg-gradient-to-b from-slate-100/90 via-violet-50/50 to-slate-100/90">
+      <main className="relative z-10 min-w-0 overflow-x-clip ">
         <section className="pb-20 pt-8">
           <div className="container-max section-padding">
             <Button asChild variant="ghost" className="-ml-2 mb-6 gap-2 text-brand-gray">
@@ -138,10 +138,16 @@ export default function AiGuideDetailPage() {
               </Link>
             </Button>
 
-            <div className="grid min-w-0 max-w-full gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-              <SectionReveal delayMs={80} className="min-w-0 max-w-full">
-                <aside className="min-w-0 max-w-full lg:sticky lg:top-24 lg:self-start">
-                  <Card className="rounded-3xl border-slate-200/80 bg-white/90 shadow-sm">
+            <div className="discovery-panel mb-8 flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:p-8">
+              <AiToolLogo tool={tool} className="h-16 w-16 rounded-2xl" />
+              <div className="min-w-0"><p className="discovery-eyebrow">HỌC QUA THỰC HÀNH</p><h1 className="mt-2 text-3xl font-bold tracking-tight">{guide.name || tool.name}</h1><p className="mt-2 text-sm leading-6 text-slate-500">{guide.subtitle}</p></div>
+              <span className="shrink-0 rounded-full bg-violet-50 px-4 py-2 text-xs font-semibold text-violet-700 sm:ml-auto">{guide.features.length} tính năng</span>
+            </div>
+            <div className="mb-5 lg:hidden"><label htmlFor="guide-feature" className="mb-2 block text-sm font-semibold">Chọn tính năng muốn học</label><select id="guide-feature" value={activeFeature?.id ?? ""} onChange={event => setActiveFeatureId(event.target.value)} className="discovery-search w-full min-w-0 px-3">{guide.features.map((feature, index) => <option key={feature.id} value={feature.id}>{index + 1}. {feature.title}</option>)}</select></div>
+            <div className="grid min-w-0 max-w-full gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
+              <SectionReveal delayMs={80} className="hidden min-w-0 max-w-full lg:block">
+                <aside className="min-w-0 max-w-full lg:sticky lg:top-32 lg:self-start">
+                  <Card className="discovery-panel rounded-3xl border-slate-200/80 bg-white/90 shadow-sm">
                     <CardContent className="p-4">
                       <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-brand-charcoal">
                         <BookOpen className="h-4 w-4 text-brand-blue" />
@@ -156,8 +162,9 @@ export default function AiGuideDetailPage() {
                               key={feature.id}
                               type="button"
                               onClick={() => setActiveFeatureId(feature.id)}
+                              aria-pressed={active}
                               className={cn(
-                                "w-full min-w-0 max-w-full rounded-2xl border px-3 py-3 text-left transition-all",
+                                "discovery-lesson w-full min-w-0 max-w-full rounded-2xl border px-3 py-3 text-left transition-all",
                                 active
                                   ? "border-brand-blue/20 bg-brand-blue/10 shadow-sm"
                                   : "border-slate-200 bg-white hover:border-brand-blue/20 hover:bg-slate-50"
@@ -193,10 +200,10 @@ export default function AiGuideDetailPage() {
               </SectionReveal>
 
               <SectionReveal delayMs={120} className="min-w-0 max-w-full">
-                <div className="min-w-0 max-w-full space-y-6">
+                <div key={activeFeature?.id} className="discovery-enter min-w-0 max-w-full space-y-6">
                   {activeFeature ? (
                     <>
-                      <Card className="min-w-0 max-w-full rounded-3xl border-slate-200/80 bg-white/95 shadow-sm">
+                      <Card className="discovery-panel min-w-0 max-w-full rounded-3xl border-slate-200/80 bg-white/95 shadow-sm">
                         <CardContent className="p-6 sm:p-8">
                           <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-brand-gray/50">
                             <CheckCircle2 className="h-3.5 w-3.5" />
@@ -228,7 +235,7 @@ export default function AiGuideDetailPage() {
                         </CardContent>
                       </Card>
 
-                      <Card className="min-w-0 max-w-full overflow-hidden rounded-3xl border-slate-200/80 bg-white/95 shadow-sm">
+                      <Card className="discovery-panel min-w-0 max-w-full overflow-hidden rounded-3xl border-slate-200/80 bg-white/95 shadow-sm">
                         <CardContent className="p-6 sm:p-8">
                           <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-brand-gray/50">
                             <ImageIcon className="h-3.5 w-3.5" />
@@ -243,12 +250,13 @@ export default function AiGuideDetailPage() {
                                   className="max-w-full overflow-hidden rounded-3xl border border-slate-200"
                                 >
                                   <img
+                                    loading="lazy"
                                     src={resolveApiAssetUrl(url)}
                                     alt={
                                       activeFeature.imageTitle ||
                                       `${activeFeature.title} — ảnh ${index + 1}`
                                     }
-                                    className="block h-auto max-h-[420px] w-full max-w-full object-cover"
+                                    className="block h-auto max-h-[600px] w-full max-w-full object-contain"
                                   />
                                 </div>
                               ))}
@@ -333,7 +341,7 @@ export default function AiGuideDetailPage() {
 
                   return (
                     <Link key={item.slug} href={`/huong-dan/${item.slug}`} className="group">
-                      <Card className="h-full rounded-3xl border-slate-200/80 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand-blue/25 hover:shadow-lg">
+                      <Card className="discovery-panel h-full rounded-3xl border-slate-200/80 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand-blue/25 hover:shadow-lg">
                         <CardContent className="p-6">
                           <div className="flex items-center gap-3">
                             <AiToolLogo
@@ -368,6 +376,6 @@ export default function AiGuideDetailPage() {
 
         <Footer />
       </main>
-    </PageShell>
+    </DiscoveryShell>
   );
 }

@@ -1,4 +1,14 @@
 import type { AiGuide, AiGuideApi, AiGuideFeature, AiGuideFeatureApi } from "@/types/ai-guide.interface";
+import type { AiGuide as FallbackGuide } from "@/data/ai-guides";
+
+/** Keep local fallback content compatible with the public API view model. */
+export function mapFallbackGuideToUi(guide: FallbackGuide): AiGuide {
+  return {
+    ...guide,
+    name: guide.name ?? "",
+    features: guide.features.map(feature => ({ ...feature, imageUrls: [] })),
+  };
+}
 
 function resolveImageUrls(f: AiGuideFeatureApi): string[] {
   const fromList = (f.image_urls ?? [])

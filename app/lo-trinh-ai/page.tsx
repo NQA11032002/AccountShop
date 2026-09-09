@@ -2,14 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import DiscoveryShell from "@/components/discovery/DiscoveryShell";
+import DiscoveryHero from "@/components/discovery/DiscoveryHero";
+import DiscoverySteps from "@/components/discovery/DiscoverySteps";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   BookOpen,
-  GraduationCap,
   Search,
   ArrowRight,
   Layers,
@@ -72,57 +73,37 @@ export default function LoTrinhAiPage() {
   }, [courses, search]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-100/90">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-24 -left-20 h-72 w-72 rounded-full bg-brand-blue/15 blur-3xl animate-float"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute top-72 -right-20 h-80 w-80 rounded-full bg-brand-emerald/15 blur-3xl [animation-duration:4s] animate-float"
-      />
-
+    <DiscoveryShell>
       <Header />
 
-      <main className="relative z-10 bg-gradient-to-b from-slate-100/90 via-sky-50/40 to-slate-100/90">
-        <SectionReveal>
-          <section className="section-spacing-home pb-0">
-            <div className="container-max section-padding">
-              <div className="mx-auto max-w-4xl text-center">
-                <Badge className="mb-4 border-brand-blue/20 bg-brand-blue/10 text-brand-blue">
-                  <GraduationCap className="mr-1 h-3 w-3" />
-                  Lộ trình học AI
-                </Badge>
-                <h1 className="text-3xl font-bold leading-snug tracking-tight text-brand-charcoal sm:text-4xl md:text-5xl">
-                  Khóa học AI
-                  <span className="mt-2 block pb-1.5 gradient-text">thực chiến từng bước</span>
-                </h1>
-                <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-brand-gray/80 sm:text-lg">
-                  Chọn khóa phù hợp, xem danh sách bài học và làm theo hướng dẫn ngay trên trang.
-                </p>
-              </div>
-            </div>
-          </section>
-        </SectionReveal>
+      <main>
+        <DiscoveryHero theme="courses" badge="Khóa học & lộ trình AI" title={<>Học điều mới.<span className="discovery-gradient">Tiến xa mỗi ngày.</span></>} description="Chọn khóa học phù hợp, khám phá nội dung và từng bước đưa AI vào công việc của bạn.">
+          <Link href="/huong-dan" className="discovery-secondary"><BookOpen className="h-4 w-4" />Làm quen với AI trước</Link>
+        </DiscoveryHero>
 
-        <section className="section-spacing-home pb-16 pt-6">
+        <section className="section-spacing-home pb-16">
           <div className="container-max section-padding">
+            <SectionReveal>
+              <DiscoverySteps steps={[{ title: "Chọn khóa học", description: "Xem cấp độ và nội dung phù hợp." }, { title: "Đăng ký tham gia", description: "Mở nội dung theo quyền truy cập." }, { title: "Học & thực hành", description: "Theo dõi các bài học từng bước." }]} />
+            </SectionReveal>
             <SectionReveal delayMs={60}>
-              <div className="mx-auto mb-8 max-w-3xl">
-                <div className="relative">
+              <div className="mb-8 mt-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div><p className="discovery-eyebrow">KHÔNG GIAN HỌC TẬP</p><h2 className="mt-2 text-2xl font-bold">Chọn hành trình của bạn</h2></div>
+                <div className="relative w-full sm:max-w-sm">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                   <Input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Tìm khóa học theo tên, cấp độ…"
-                    className="h-12 rounded-xl border-slate-200/80 bg-white/90 pl-10 shadow-sm"
+                    className="discovery-search pl-10"
+                    aria-label="Tìm khóa học theo tên hoặc cấp độ"
                   />
                 </div>
               </div>
             </SectionReveal>
 
             {loading && (
-              <p className="py-16 text-center text-brand-gray/70">Đang tải khóa học…</p>
+              <div role="status"><p className="mb-4 text-sm text-slate-500">Đang tải khóa học…</p><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{[0, 1, 2].map(i => <div key={i} className="discovery-skeleton" aria-hidden="true" />)}</div></div>
             )}
 
             {!loading && error && (
@@ -132,21 +113,21 @@ export default function LoTrinhAiPage() {
             )}
 
             {!loading && !error && filtered.length === 0 && (
-              <div className="mx-auto max-w-lg py-16 text-center text-brand-gray/70">
+              <div className="discovery-empty mx-auto max-w-lg">
                 <BookOpen className="mx-auto mb-3 h-10 w-10 opacity-40" />
-                <p>Chưa có khóa học nào{search.trim() ? " khớp tìm kiếm" : ""}.</p>
+                <p>Chưa có khóa học nào{search.trim() ? " khớp tìm kiếm" : ""}.</p>{search.trim() && <button type="button" className="discovery-secondary mt-4" onClick={() => setSearch("")}>Xóa tìm kiếm</button>}
               </div>
             )}
 
             {!loading && !error && filtered.length > 0 && (
-              <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2">
+              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((course, index) => {
                   const createdLabel = formatCourseDate(course.created_at);
                   return (
-                  <SectionReveal key={course.id} delayMs={80 + index * 40}>
+                  <SectionReveal key={course.id} delayMs={Math.min(index * 50, 180)}>
                     <Link
                       href={`/lo-trinh-ai/${course.slug}`}
-                      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand-blue/30 hover:shadow-md"
+                      className="discovery-card group flex h-full flex-col overflow-hidden"
                     >
                       <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-sky-100 via-white to-emerald-50">
                         {course.cover_image ? (
@@ -225,6 +206,6 @@ export default function LoTrinhAiPage() {
       </main>
 
       <Footer />
-    </div>
+    </DiscoveryShell>
   );
 }

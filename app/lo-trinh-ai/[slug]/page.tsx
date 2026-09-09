@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import DiscoveryShell from "@/components/discovery/DiscoveryShell";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -126,12 +127,7 @@ export default function AiCourseDetailPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-100/90">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-20 right-0 h-64 w-64 rounded-full bg-brand-blue/10 blur-3xl"
-      />
-
+    <DiscoveryShell>
       <Header />
 
       <main className="relative z-10">
@@ -158,7 +154,7 @@ export default function AiCourseDetailPage() {
 
           {!loading && course && (
             <SectionReveal>
-              <div className="mb-8 max-w-3xl">
+              <div className="discovery-panel mb-8 p-6 sm:p-8">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                   {course.level && <CourseLevelBadge level={course.level} />}
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-2.5 py-1 text-sm font-semibold text-sky-700">
@@ -181,7 +177,7 @@ export default function AiCourseDetailPage() {
                     ) : null;
                   })()}
                 </div>
-                <h1 className="text-3xl font-bold tracking-tight text-brand-charcoal sm:text-4xl">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
                   {course.title}
                 </h1>
                 {course.description && (
@@ -224,11 +220,12 @@ export default function AiCourseDetailPage() {
                 </div>
               </div>
 
-              <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-                <aside className="lg:sticky lg:top-24 lg:self-start">
+              {isEnrolled && (course.lessons?.length ?? 0) > 0 && <div className="mb-5 lg:hidden"><label htmlFor="course-lesson" className="mb-2 block text-sm font-semibold">Chọn bài học</label><select id="course-lesson" value={activeLessonId ?? ""} onChange={event => handleSelectLesson(Number(event.target.value))} className="discovery-search w-full px-3">{course.lessons.map((lesson, index) => <option key={lesson.id} value={lesson.id}>{index + 1}. {lesson.title}</option>)}</select></div>}
+              <div className="grid min-w-0 gap-8 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
+                <aside className={cn("min-w-0 lg:sticky lg:top-32 lg:self-start", isEnrolled && "hidden lg:block")}>
                   <div
                     className={cn(
-                      "rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-sm",
+                      "discovery-panel p-4",
                       !isEnrolled && "opacity-90"
                     )}
                   >
@@ -248,8 +245,9 @@ export default function AiCourseDetailPage() {
                               type="button"
                               onClick={() => handleSelectLesson(lesson.id)}
                               disabled={!isEnrolled}
+                              aria-pressed={active}
                               className={cn(
-                                "flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors",
+                                "discovery-lesson flex w-full min-w-0 items-start gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm transition-colors",
                                 !isEnrolled && "cursor-not-allowed text-slate-400",
                                 isEnrolled &&
                                   (active
@@ -267,7 +265,7 @@ export default function AiCourseDetailPage() {
                               >
                                 {isEnrolled ? index + 1 : <Lock className="h-3 w-3" />}
                               </span>
-                              <span className="leading-snug">{lesson.title}</span>
+                              <span className="min-w-0 break-words leading-snug [overflow-wrap:anywhere]">{lesson.title}</span>
                             </button>
                           </li>
                         );
@@ -296,7 +294,7 @@ export default function AiCourseDetailPage() {
                       <Button
                         onClick={handleEnroll}
                         disabled={enrolling}
-                        className="gap-2 rounded-xl"
+                        className="discovery-primary"
                       >
                         <UserPlus className="h-4 w-4" />
                         {enrolling
@@ -307,7 +305,7 @@ export default function AiCourseDetailPage() {
                       </Button>
                     </div>
                   ) : activeLesson ? (
-                    <article className="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm sm:p-8">
+                    <article key={activeLesson.id} className="discovery-panel discovery-enter p-5 sm:p-8">
                       <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-brand-gray/50">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         Bài học
@@ -350,7 +348,7 @@ export default function AiCourseDetailPage() {
                       )}
 
                       {activeLesson.content ? (
-                        <div className="prose prose-slate mt-6 max-w-none whitespace-pre-wrap text-brand-charcoal/90">
+                        <div className="prose prose-slate mt-6 max-w-none break-words whitespace-pre-wrap [overflow-wrap:anywhere] text-brand-charcoal/90">
                           {activeLesson.content}
                         </div>
                       ) : (
@@ -374,6 +372,6 @@ export default function AiCourseDetailPage() {
       </main>
 
       <Footer />
-    </div>
+    </DiscoveryShell>
   );
 }
