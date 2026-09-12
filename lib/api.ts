@@ -24,8 +24,8 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
 
 export const sendEmailToAllUsers = async (
     sessionId: string,
-    payload: { subject: string; content: string }
-): Promise<{ message: string; sent_count: number }> => {
+    payload: { subject: string; content: string; emails: string[] }
+): Promise<{ message: string; sent_count: number; sent_emails: string[] }> => {
     const res = await fetch(`${API_URL}/admin/users/send-email`, {
         method: 'POST',
         headers: {
@@ -37,6 +37,16 @@ export const sendEmailToAllUsers = async (
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.message || 'Không thể gửi email.');
+    return data;
+};
+
+export const fetchEmailRecipients = async (sessionId: string): Promise<{ emails: string[] }> => {
+    const res = await fetch(`${API_URL}/admin/users/email-recipients`, {
+        headers: { Accept: 'application/json', Authorization: `Bearer ${sessionId}` },
+        cache: 'no-store',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || 'Không thể tải danh sách email.');
     return data;
 };
 
