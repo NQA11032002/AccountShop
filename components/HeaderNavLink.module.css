@@ -10,16 +10,17 @@
   font-weight: 600;
   color: #334155;
   background: transparent;
-  transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+  transition: color 180ms ease;
 }
 
-.link:hover { background: #eff6ff; color: #1d4ed8; }
+.link:hover { color: #2563eb; }
+.link::after { display: none; }
 
 /* Persistent selected state, independent of hover, motion settings, or portal location. */
 .link[aria-current='page'], .link[aria-current='page']:hover {
-  color: #fff;
-  background: #2563eb;
-  box-shadow: 0 3px 10px #2563eb30, inset 0 0 0 1px #1d4ed8;
+  color: #0066ff;
+  background: transparent;
+  box-shadow: none;
 }
 
 .link:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
@@ -35,7 +36,7 @@
   background: #f1f5f9;
   color: #475569;
 }
-.link[aria-current='page'] .icon { background: #ffffff26; color: #fff; }
+.link[aria-current='page'] .icon { background: transparent; color: #0066ff; }
 
 @media (prefers-reduced-motion: reduce) {
   .link { transition: none; }
