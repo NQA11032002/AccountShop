@@ -20,7 +20,7 @@ export default function DiscoveryHero({ badge, title, description, theme, childr
       <div className="discovery-grid" aria-hidden="true" />
       <div className="discovery-glow" aria-hidden="true" />
       <div className="container-max section-padding relative grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[1.3fr_1fr] lg:gap-16 lg:py-20">
-        <div className="discovery-enter min-w-0">
+        <div className="customer-hero-copy min-w-0">
           <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/85 px-3 py-2 text-xs font-semibold text-violet-700"><Sparkles className="h-3.5 w-3.5" aria-hidden="true" />{badge}<ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></p>
           <h1 className="text-balance text-[2.4rem] font-extrabold leading-[1.17] tracking-[-0.04em] text-slate-950 sm:text-5xl lg:text-[3.4rem]">{title}</h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">{description}</p>

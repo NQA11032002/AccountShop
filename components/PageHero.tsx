@@ -22,9 +22,9 @@ export default function PageHero({
   const alignClass = align === "center" ? "text-center" : "text-left";
 
   return (
-    <section className={`section-spacing-home pb-12 sm:pb-14 lg:pb-16 ${className}`}>
+    <section className={`customer-page-hero section-spacing-home pb-12 sm:pb-14 lg:pb-16 ${className}`}>
       <div className="container-max section-padding">
-        <div className={`mx-auto max-w-4xl ${alignClass}`}>
+        <div className={`customer-hero-copy mx-auto max-w-4xl ${alignClass}`}>
           <Badge className="mb-4 border-brand-blue/20 bg-brand-blue/10 text-brand-blue">
             <Sparkles className="mr-1 h-3 w-3" />
             {badge}

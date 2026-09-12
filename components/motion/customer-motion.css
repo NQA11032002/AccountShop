@@ -1,0 +1,123 @@
+/* Scoped to customer routes; no transforms on the route shell or fixed header. */
+.customer-experience {
+  --customer-ease: cubic-bezier(.22, 1, .36, 1);
+  min-width: 0;
+}
+
+.customer-scroll-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1001;
+  height: 3px;
+  pointer-events: none;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: linear-gradient(90deg, #7c3aed, #3b82f6 60%, #34d399);
+  box-shadow: 0 0 12px #7c3aed40;
+}
+
+.customer-experience [data-customer-button] {
+  transition: transform 220ms var(--customer-ease), box-shadow 220ms ease,
+    background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+.customer-experience [data-customer-button]:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(.97);
+}
+.customer-experience [data-customer-button] > svg {
+  transition: translate 220ms var(--customer-ease);
+}
+.customer-experience :is(input, textarea, select) {
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.customer-experience :is(a, button, input, textarea, select):focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 4px;
+}
+
+.customer-experience .customer-page-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+.customer-experience .customer-page-hero::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 5% 10%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 25% 35%, #c4b5fd40, transparent 55%),
+    radial-gradient(ellipse at 80% 60%, #93c5fd30, transparent 55%);
+  animation: customer-aura 10s ease-in-out infinite alternate;
+}
+.customer-experience .customer-hero-copy > * {
+  animation: customer-intro 650ms var(--customer-ease) backwards;
+}
+.customer-experience .customer-hero-copy > :nth-child(2) { animation-delay: 80ms; }
+.customer-experience .customer-hero-copy > :nth-child(3) { animation-delay: 160ms; }
+.customer-experience .customer-hero-copy > :nth-child(4) { animation-delay: 240ms; }
+.customer-experience .discovery-gradient {
+  background-size: 200% auto;
+  animation: customer-gradient 9s ease-in-out infinite alternate;
+}
+.customer-experience [role="tabpanel"][data-state="active"] {
+  animation: customer-panel 260ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .customer-experience :is([data-customer-card], .home-category-card, .discovery-card) {
+    transition: box-shadow 300ms ease, border-color 300ms ease, transform 300ms var(--customer-ease);
+  }
+  .customer-experience :is([data-customer-card], .home-category-card, .discovery-card):hover {
+    border-color: #c4b5fd;
+    box-shadow: 0 16px 38px -24px #6d28d94d;
+  }
+  .customer-experience [data-customer-product]:hover {
+    transform: translateY(-5px);
+  }
+  .customer-experience [data-customer-product] img {
+    transition: transform 550ms var(--customer-ease);
+  }
+  .customer-experience [data-customer-product]:hover img { transform: scale(1.06); }
+  .customer-experience [data-customer-button]:hover:not(:disabled):not([aria-disabled="true"]) {
+    transform: translateY(-2px);
+  }
+  .customer-experience [data-customer-button]:hover > svg:last-child { translate: 2px 0; }
+  .customer-experience header nav a {
+    position: relative;
+  }
+  .customer-experience header nav a::after {
+    content: '';
+    position: absolute;
+    inset: auto 20% 2px;
+    height: 2px;
+    background: linear-gradient(90deg, #8b5cf6, #38bdf8);
+    border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 240ms var(--customer-ease);
+  }
+  .customer-experience header nav a:is(:hover, :focus-visible)::after { transform: scaleX(1); }
+}
+
+@keyframes customer-intro {
+  from { opacity: 0; translate: 0 14px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@keyframes customer-panel { from { opacity: .5; } to { opacity: 1; } }
+@keyframes customer-aura { to { transform: translate3d(3%, -4%, 0) scale(1.07); } }
+@keyframes customer-gradient { to { background-position: 100% center; } }
+
+.customer-experience[data-motion-paused="true"] *,
+.customer-experience[data-motion-paused="true"] *::before,
+.customer-experience[data-motion-paused="true"] *::after { animation-play-state: paused !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.customer-experience) { scroll-behavior: auto; }
+  .customer-experience *, .customer-experience *::before, .customer-experience *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .customer-experience :is([data-customer-product], [data-customer-button]):hover,
+  .customer-experience [data-customer-button]:active { transform: none !important; }
+}

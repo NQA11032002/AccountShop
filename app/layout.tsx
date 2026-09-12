@@ -11,6 +11,7 @@ import DataSyncManager from '@/components/DataSyncManager';
 import NavigationManager from '@/components/NavigationManager';
 import CoinsSync from '@/components/CoinsSync';
 import Zalo from '@/components/Zalo';
+import CustomerExperience from '@/components/motion/CustomerExperience';
 import './globals.css';
 
 const inter = Inter({
@@ -79,7 +80,7 @@ export default function RootLayout({
                     <DataSyncManager />
                     <NavigationManager />
                     <CoinsSync />
-                    {children}
+                    <CustomerExperience>{children}</CustomerExperience>
                     <Zalo />
                     <Toaster />
                     {/* </AdminProvider> */}

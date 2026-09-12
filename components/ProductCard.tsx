@@ -206,7 +206,7 @@ export default function ProductCard({
 
   if (isListView) {
     return (
-      <Card className={`group hover:shadow-xl transition-all duration-500 border border-gray-100 shadow-sm bg-white rounded-2xl overflow-hidden hover:scale-[1.02] hover:-translate-y-1 flex flex-row h-auto ${className}`}>
+      <Card data-customer-product="" className={`group hover:shadow-xl transition-all duration-500 border border-gray-100 shadow-sm bg-white rounded-2xl overflow-hidden hover:scale-[1.02] hover:-translate-y-1 flex flex-row h-auto ${className}`}>
         <CardContent className="flex-1 flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
           {/* Image */}
           <div className="flex-shrink-0">
@@ -278,7 +278,7 @@ export default function ProductCard({
 
   // Grid view (default) — h-full + flex để nút "Chi tiết" luôn sát đáy card trong grid
   return (
-    <Card className={`group relative bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden hover:scale-[1.02] flex h-full min-h-0 flex-col w-full max-w-sm mx-auto transform hover:-translate-y-1 ${className}`}>
+    <Card data-customer-product="" className={`group relative bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden hover:scale-[1.02] flex h-full min-h-0 flex-col w-full max-w-sm mx-auto transform hover:-translate-y-1 ${className}`}>
       {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
