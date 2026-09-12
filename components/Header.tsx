@@ -15,7 +15,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWallet } from '@/contexts/WalletContext';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { fetchCategories, fetchProducts } from '@/lib/api';
 import type { Category, ParentCategory } from '@/types/category.interface';
 import type { ProductBase } from '@/lib/products';
@@ -35,6 +35,11 @@ const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'Quà tặng': Gift,
 };
 
+export function isNavigationActive(pathname: string, href: string) {
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -45,6 +50,7 @@ export default function Header() {
   const { user, logout, setRole, setSessionId } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
 
   // categories state (flat list). Use any internally to allow slug even if your type lacks it.
   const [categories, setCategories] = useState<any[]>([]);
@@ -620,16 +626,22 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center justify-center h-12 gap-2 xl:gap-6">
-          {navLinks.map((item) => (
+          {navLinks.map((item) => {
+            const isActive = isNavigationActive(pathname, item.href);
+            return (
             <div key={item.name} className="relative group">
               <Link
                 href={item.href}
-                className="text-gray-700 hover:text-brand-blue font-medium text-sm px-3 py-2 rounded-md hover:bg-gray-100 transition flex items-center"
+                aria-current={isActive ? 'page' : undefined}
+                className={`relative flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${isActive
+                  ? 'bg-brand-blue/10 text-brand-blue shadow-sm ring-1 ring-brand-blue/10'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-brand-blue'
+                }`}
               >
                 {item.name}
               </Link>
             </div>
-          ))}
+          )})}
         </nav>
 
         {/* Mobile Drawer - Render via Portal để nhận touch/click ra ngoài */}
@@ -673,15 +685,23 @@ export default function Header() {
                 <div className="space-y-0.5">
                   {navLinks.map((item) => {
                     const Icon = navIcons[item.name] || Package;
+                    const isActive = isNavigationActive(pathname, item.href);
                     return (
                       <Link
                         key={item.name}
                         href={item.href}
-                        className="group flex items-center gap-3 py-2.5 px-4 text-gray-700 hover:text-brand-blue hover:bg-brand-blue/5 font-medium rounded-xl transition"
+                        aria-current={isActive ? 'page' : undefined}
+                        className={`group flex items-center gap-3 rounded-xl px-4 py-2.5 font-medium transition-all ${isActive
+                          ? 'bg-brand-blue/10 text-brand-blue shadow-sm ring-1 ring-brand-blue/10'
+                          : 'text-gray-700 hover:bg-brand-blue/5 hover:text-brand-blue'
+                        }`}
                         onClick={() => setIsMenuOpen(false)}
                       >
                         {Icon && (
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600 group-hover:bg-brand-blue/10 group-hover:text-brand-blue">
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${isActive
+                            ? 'bg-brand-blue text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-600 group-hover:bg-brand-blue/10 group-hover:text-brand-blue'
+                          }`}>
                             <Icon className="w-4 h-4" />
                           </div>
                         )}

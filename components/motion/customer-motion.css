@@ -97,6 +97,7 @@
     transition: transform 240ms var(--customer-ease);
   }
   .customer-experience header nav a:is(:hover, :focus-visible)::after { transform: scaleX(1); }
+  .customer-experience header nav a[aria-current="page"]::after { transform: scaleX(1); }
 }
 
 @keyframes customer-intro {
