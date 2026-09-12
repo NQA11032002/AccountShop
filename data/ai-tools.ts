@@ -1,3 +1,5 @@
+import { ADDITIONAL_AI_TOOLS } from './ai-tools-expanded';
+
 export type AiToolCategory = {
   id: string;
   name: string;
@@ -35,8 +37,8 @@ export const AI_TOOL_CATEGORIES: AiToolCategory[] = [
   },
   {
     id: "video",
-    name: "Video & Âm thanh",
-    description: "Tạo video, avatar, lồng tiếng, nhạc và chỉnh sửa media",
+    name: "Video & Chuyển động",
+    description: "Tạo video, avatar, clip ngắn, phụ đề và chỉnh sửa media",
   },
   {
     id: "coding",
@@ -58,6 +60,18 @@ export const AI_TOOL_CATEGORIES: AiToolCategory[] = [
     name: "Năng suất & Văn phòng",
     description: "Slide, họp, ghi chú và tự động hóa quy trình làm việc",
   },
+  { id: 'audio', name: 'Âm nhạc & Giọng nói', description: 'Sáng tác nhạc, lồng tiếng, làm podcast và xử lý âm thanh' },
+  { id: '3d', name: '3D & Phát triển game', description: 'Mô hình 3D, texture, sprite, nhân vật và ý tưởng trò chơi' },
+  { id: 'automation', name: 'AI Agent & Tự động hóa', description: 'Kết nối ứng dụng, xây trợ lý và tự động xử lý công việc' },
+  { id: 'data', name: 'Dữ liệu & Excel', description: 'Phân tích bảng tính, tạo công thức, biểu đồ và báo cáo' },
+  { id: 'translation', name: 'Dịch thuật & Ngôn ngữ', description: 'Dịch văn bản, tài liệu và bản địa hóa website, ứng dụng' },
+  { id: 'education', name: 'Giáo dục & Luyện ngoại ngữ', description: 'Gia sư AI, soạn giáo án, tạo bài tập và luyện giao tiếp' },
+  { id: 'webdesign', name: 'Website & UI/UX', description: 'Tạo website, sitemap, wireframe và giao diện ứng dụng' },
+  { id: 'support', name: 'Chăm sóc khách hàng', description: 'Chatbot, trợ lý giọng nói và trả lời từ kho kiến thức doanh nghiệp' },
+  { id: 'career', name: 'CV & Tìm việc', description: 'Soạn hồ sơ, thư ứng tuyển và quản lý quá trình tìm việc' },
+  { id: 'ecommerce', name: 'Bán hàng & Ảnh sản phẩm', description: 'Tạo bối cảnh, ảnh thời trang và nội dung cho gian hàng online' },
+  { id: 'interior', name: 'Kiến trúc & Nội thất', description: 'Ý tưởng trang trí, mặt bằng, phối cảnh và dàn dựng không gian' },
+  { id: 'local', name: 'AI chạy trên máy', description: 'Ứng dụng và công cụ chạy mô hình AI trên máy tính cá nhân' },
 ];
 
 export const AI_TOOLS: AiTool[] = [
@@ -375,14 +389,14 @@ export const AI_TOOLS: AiTool[] = [
     id: "suno",
     name: "Suno",
     website: "https://suno.com",
-    categoryId: "video",
+    categoryId: "audio",
     useCase: "Tạo nhạc và bài hát từ mô tả văn bản",
   },
   {
     id: "elevenlabs",
     name: "ElevenLabs",
     website: "https://elevenlabs.io",
-    categoryId: "video",
+    categoryId: "audio",
     useCase: "Giọng nói AI, lồng tiếng và clone voice",
   },
   {
@@ -426,14 +440,14 @@ export const AI_TOOLS: AiTool[] = [
     id: "udio",
     name: "Udio",
     website: "https://www.udio.com",
-    categoryId: "video",
+    categoryId: "audio",
     useCase: "Sáng tác nhạc AI, beat và bài hát đa thể loại",
   },
   {
     id: "murf",
     name: "Murf AI",
     website: "https://murf.ai",
-    categoryId: "video",
+    categoryId: "audio",
     useCase: "Voice-over chuyên nghiệp cho video và presentation",
   },
   {
@@ -685,7 +699,7 @@ export const AI_TOOLS: AiTool[] = [
     id: "zapier-ai",
     name: "Zapier AI",
     website: "https://zapier.com/ai",
-    categoryId: "productivity",
+    categoryId: "automation",
     useCase: "Tự động hóa workflow giữa app, chatbot và agent",
   },
   {
@@ -709,6 +723,7 @@ export const AI_TOOLS: AiTool[] = [
     categoryId: "productivity",
     useCase: "Viết task, tóm tắt dự án và quản lý team",
   },
+  ...ADDITIONAL_AI_TOOLS,
 ];
 
 /** Slug Simple Icons (jsDelivr SVG — ổn định hơn cdn.simpleicons.org) */
@@ -816,4 +831,21 @@ export function getAiToolLogoUrl(tool: AiTool): string {
 
 export function getCategoryById(id: string): AiToolCategory | undefined {
   return AI_TOOL_CATEGORIES.find((c) => c.id === id);
+}
+
+export const NEW_AI_TOOL_IDS = new Set(ADDITIONAL_AI_TOOLS.map((tool) => tool.id));
+
+function normalizeSearch(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().trim();
+}
+
+export function filterAiTools(categoryId = 'all', query = '', newOnly = false): AiTool[] {
+  const words = normalizeSearch(query).split(/\s+/).filter(Boolean);
+  return AI_TOOLS.filter((tool) => {
+    if (categoryId !== 'all' && tool.categoryId !== categoryId) return false;
+    if (newOnly && !NEW_AI_TOOL_IDS.has(tool.id)) return false;
+    const category = getCategoryById(tool.categoryId);
+    const searchable = normalizeSearch([tool.name, tool.useCase, tool.note, category?.name, category?.description].join(' '));
+    return words.every((word) => searchable.includes(word));
+  });
 }

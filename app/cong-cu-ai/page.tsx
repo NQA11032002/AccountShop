@@ -20,6 +20,8 @@ import {
   AI_TOOL_CATEGORIES,
   AI_TOOLS,
   getCategoryById,
+  filterAiTools,
+  NEW_AI_TOOL_IDS,
 } from "@/data/ai-tools";
 import AiToolLogo from "@/components/AiToolLogo";
 import SectionReveal from "@/components/SectionReveal";
@@ -27,35 +29,26 @@ import SectionReveal from "@/components/SectionReveal";
 export default function CongCuAiPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [newOnly, setNewOnly] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 24;
 
-  const filteredTools = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return AI_TOOLS.filter((tool) => {
-      if (categoryFilter !== "all" && tool.categoryId !== categoryFilter) {
-        return false;
-      }
-      if (!q) return true;
-      const category = getCategoryById(tool.categoryId);
-      return (
-        tool.name.toLowerCase().includes(q) ||
-        tool.useCase.toLowerCase().includes(q) ||
-        (tool.note?.toLowerCase().includes(q) ?? false) ||
-        (category?.name.toLowerCase().includes(q) ?? false)
-      );
-    });
-  }, [categoryFilter, search]);
+  const filteredTools = useMemo(() => filterAiTools(categoryFilter, search, newOnly), [categoryFilter, search, newOnly]);
+  const totalPages = Math.max(1, Math.ceil(filteredTools.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const visibleTools = useMemo(() => filteredTools.slice((currentPage - 1) * pageSize, currentPage * pageSize), [filteredTools, currentPage]);
 
   const groupedByCategory = useMemo(() => {
     if (categoryFilter !== "all") {
       const cat = getCategoryById(categoryFilter);
       if (!cat) return [];
-      return [{ category: cat, tools: filteredTools }];
+      return [{ category: cat, tools: visibleTools }];
     }
     return AI_TOOL_CATEGORIES.map((category) => ({
       category,
-      tools: filteredTools.filter((t) => t.categoryId === category.id),
+      tools: visibleTools.filter((t) => t.categoryId === category.id),
     })).filter((g) => g.tools.length > 0);
-  }, [categoryFilter, filteredTools]);
+  }, [categoryFilter, visibleTools]);
 
   return (
     <DiscoveryShell>
@@ -75,7 +68,7 @@ export default function CongCuAiPage() {
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                   <Input
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                     placeholder="Tìm theo tên AI, lĩnh vực hoặc công việc..."
                     aria-label="Tìm công cụ AI theo tên hoặc nhu cầu"
                     className="discovery-search pl-10"
@@ -85,6 +78,12 @@ export default function CongCuAiPage() {
             </SectionReveal>
 
             <SectionReveal delayMs={100}>
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <Button type="button" variant="outline" className="discovery-pill" aria-pressed={newOnly} onClick={() => { setNewOnly(!newOnly); setPage(1); }}>
+                  Mới bổ sung ({NEW_AI_TOOL_IDS.size})
+                </Button>
+                <p className="text-xs text-slate-500">Thử tìm: “noi that”, “excel”, “tao game”, “luyen tieng Anh”.</p>
+              </div>
               <div className="mb-6 flex flex-wrap gap-2">
                 <Button
                   type="button"
@@ -92,7 +91,7 @@ export default function CongCuAiPage() {
                   variant={categoryFilter === "all" ? "default" : "outline"}
                   className="discovery-pill"
                   aria-pressed={categoryFilter === "all"}
-                  onClick={() => setCategoryFilter("all")}
+                  onClick={() => { setCategoryFilter("all"); setPage(1); }}
                 >
                   Tất cả ({AI_TOOLS.length})
                 </Button>
@@ -107,7 +106,7 @@ export default function CongCuAiPage() {
                       variant={active ? "default" : "outline"}
                       className="discovery-pill"
                       aria-pressed={active}
-                      onClick={() => setCategoryFilter(cat.id)}
+                      onClick={() => { setCategoryFilter(cat.id); setPage(1); }}
                     >
                       {cat.name} ({count})
                     </Button>
@@ -126,7 +125,7 @@ export default function CongCuAiPage() {
                     <p className="mt-1 text-sm text-brand-gray/70">
                       Thử từ khóa khác hoặc chọn &quot;Tất cả&quot;.
                     </p>
-                    <button type="button" className="discovery-secondary mt-5" onClick={() => { setSearch(""); setCategoryFilter("all"); }}>Xóa bộ lọc</button>
+                    <button type="button" className="discovery-secondary mt-5" onClick={() => { setSearch(""); setCategoryFilter("all"); setNewOnly(false); setPage(1); }}>Xóa bộ lọc</button>
                   </CardContent>
                 </Card>
               </SectionReveal>
@@ -155,6 +154,7 @@ export default function CongCuAiPage() {
                                       <CardTitle className="text-lg text-brand-charcoal">
                                         {tool.name}
                                       </CardTitle>
+                                      {NEW_AI_TOOL_IDS.has(tool.id) && <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">Mới</Badge>}
                                       {tool.note ? (
                                         <Badge
                                           variant="secondary"
@@ -182,7 +182,7 @@ export default function CongCuAiPage() {
                                   rel="noopener noreferrer"
                                   className="discovery-secondary mt-auto w-full"
                                 >
-                                  Mở công cụ
+                                  Trang chính thức
                                   <ExternalLink className="h-4 w-4 shrink-0" />
                                 </a>
                               </CardContent>
@@ -195,6 +195,12 @@ export default function CongCuAiPage() {
                 ))}
               </div>
             )}
+
+            {totalPages > 1 && <nav aria-label="Phân trang công cụ AI" className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <Button variant="outline" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Trang trước</Button>
+              <span className="text-sm text-slate-600" aria-live="polite">Trang {currentPage}/{totalPages} · {visibleTools.length} công cụ</span>
+              <Button variant="outline" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>Trang sau</Button>
+            </nav>}
 
             <SectionReveal delayMs={120}>
               <Card className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-2xl border-0 bg-white shadow-lg ring-1 ring-violet-200/90">

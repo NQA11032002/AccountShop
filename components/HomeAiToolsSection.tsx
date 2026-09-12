@@ -3,7 +3,8 @@ import { ArrowRight, ExternalLink } from "lucide-react";
 import { AI_TOOLS } from "@/data/ai-tools";
 import AiToolLogo from "@/components/AiToolLogo";
 
-const featuredTools = AI_TOOLS.slice(0, 12);
+const featuredIds = ['chatgpt', 'claude', 'midjourney', 'runway', 'suno', 'cursor', 'notebooklm', 'n8n', 'meshy', 'deepl', 'julius', 'khanmigo'];
+const featuredTools = featuredIds.flatMap((id) => AI_TOOLS.filter((tool) => tool.id === id));
 
 export default function HomeAiToolsSection() {
   return (
@@ -19,7 +20,7 @@ export default function HomeAiToolsSection() {
             Thêm công cụ. Mở rộng khả năng.
           </h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-            Những công cụ AI mình đang dùng thực tế cho việc tạo nội dung, tự động hóa và phát triển.
+            Khám phá công cụ AI cho sáng tạo, học tập, phân tích dữ liệu và tự động hóa công việc.
           </p>
         </div>
 
