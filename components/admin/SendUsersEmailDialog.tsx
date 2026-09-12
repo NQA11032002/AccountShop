@@ -31,7 +31,7 @@ export function SendUsersEmailDialog() {
     setError('');
     try {
       const result = await sendEmailToAllUsers(sessionId, { subject: subject.trim(), content: content.trim() });
-      toast({ title: 'Đã lên lịch gửi email', description: `${result.queued_count} email đã vào hàng đợi và sẽ được gửi lần lượt.` });
+      toast({ title: 'Đã gửi email', description: `Email đã được gửi đến ${result.sent_count} địa chỉ.` });
       setSubject('');
       setContent('');
       setOpen(false);
@@ -52,7 +52,7 @@ export function SendUsersEmailDialog() {
         <DialogHeader>
           <DialogTitle>Gửi email cho tất cả người dùng</DialogTitle>
           <DialogDescription>
-            Gửi đến toàn bộ người dùng có email hợp lệ, kể cả ngoài trang và bộ lọc hiện tại. Mỗi địa chỉ nhận một email riêng.
+            Gửi ngay một email đến toàn bộ người dùng có địa chỉ hợp lệ, kể cả ngoài trang và bộ lọc hiện tại. Người nhận được ẩn bằng BCC.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,7 +70,7 @@ export function SendUsersEmailDialog() {
             <Button type="button" variant="outline" disabled={sending} onClick={() => setOpen(false)}>Đóng</Button>
             <Button type="submit" disabled={sending || !subject.trim() || !content.trim()}>
               {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
-              {sending ? 'Đang lên lịch gửi...' : 'Gửi cho tất cả người dùng'}
+              {sending ? 'Đang gửi email...' : 'Gửi cho tất cả người dùng'}
             </Button>
           </DialogFooter>
         </form>
