@@ -22,6 +22,24 @@ import type {
 /** Base URL API (không có slash cuối). Ví dụ: http://localhost:8000/api */
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
 
+export const sendEmailToAllUsers = async (
+    sessionId: string,
+    payload: { subject: string; content: string }
+): Promise<{ message: string; queued_count: number }> => {
+    const res = await fetch(`${API_URL}/admin/users/send-email`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${sessionId}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || 'Không thể lên lịch gửi email.');
+    return data;
+};
+
 
 interface Order {
     id: string;

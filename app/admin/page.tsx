@@ -99,6 +99,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { EditUserDialog } from '@/components/admin/EditUserDialog';
+import { SendUsersEmailDialog } from '@/components/admin/SendUsersEmailDialog';
 import { EditProductDialog } from '@/components/admin/EditProductDialog';
 import { EditChatGPTDialog } from '@/components/admin/EditChatGPTDialog';
 import { EditCodeDialog } from '@/components/admin/EditCodeDialog';
@@ -4539,6 +4540,7 @@ QAI Store - Tài khoản cao cấp uy tín #1
                     </Button>
 
                     {/* Add user */}
+                    <SendUsersEmailDialog />
                     <Button
                       onClick={() => handleEditUser(null)}
                       className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
