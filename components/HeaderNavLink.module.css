@@ -1,0 +1,42 @@
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: #334155;
+  background: transparent;
+  transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.link:hover { background: #eff6ff; color: #1d4ed8; }
+
+/* Persistent selected state, independent of hover, motion settings, or portal location. */
+.link[aria-current='page'], .link[aria-current='page']:hover {
+  color: #fff;
+  background: #2563eb;
+  box-shadow: 0 3px 10px #2563eb30, inset 0 0 0 1px #1d4ed8;
+}
+
+.link:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
+.mobile { padding: 10px 16px; border-radius: 12px; }
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+}
+.link[aria-current='page'] .icon { background: #ffffff26; color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .link { transition: none; }
+}
