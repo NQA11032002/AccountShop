@@ -374,8 +374,8 @@ export default function Header() {
         <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-3">
           {/* Left - Logo (compact on mobile) */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0 group">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center overflow-hidden bg-white shadow-sm border border-gray-100">
-              <img src="/images/logo.png" alt="QAI STORE" className="w-full h-full object-contain" />
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center overflow-hidden bg-white shadow-sm border border-gray-100">
+              <img src="/images/logo.png?v=20260916" alt="QAI STORE" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col leading-tight min-w-0">
               <h1 className="text-base sm:text-xl font-bold text-gray-800 group-hover:text-brand-blue transition truncate">

@@ -26,10 +26,10 @@ export const metadata: Metadata = {
   authors: [{ name: 'QAI STORE' }],
   icons: {
     icon: [
-      { url: '/favicon.png' },
+      { url: '/favicon.png?v=20260916', sizes: '64x64', type: 'image/png' },
     ],
     apple: [
-      { url: '/images/logo.png' },
+      { url: '/apple-touch-icon.png?v=20260916', sizes: '180x180', type: 'image/png' },
     ],
   },
   openGraph: {
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     locale: 'vi_VN',
     images: [
       {
-        url: '/images/logo.png',
+        url: '/images/logo.png?v=20260916',
         width: 512,
         height: 512,
         alt: 'QAI STORE',

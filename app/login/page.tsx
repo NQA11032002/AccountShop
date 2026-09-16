@@ -61,9 +61,9 @@ function LoginForm() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl mb-4 shadow-lg p-2">
+          <div className="inline-flex items-center justify-center w-32 h-32 bg-white rounded-2xl mb-4 shadow-lg p-2">
             <img
-              src="/images/logo.png"
+              src="/images/logo.png?v=20260916"
               alt="QAI Store Logo"
               className="w-full h-full object-contain"
             />

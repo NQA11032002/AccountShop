@@ -46,9 +46,9 @@ export default function Footer() {
           <div className="space-y-4 sm:space-y-6">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+              <div className="w-16 h-16 shrink-0 overflow-hidden bg-white rounded-lg flex items-center justify-center">
                 {/* <span className="text-white font-bold text-xl">Q</span> */}
-                <img src="/images/logo.png" alt="" />
+                <img src="/images/logo.png?v=20260916" alt="QAI STORE" width={64} height={64} className="w-full h-full object-contain" />
               </div>
               <div>
                 <h3 className="text-xl font-bold">QAI STORE</h3>

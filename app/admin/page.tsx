@@ -3087,8 +3087,8 @@ QAI Store - Tài khoản cao cấp uy tín #1
             <div className="flex items-center gap-4 sm:gap-6 min-w-0">
               {/* Logo */}
               <div className="relative group shrink-0">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-2xl border border-white/20 sm:group-hover:scale-110 transition-transform duration-300 relative z-10">
-                  <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white drop-shadow-lg" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white overflow-hidden rounded-2xl flex items-center justify-center shadow-2xl border border-white/20 sm:group-hover:scale-110 transition-transform duration-300 relative z-10">
+                  <img src="/images/logo.png?v=20260916" alt="QAI STORE" width={64} height={64} className="w-full h-full object-contain" />
                 </div>
                 {/* Glow (kept absolute, purely decorative) */}
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/30 to-pink-400/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
